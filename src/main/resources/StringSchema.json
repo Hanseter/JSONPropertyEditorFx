@@ -1,0 +1,92 @@
+{
+	"type": "object",
+	"$schema": "http://json-schema.org/draft-07/schema",
+	"properties": {
+		"string": {
+			"type": "string",
+			"minLength": 3,
+			"maxLength": 5,
+			"default": "Hello",
+			"description": "This is a test string",
+			"title": "testString"
+		},
+		"ref": {
+			"type": "string",
+			"format": "id-reference",
+			"minLength": 3,
+			"maxLength": 5,
+			"pattern": "H.*"
+		},
+		"color": {
+			"type": "string",
+			"format": "color",
+			"default": "#FFFFFFFF",
+			"description": "This is a color"
+		},
+		"Some named boolean": {
+			"type": "boolean",
+			"default": true,
+			"description": "This doesn't have a title so the property name will be used"
+		},
+		"enum": {
+			"type": "string",
+			"enum": [
+				"foo",
+				"bar"
+			]
+		},
+		"string list": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"minLength": 3,
+				"maxLength": 5
+			}
+		},
+		"tuple": {
+			"type": "array",
+			"items": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "number",
+					"minimum": 5,
+					"exclusiveMaximum": 150,
+					"title": "foobar",
+					"readOnly": true
+				},
+				{
+					"type": "object",
+					"properties": {
+						"bool": {
+							"type": "boolean"
+						}
+					}
+				}
+			],
+			"readOnly": true
+		},
+		"integer": {
+			"type": "integer",
+			"default": 42,
+			"minimum": 0,
+			"exclusiveMaximum": 100
+		},
+		"number": {
+			"type": "number",
+			"default": 42.01,
+			"minimum": 0,
+			"exclusiveMaximum": 100
+		},
+		"nested Object": {
+			"type": "object",
+			"properties": {
+				"with a double field": {
+					"type": "number"
+				}
+			}
+		}
+	},
+	"title": "schema"
+}

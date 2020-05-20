@@ -1,0 +1,47 @@
+{
+	"type": "object",
+	"$schema": "http://json-schema.org/draft-07/schema",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "This is a test string"
+		},
+		"ref": {
+			"type": "string",
+			"format": "id-reference"
+		},
+		"color": {
+			"type": "string",
+			"format": "color",
+			"default": "#FFFFFFFF",
+			"description": "This is a color"
+		},
+		"boolean": {
+			"type": "boolean",
+			"default": true,
+			"description": "This doesn't have a title so the property name will be used"
+		},
+		"list of strings": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"minLength": 3,
+				"maxLength": 5
+			}
+		},
+		"integer": {
+			"type": "integer",
+			"default": 42,
+			"minimum": 0,
+			"exclusiveMaximum": 100
+		},
+		"nested Object": {
+			"type": "object",
+			"properties": {
+				"with a double field": {
+					"type": "number"
+				}
+			}
+		}
+	}
+}
