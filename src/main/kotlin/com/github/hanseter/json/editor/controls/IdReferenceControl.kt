@@ -80,7 +80,7 @@ class IdReferenceControl(
 			if (dataAndSchema != null) {
 				val (data, previewSchema) = dataAndSchema
 				val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1)
-				preview.display(value.value, control.text, data, previewSchema, { it })
+				preview.display(value.value, control.text, data, previewSchema, null, { it })
 				val scrollPane = ScrollPane(preview)
 				scrollPane.setMaxHeight(500.0)
 				scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER)
