@@ -20,7 +20,7 @@ abstract class TypeWithChildrenControl(
 
 	init {
 		childSchemas.map { it.isReadOnly() }
-		children = childSchemas.map { ControlFactory.convert(SchemaWrapper(schema, it), refProvider) }.toMutableList()
+		children = childSchemas.map { ControlFactory.convert(SchemaWrapper(schema, it), refProvider) }.sortedBy { it.schema.getPropertyName().toLowerCase() }.toMutableList()
 		content.getChildren().setAll(children.map { it.node })
 		node = TitledPane(schema.title, content)
 	}
