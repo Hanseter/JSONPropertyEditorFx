@@ -17,7 +17,7 @@ class EnumControl(schema: SchemaWrapper<Schema>, enumSchema: EnumSchema) :
 		schema,
 		ComboBox<String>(),
 		SimpleObjectProperty<String>(""),
-		schema.schema.getDefaultValue() as? String ?: enumSchema.getPossibleValuesAsList().first().toString()
+		schema.schema.getDefaultValue() as? String
 	) {
 
 	init {
@@ -27,12 +27,11 @@ class EnumControl(schema: SchemaWrapper<Schema>, enumSchema: EnumSchema) :
 		valueNewlyBound()
 	}
 
-
 	protected override fun valueNewlyBound() {
 		if (control.items.contains(value.getValue())) {
 			control.selectionModel.select(value.getValue())
 		} else {
-			control.selectionModel.select(0);
+			control.selectionModel.select(defaultValue);
 		}
 	}
 }

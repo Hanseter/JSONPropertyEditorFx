@@ -13,6 +13,6 @@ class BooleanControl(schema: SchemaWrapper<BooleanSchema>) :
 		schema,
 		ToggleSwitch(),
 		{ it.selectedProperty() },
-		schema.schema.getDefaultValue() as? Boolean ?: false
+		schema.schema.getDefaultValue() as? Boolean 
 	) {
 }

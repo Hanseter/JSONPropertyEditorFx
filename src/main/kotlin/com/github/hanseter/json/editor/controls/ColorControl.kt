@@ -18,7 +18,7 @@ class ColorControl(schema: SchemaWrapper<StringSchema>) :
 		schema,
 		ColorPicker(),
 		SimpleStringProperty("#FFFFFFFF"),
-		schema.schema.getDefaultValue() as? String ?: "#FFFFFFFF"
+		schema.schema.getDefaultValue() as? String
 	) {
 
 	init {

@@ -19,9 +19,8 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 		schema,
 		TextField(),
 		{ it.textProperty() },
-		schema.schema.getDefaultValue() as? String ?: ""
-	),
-	ChangeListener<String> {
+		schema.schema.getDefaultValue() as? String
+	) {
 	val validation = ValidationSupport()
 	val formatValidator: Validator<String>?
 	val lengthValidator: Validator<String>?
@@ -49,7 +48,7 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 		fun createFormatValidation(format: FormatValidator?): Validator<String>? = if (format == null) {
 			null
 		} else {
-			Validator({ control, value: String ->
+			Validator({ control, value: String? ->
 				val validationResult = format.validate(value).orElse(null)
 				ValidationResult.fromErrorIf(
 					control,
@@ -72,25 +71,25 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 		}
 
 		fun createLengthValidation(minLength: Int?, maxLength: Int?): Validator<String>? = when {
-			minLength != null && maxLength != null -> Validator({ control, value: String ->
+			minLength != null && maxLength != null -> Validator({ control, value: String? ->
 				ValidationResult.fromErrorIf(
 					control,
 					"Has to be $minLength to $maxLength characters",
-					value.length < minLength || value.length > maxLength
+					value?.length ?: 0 < minLength || value?.length ?: 0 > maxLength
 				)
 			})
-			minLength != null -> Validator({ control, value: String ->
+			minLength != null -> Validator({ control, value: String? ->
 				ValidationResult.fromErrorIf(
 					control,
 					"Has to be at max $minLength characters",
-					value.length < minLength
+					value?.length ?: 0 < minLength
 				)
 			})
-			maxLength != null -> Validator({ control, value: String ->
+			maxLength != null -> Validator({ control, value: String? ->
 				ValidationResult.fromErrorIf(
 					control,
 					"Has to be at least $maxLength characters",
-					value.length > maxLength
+					value?.length ?: 0 > maxLength
 				)
 			})
 			else -> null

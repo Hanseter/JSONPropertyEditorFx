@@ -35,10 +35,9 @@ class IdReferenceControl(
 	RowBasedControl<StringSchema, String, TextField>(
 		schema,
 		TextField(),
-		SimpleStringProperty(""),
-		schema.schema.getDefaultValue() as? String ?: ""
-	),
-	ChangeListener<String> {
+		SimpleStringProperty(null),
+		schema.schema.getDefaultValue() as? String
+	) {
 	private val validation = ValidationSupport()
 	private val formatValidator: Validator<String>?
 	private val lengthValidator: Validator<String>?
@@ -76,22 +75,25 @@ class IdReferenceControl(
 		val pos = node.children.indexOf(control)
 		node.children.add(pos, previewButton)
 		previewButton.onAction = EventHandler<ActionEvent>({
-			val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value.value)
-			if (dataAndSchema != null) {
-				val (data, previewSchema) = dataAndSchema
-				val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1)
-				preview.display(value.value, control.text, data, previewSchema, null, { it })
-				val scrollPane = ScrollPane(preview)
-				scrollPane.setMaxHeight(500.0)
-				scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER)
-				val popOver = PopOver(scrollPane);
-				popOver.setArrowLocation(PopOver.ArrowLocation.RIGHT_TOP)
-				popOver.setDetachable(true);
-				popOver.setTitle(value.value);
-				popOver.setAnimated(false);
-				popOver.getRoot().getStylesheets()
-					.add(IdReferenceControl::class.java.classLoader.getResource("unblurText.css").toExternalForm());
-				popOver.show(previewButton)
+			val value = value.value
+			if (value != null) {
+				val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value)
+				if (dataAndSchema != null) {
+					val (data, previewSchema) = dataAndSchema
+					val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1)
+					preview.display(value, control.text, data, previewSchema, null, { it })
+					val scrollPane = ScrollPane(preview)
+					scrollPane.setMaxHeight(500.0)
+					scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER)
+					val popOver = PopOver(scrollPane);
+					popOver.setArrowLocation(PopOver.ArrowLocation.RIGHT_TOP)
+					popOver.setDetachable(true);
+					popOver.setTitle(value);
+					popOver.setAnimated(false);
+					popOver.getRoot().getStylesheets()
+						.add(IdReferenceControl::class.java.classLoader.getResource("unblurText.css").toExternalForm());
+					popOver.show(previewButton)
+				}
 			}
 		})
 	}
@@ -106,11 +108,11 @@ class IdReferenceControl(
 		}
 		if (!change.getControlNewText().endsWith(description)) {
 			if (change.isAdded || change.isReplaced()) {
-				val start = Math.min(value.value.length, change.rangeStart)
+				val start = Math.min(value.value?.length ?: 0, change.rangeStart)
 				value.value = change.controlNewText.take(start) + change.text
 				return makeNopChange(change)
 			} else if (change.isDeleted()) {
-				val start = Math.min(value.value.length - 1, change.rangeStart)
+				val start = Math.min((value.value?.length?.dec()) ?: 0, change.rangeStart)
 				value.value = change.controlNewText.take(start)
 				return makeNopChange(change)
 			}
@@ -127,7 +129,11 @@ class IdReferenceControl(
 	}
 
 
-	private fun idChanged(id: String) {
+	private fun idChanged(id: String?) {
+		if (id == null) {
+			description = ""
+			return
+		}
 		val desc = idReferenceProposalProvider.getReferenceDesciption(id)
 		if (desc.isEmpty()) {
 			description = ""
@@ -139,7 +145,7 @@ class IdReferenceControl(
 
 	private fun updateTextField() {
 		control.textFormatterProperty().set(null)
-		control.text = value.value + description
+		control.text = (value.value ?: "") + description
 		control.textFormatterProperty().set(textFormatter)
 	}
 

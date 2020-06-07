@@ -54,7 +54,7 @@ class JsonPropertiesEditorTestApp : Application() {
 		override fun getReferenceDesciption(reference: String): String =
 			possibleProposals.get(reference)?.first?.optString("name") ?: ""
 
-		override fun isValidReference(userInput: String): Boolean = possibleProposals.contains(userInput)
+		override fun isValidReference(userInput: String?): Boolean = possibleProposals.contains(userInput)
 
 		override fun getDataAndSchema(id: String): Pair<JSONObject, JSONObject>? = possibleProposals.get(id)
 	}

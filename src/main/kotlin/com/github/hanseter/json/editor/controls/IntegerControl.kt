@@ -23,7 +23,7 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
 			0
 		),
 		{ it.valueFactory.valueProperty() },
-		schema.schema.getDefaultValue() as? Int ?: 0
+		schema.schema.getDefaultValue() as? Int
 	) {
 
 
@@ -45,9 +45,4 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
 
 		}
 	}
-
-	companion object {
-		private val DECIMAL_FORMAT = DecimalFormat("#")
-	}
-
 }

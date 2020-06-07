@@ -7,10 +7,10 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 
 class BindableJsonArray(parent: BindableJsonType?, private val arr: JSONArray) : BindableJsonType(parent) {
 
-	override protected fun setValueInternal(schema: SchemaWrapper<*>, value: Any) =
+	override protected fun setValueInternal(schema: SchemaWrapper<*>, value: Any?) =
 		setValueInternal(schema.getPropertyName().toInt(), value)
 
-	fun setValueInternal(index: Int, value: Any) {
+	fun setValueInternal(index: Int, value: Any?) {
 		arr.put(index, value)
 	}
 

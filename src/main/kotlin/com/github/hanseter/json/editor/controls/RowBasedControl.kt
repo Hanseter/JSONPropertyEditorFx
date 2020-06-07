@@ -19,9 +19,9 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
 	override val schema: SchemaWrapper<S>,
 	protected val control: C,
-	protected val value: Property<TYPE>,
-	private val defaultValue: TYPE
-) : TypeControl, ChangeListener<TYPE> {
+	protected val value: Property<TYPE?>,
+	protected val defaultValue: TYPE?
+) : TypeControl, ChangeListener<TYPE?> {
 	private val attributeNameLabel = createLabel(schema)
 	override val node = HBox(attributeNameLabel, createSpacer(), control)
 	protected var bound: BindableJsonType? = null
@@ -36,8 +36,8 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
 	constructor(
 		schema: SchemaWrapper<S>,
 		control: C,
-		propExtractror: (C) -> Property<TYPE>,
-		defaultValue: TYPE
+		propExtractror: (C) -> Property<TYPE?>,
+		defaultValue: TYPE?
 	) : this(
 		schema,
 		control,
@@ -52,7 +52,7 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
 			createQualifiedAttributeName(parentAttributeDisplayName, attributeNameLabel.text)
 		)
 
-	override fun changed(observable: ObservableValue<out TYPE>, oldValue: TYPE, newValue: TYPE) {
+	override fun changed(observable: ObservableValue<out TYPE?>, oldValue: TYPE?, newValue: TYPE?) {
 		bound?.setValue(schema, newValue)
 	}
 

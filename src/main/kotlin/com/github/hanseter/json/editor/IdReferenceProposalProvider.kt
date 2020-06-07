@@ -6,7 +6,7 @@ interface IdReferenceProposalProvider {
 	object IdReferenceProposalProviderEmpty : IdReferenceProposalProvider {
 		override fun calcCompletionProposals(part: String): List<String> = emptyList()
 		override fun getReferenceDesciption(reference: String): String = ""
-		override fun isValidReference(userInput: String): Boolean = true
+		override fun isValidReference(userInput: String?): Boolean = true
 	}
 
 	/**
@@ -31,7 +31,7 @@ interface IdReferenceProposalProvider {
 	 * @param userInput The users input.
 	 * @return Whether the provided user input is a valid reference.
 	 */
-	fun isValidReference(userInput: String): Boolean
+	fun isValidReference(userInput: String?): Boolean
 
 	/**
 	 * Provides the data and schema for the object identified by the provided id. This data will be used for a preview.

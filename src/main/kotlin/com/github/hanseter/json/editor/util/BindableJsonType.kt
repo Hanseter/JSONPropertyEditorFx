@@ -10,7 +10,7 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 abstract class BindableJsonType(private val parent: BindableJsonType?) {
 	private var listeners = listOf<() -> Unit>()
 
-	fun setValue(schema: SchemaWrapper<*>, value: Any) {
+	fun setValue(schema: SchemaWrapper<*>, value: Any?) {
 		setValueInternal(schema, value)
 		onValueChanged()
 	}
@@ -25,7 +25,7 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
 		}
 	}
 
-	protected abstract fun setValueInternal(schema: SchemaWrapper<*>, value: Any)
+	protected abstract fun setValueInternal(schema: SchemaWrapper<*>, value: Any?)
 
 	abstract fun getValue(schema: SchemaWrapper<*>): Any?
 
