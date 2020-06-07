@@ -57,5 +57,9 @@ class JsonPropertiesEditorTestApp : Application() {
 		override fun isValidReference(userInput: String?): Boolean = possibleProposals.contains(userInput)
 
 		override fun getDataAndSchema(id: String): Pair<JSONObject, JSONObject>? = possibleProposals.get(id)
+		override fun isOpenable(id: String) = true
+		override fun openElement(id: String) {
+			println("Request to open " + id)
+		}
 	}
 }

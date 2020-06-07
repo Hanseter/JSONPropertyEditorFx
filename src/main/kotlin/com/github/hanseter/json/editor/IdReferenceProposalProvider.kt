@@ -39,4 +39,17 @@ interface IdReferenceProposalProvider {
 	 * @return Data and schema for the element.
 	 */
 	fun getDataAndSchema(id: String): Pair<JSONObject, JSONObject>? = null
+
+	/**
+	 * If this is true the user will be offered the possibility to open this elements.
+	 * What opening means is up to your application, however it is implied to the user that he will be able to edit this elements after request.
+	 * @return Whether the user shall be given the option to "open" this element
+	 */
+	fun isOpenable(id: String): Boolean = false
+
+	/**
+	 * Opens this element, this means that the reuqested element should be in some way editable after this call.
+	 * If this means the element will also be displayed in this editor on in another is up to your application.
+	 */
+	fun openElement(id: String) {}
 }

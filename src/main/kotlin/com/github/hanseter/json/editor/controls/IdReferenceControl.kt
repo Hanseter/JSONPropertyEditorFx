@@ -27,6 +27,10 @@ import javafx.application.Platform
 import javafx.stage.PopupWindow
 import javafx.scene.control.Button
 import javafx.event.ActionEvent
+import javafx.scene.layout.VBox
+import javafx.scene.layout.Pane
+import javafx.scene.layout.HBox
+import javafx.geometry.Pos
 
 class IdReferenceControl(
 	schema: SchemaWrapper<StringSchema>,
@@ -85,7 +89,7 @@ class IdReferenceControl(
 					val scrollPane = ScrollPane(preview)
 					scrollPane.setMaxHeight(500.0)
 					scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER)
-					val popOver = PopOver(scrollPane);
+					val popOver = PopOver(addOpenButtonIfWanted(value, scrollPane));
 					popOver.setArrowLocation(PopOver.ArrowLocation.RIGHT_TOP)
 					popOver.setDetachable(true);
 					popOver.setTitle(value);
@@ -97,6 +101,17 @@ class IdReferenceControl(
 			}
 		})
 	}
+
+	private fun addOpenButtonIfWanted(refId: String, refPane: ScrollPane) =
+		if (idReferenceProposalProvider.isOpenable(refId)) {
+			val openButton = Button("🖉")
+			openButton.setOnAction { idReferenceProposalProvider.openElement(refId) }
+			val row = HBox(openButton)
+			row.setAlignment(Pos.CENTER)
+			VBox(row, refPane)
+		} else {
+			refPane
+		}
 
 	private fun filterChange(change: TextFormatter.Change): TextFormatter.Change? {
 		if (change.getControlNewText().isEmpty()) {
