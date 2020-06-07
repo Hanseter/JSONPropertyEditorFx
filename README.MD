@@ -2,10 +2,10 @@ TODO:
 
 Expose "valid" property, which indicates whether the current data is valid.
 
-min max elements in array
-
 Add reset button to set value to default or null
 
+
+Add unique validator for arrays.
 
 All enums are treated as strings
 
