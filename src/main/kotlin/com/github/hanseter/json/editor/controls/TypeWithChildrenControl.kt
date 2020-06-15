@@ -7,23 +7,21 @@ import javafx.scene.control.TitledPane
 import com.github.hanseter.json.editor.IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.binding.BooleanBinding
+import javafx.beans.property.ReadOnlyBooleanProperty
+import javafx.beans.binding.Bindings
+import javafx.beans.value.ObservableBooleanValue
 
-abstract class TypeWithChildrenControl(
-	schema: SchemaWrapper<*>,
-	childSchemas: Collection<Schema>,
-	refProvider: IdReferenceProposalProvider
-) :
-	TypeControl {
-	override val node: TitledPane
-	protected val content = VBox()
-	protected val children: MutableList<TypeControl>
+abstract class TypeWithChildrenControl(schema: SchemaWrapper<*>) : TypeControl {
+	override val node = TitledPane(schema.title, null)
+	abstract protected val children: List<TypeControl>
 
-	init {
-		childSchemas.map { it.isReadOnly() }
-		children = childSchemas.map { ControlFactory.convert(SchemaWrapper(schema, it), refProvider) }.sortedBy { it.schema.getPropertyName().toLowerCase() }.toMutableList()
-		content.getChildren().setAll(children.map { it.node })
-		node = TitledPane(schema.title, content)
-	}
+	protected fun createTypeControlsFromSchemas(
+		contentSchemas: Collection<Schema>,
+		refProvider: IdReferenceProposalProvider
+	) = contentSchemas.map { ControlFactory.convert(SchemaWrapper(schema, it), refProvider) }
+		.sortedBy { it.schema.getPropertyName().toLowerCase() }
 
 	override fun applyFilter(filterString: String, parentAttributeDisplayName: String) {
 		val qualifiedAttributeDisplayName =
@@ -49,5 +47,13 @@ abstract class TypeWithChildrenControl(
 		}
 		return children.any { it.matchesFilter(filterString, qualifiedAttributeDisplayName) }
 	}
+
+	protected fun createValidityBinding() =
+		children.map { it.valid }.fold(SimpleBooleanProperty(true) as ObservableBooleanValue) { a, b ->
+			Bindings.and(
+				a,
+				b
+			)
+		}
 
 }

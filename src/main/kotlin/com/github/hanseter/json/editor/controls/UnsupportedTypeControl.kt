@@ -5,8 +5,11 @@ import javafx.scene.control.Label
 import org.json.JSONObject
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.property.SimpleBooleanProperty
 
 class UnsupportedTypeControl(override val schema: SchemaWrapper<*>) : TypeControl {
+	override val valid = SimpleBooleanProperty(true)
+
 	override fun matchesFilter(filterString: String, parentAttributeDisplayName: String): Boolean = true
 	override val node =
 		Label("Schema ${schema.schema.schemaLocation} with type ${schema.schema::class.java.name} cannot be displayed.")

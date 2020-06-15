@@ -39,6 +39,7 @@
 			"type": "array",
 			"minItems": 2,
 			"maxItems": 2,
+			"uniqueItems": true,
 			"items": {
 				"type": "string",
 				"minLength": 3,
@@ -90,5 +91,6 @@
 			}
 		}
 	},
+	"required":["string", "ref","color", "Some named boolean"],
 	"title": "schema"
 }

@@ -15,6 +15,8 @@ import org.json.JSONArray
 import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.property.StringProperty
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.ReadOnlyBooleanProperty
 
 abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
 	override val schema: SchemaWrapper<S>,
@@ -25,6 +27,7 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
 	private val attributeNameLabel = createLabel(schema)
 	override val node = HBox(attributeNameLabel, createSpacer(), control)
 	protected var bound: BindableJsonType? = null
+	override val valid = SimpleBooleanProperty(true)
 
 	init {
 		node.minHeight = MIN_ROW_HEIGHT
@@ -68,7 +71,7 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
 		}
 		bound = type
 	}
-	
+
 	open protected fun valueNewlyBound() {}
 
 	companion object {

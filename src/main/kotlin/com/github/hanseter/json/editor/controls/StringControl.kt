@@ -13,6 +13,7 @@ import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.beans.property.Property
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.property.ReadOnlyBooleanProperty
 
 class StringControl(schema: SchemaWrapper<StringSchema>) :
 	RowBasedControl<StringSchema, String, TextField>(
@@ -31,6 +32,7 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 		lengthValidator =
 			addLengthValidation(validation, control, schema.schema.getMinLength(), schema.schema.getMaxLength())
 		patternValidator = addPatternValidation(validation, control, schema.schema.getPattern())
+		valid.bind(validation.invalidProperty().not())
 	}
 
 	companion object {

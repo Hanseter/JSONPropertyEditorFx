@@ -21,6 +21,8 @@ class SchemaControlCreationTest {
 	@Test
 	fun verifyRootSchema() {
 		assert(rootSchema.getTitle() == "schema")
+		println(rootSchema.getRequiredProperties())
+		println(rootSchema.getPropertySchemas())
 	}
 
 	@Test

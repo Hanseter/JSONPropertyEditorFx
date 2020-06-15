@@ -31,40 +31,44 @@ import javafx.scene.control.Control
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Label
+import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.InvalidationListener
 
 class ArrayControl(
 	override val schema: SchemaWrapper<ArraySchema>,
 	private val contentSchema: Schema,
 	private val refProvider: IdReferenceProposalProvider
-) :
-	TypeWithChildrenControl(schema, listOf(), refProvider) {
+) : TypeWithChildrenControl(schema) {
 
-	//	private val validation = ValidationSupport()
+	private val content = VBox()
+	override protected val children =  mutableListOf<TypeControl>()
+
 	private var bound: BindableJsonType? = null
 	private var contextMenu: ContextMenu? = null
 	private var subArray: BindableJsonArray? = null
+	private val itemCountValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
+	private val uniqueItemValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
+	private val validInternal = SimpleBooleanProperty(true)
+	override val valid = SimpleBooleanProperty(true)
+	private val onValidationStateChanged = InvalidationListener {
+		redecorate()
+		validInternal.set(itemCountValidationMessage.get() == null && uniqueItemValidationMessage.get() == null)
+	}
 
 	init {
 		if (!schema.readOnly) {
 			node.onContextMenuRequested = EventHandler({ showContextMenu(null, it.screenX, it.screenY) })
 		}
-//		addLengthValidation(schema.schema.getMinItems(), schema.schema.getMaxItems())
-//		validation.redecorate()
+		node.content = content
+		itemCountValidationMessage.addListener(onValidationStateChanged)
+		uniqueItemValidationMessage.addListener(onValidationStateChanged)
 	}
-
-//	private fun addLengthValidation(minLength: Int?, maxLength: Int?) {
-//		if (minLength != null) {
-//			validation.registerValidator(this.node, createMinLengthValidator(minLength))
-//		}
-//		if (maxLength != null) {
-//			validation.registerValidator(this.node, craeteMaxLengthValidator(maxLength))
-//		}
-//	}
 
 	override fun bindTo(type: BindableJsonType) {
 		bound = type
 		subArray = createSubArray(type)
 		updateChildCount()
+		validateChildUniqueness()
 		bound = type
 	}
 
@@ -132,24 +136,35 @@ class ArrayControl(
 			}
 		}
 		bound?.setValue(schema, children)
+		validateChildCount(children)
+		valid.bind(validInternal.and(createValidityBinding()))
+
+	}
+
+	private fun redecorate() {
 		Decorator.removeAllDecorations(this.node)
-		if (hasTooManyItems(children.length())) {
-			GraphicValidationDecorationWithPosition(Pos.TOP_LEFT).applyValidationDecoration(
-				SimpleValidationMessage(
+		val message = itemCountValidationMessage.get() ?: uniqueItemValidationMessage.get()
+		if (message != null) {
+			GraphicValidationDecorationWithPosition(Pos.TOP_LEFT).applyValidationDecoration(message)
+		}
+	}
+
+	private fun validateChildCount(children: JSONArray) {
+		itemCountValidationMessage.set(
+			when {
+				hasTooManyItems(children.length()) -> SimpleValidationMessage(
 					this.node,
 					"Must have at most " + schema.schema.getMaxItems() + " items",
 					Severity.ERROR
 				)
-			)
-		} else if (hasTooFewItems(children.length())) {
-			GraphicValidationDecorationWithPosition(Pos.TOP_LEFT).applyValidationDecoration(
-				SimpleValidationMessage(
+				hasTooFewItems(children.length()) -> SimpleValidationMessage(
 					this.node,
 					"Must have at least " + schema.schema.getMinItems() + " items",
 					Severity.ERROR
 				)
-			)
-		}
+				else -> null
+			}
+		)
 	}
 
 	class GraphicValidationDecorationWithPosition(private val pos: Pos) : GraphicValidationDecoration() {
@@ -195,6 +210,7 @@ class ArrayControl(
 		}
 		children.put(pos, JSONObject.NULL)
 		updateChildCount()
+		validateChildUniqueness()
 	}
 
 	private fun removeItem(toRemove: TypeControl) {
@@ -227,5 +243,30 @@ class ArrayControl(
 		updateChildCount()
 	}
 
+	private fun validateChildUniqueness() {
+		if (!schema.schema.needsUniqueItems()) return
+		val children = bound?.getValue(schema) as? JSONArray
+		if (children == null) return
+		for (i in 0 until children.length()) {
+			for (j in i + 1 until children.length()) {
+				if (areSame(children.get(i), children.get(j))) {
+					uniqueItemValidationMessage.set(
+						SimpleValidationMessage(
+							this.node,
+							"Items $i and $j are identical",
+							Severity.ERROR
+						)
+					)
+					return
+				}
+			}
+		}
+		uniqueItemValidationMessage.set(null)
+	}
 
+	private fun areSame(a: Any?, b: Any?) = when {
+		a is JSONObject -> a.similar(b)
+		a is JSONArray -> a.similar(b)
+		else -> a == b
+	}
 }

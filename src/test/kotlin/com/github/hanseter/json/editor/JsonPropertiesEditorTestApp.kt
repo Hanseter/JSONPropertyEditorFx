@@ -27,6 +27,7 @@ class JsonPropertiesEditorTestApp : Application() {
 			it
 		}
 		propEdit.display("test2", "test2", testData, schema) { it }
+		propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
 		primaryStage.setScene(Scene(propEdit, 800.0, 800.0))
 		primaryStage.show()
 	}

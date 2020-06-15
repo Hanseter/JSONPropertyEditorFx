@@ -10,6 +10,7 @@ import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.BindableJsonObject
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.property.SimpleBooleanProperty
 
 class JsonPropertiesPane(
 	title: String,
@@ -22,6 +23,7 @@ class JsonPropertiesPane(
 	private val schema = SchemaWrapper<ObjectSchema>(null, schema, title)
 	private var objectControl: ObjectControl? = null
 	private val contentHandler = ContentHandler(data, filter)
+	val valid = SimpleBooleanProperty(true)
 
 	init {
 		setExpanded(false)
@@ -34,6 +36,7 @@ class JsonPropertiesPane(
 
 	private fun initObjectControl() {
 		objectControl = ObjectControl(schema, refProvider)
+		valid.bind(objectControl?.valid)
 		setContent(objectControl?.node?.getContent())
 	}
 

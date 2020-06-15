@@ -6,10 +6,13 @@ import org.json.JSONObject
 import org.json.JSONArray
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.property.ReadOnlyBooleanProperty
+import javafx.beans.value.ObservableBooleanValue
 
 interface TypeControl {
 	val schema: SchemaWrapper<*>
 	val node: Node
+	val valid: ObservableBooleanValue
 	
 	/**
 	 * Applies the filter to the node of this control. I.e. it checks whether the filter matches and if it doesn't makes this node invisible and unmanaged.

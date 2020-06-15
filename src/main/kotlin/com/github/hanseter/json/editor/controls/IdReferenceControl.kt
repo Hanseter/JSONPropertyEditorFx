@@ -48,6 +48,8 @@ class IdReferenceControl(
 	private val patternValidator: Validator<String>?
 	private val referenceValidator: Validator<String>
 
+	private var popOver: PopOver? = null
+
 	private var description = ""
 	private val textFormatter = TextFormatter<String>(this::filterChange)
 
@@ -83,6 +85,7 @@ class IdReferenceControl(
 			if (value != null) {
 				val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value)
 				if (dataAndSchema != null) {
+					popOver?.hide()
 					val (data, previewSchema) = dataAndSchema
 					val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1)
 					preview.display(value, control.text, data, previewSchema, null, { it })
@@ -97,6 +100,7 @@ class IdReferenceControl(
 					popOver.getRoot().getStylesheets()
 						.add(IdReferenceControl::class.java.classLoader.getResource("unblurText.css").toExternalForm());
 					popOver.show(previewButton)
+					this.popOver = popOver
 				}
 			}
 		})
@@ -105,7 +109,10 @@ class IdReferenceControl(
 	private fun addOpenButtonIfWanted(refId: String, refPane: ScrollPane) =
 		if (idReferenceProposalProvider.isOpenable(refId)) {
 			val openButton = Button("🖉")
-			openButton.setOnAction { idReferenceProposalProvider.openElement(refId) }
+			openButton.setOnAction {
+				idReferenceProposalProvider.openElement(refId)
+				popOver?.hide()
+			}
 			val row = HBox(openButton)
 			row.setAlignment(Pos.CENTER)
 			VBox(row, refPane)

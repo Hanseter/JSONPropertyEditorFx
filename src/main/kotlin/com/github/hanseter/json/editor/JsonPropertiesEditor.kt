@@ -9,6 +9,10 @@ import org.everit.json.schema.Schema
 import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONObject
 import java.net.URI
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.ReadOnlyBooleanProperty
+import javafx.beans.binding.Bindings
+import javafx.beans.value.ObservableBooleanValue
 
 class JsonPropertiesEditor(
 	private val referencePropsalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
@@ -18,6 +22,10 @@ class JsonPropertiesEditor(
 	VBox() {
 	private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
 	private val filterText = TextField()
+	private val valid_ = SimpleBooleanProperty(true)
+	val valid: ReadOnlyBooleanProperty
+		get() = valid_
+
 
 	init {
 		filterText.setPromptText("Filter properties");
@@ -46,6 +54,7 @@ class JsonPropertiesEditor(
 		if (idsToPanes.size <= numberOfInitiallyOpenedObjects) {
 			pane.setExpanded(true)
 		}
+		rebindValidProperty()
 	}
 
 	private fun parseSchema(schema: JSONObject, resolutionScope: URI?): ObjectSchema {
@@ -81,12 +90,23 @@ class JsonPropertiesEditor(
 
 	fun removeObject(objId: String) {
 		getChildren().remove(idsToPanes.remove(objId))
+		rebindValidProperty()
 	}
 
 	fun clear() {
 		getChildren().clear()
 		idsToPanes.clear()
 		filterText.clear()
+		rebindValidProperty()
+	}
+
+
+	private fun rebindValidProperty() {
+		if (idsToPanes.isEmpty()) {
+			valid_.set(true)
+		} else {
+			valid_.bind(idsToPanes.values.map { it.valid as ObservableBooleanValue }.reduce { a, b -> Bindings.and(a, b) })
+		}
 	}
 
 	private fun createTitledPaneForSchema(
