@@ -103,6 +103,7 @@ class JsonPropertiesEditor(
 
 	private fun rebindValidProperty() {
 		if (idsToPanes.isEmpty()) {
+			valid_.unbind()
 			valid_.set(true)
 		} else {
 			valid_.bind(idsToPanes.values.map { it.valid as ObservableBooleanValue }.reduce { a, b -> Bindings.and(a, b) })
