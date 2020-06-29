@@ -128,7 +128,7 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
 		private val DECIMAL_FORMAT = DecimalFormat("#0.################")
 		private val CONVERTER = object : StringConverter<Double?>() {
 			override fun toString(`object`: Double?): String? =
-				if (`object` == null) null else DECIMAL_FORMAT.format(`object`)
+				if (`object` == null) "" else DECIMAL_FORMAT.format(`object`)
 
 			override fun fromString(string: String?): Double? =
 				if (string == null) null else DECIMAL_FORMAT.parse(string)?.toDouble()

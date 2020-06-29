@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
 class JsonPropertiesEditorTestApp : Application() {
 	override fun start(primaryStage: Stage) {
 		val propEdit = JsonPropertiesEditor(ReferenceProvider)
-		val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello").put("number", 20)
+		val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")//.put("number", 20)
 			.put("string list", listOf("A", "B"))
 			.put("enum", "bar")
 			.put("ref", "Hello")

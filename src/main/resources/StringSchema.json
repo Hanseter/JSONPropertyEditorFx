@@ -72,7 +72,6 @@
 		},
 		"integer": {
 			"type": "integer",
-			"default": 42,
 			"minimum": 0,
 			"exclusiveMaximum": 100
 		},

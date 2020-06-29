@@ -1,17 +1,14 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.IdReferenceProposalProvider
+import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.util.BindableJsonArray
+import com.github.hanseter.json.editor.util.BindableJsonType
+import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.layout.VBox
 import org.everit.json.schema.ArraySchema
 import org.everit.json.schema.Schema
-import com.github.hanseter.json.editor.ControlFactory
-import javafx.scene.control.TitledPane
-import org.json.JSONObject
 import org.json.JSONArray
-import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.util.BindableJsonArray
-import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
-import javafx.beans.value.ObservableBooleanValue
 
 class TupleControl(
 	override val schema: SchemaWrapper<ArraySchema>,
@@ -19,12 +16,10 @@ class TupleControl(
 	refProvider: IdReferenceProposalProvider
 ) : TypeWithChildrenControl(schema) {
 
-	override protected val children: List<TypeControl>
-	override val valid: ObservableBooleanValue
+	override val children: List<TypeControl> = createTypeControlsFromSchemas(contentSchemas, refProvider)
+	override val valid: ObservableBooleanValue = createValidityBinding()
 
 	init {
-		children = createTypeControlsFromSchemas(contentSchemas, refProvider)
-		valid = createValidityBinding()
 		node.content = VBox(*children.map { it.node }.toTypedArray())
 	}
 

@@ -15,9 +15,9 @@ import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableBooleanValue
 
 class JsonPropertiesEditor(
-	private val referencePropsalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
-	private val readOnly: Boolean = false,
-	private val numberOfInitiallyOpenedObjects: Int = 5
+		private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
+		private val readOnly: Boolean = false,
+		private val numberOfInitiallyOpenedObjects: Int = 5
 ) :
 	VBox() {
 	private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -28,7 +28,7 @@ class JsonPropertiesEditor(
 
 
 	init {
-		filterText.setPromptText("Filter properties");
+		filterText.promptText = "Filter properties";
 		filterText.textProperty().addListener { _, _, new -> idsToPanes.values.forEach { it.setPropertyFilter(new) } }
 		this.children.add(filterText)
 	}
@@ -47,12 +47,12 @@ class JsonPropertiesEditor(
 			return
 		}
 		val pane =
-			createTitledPaneForSchema(title, obj, parseSchema(schema, resolutionScope), filterText.getText(), callback)
+			createTitledPaneForSchema(title, obj, parseSchema(schema, resolutionScope), filterText.text, callback)
 		pane.fillData(obj)
-		idsToPanes.put(objId, pane)
-		getChildren().add(pane)
+		idsToPanes[objId] = pane
+		children.add(pane)
 		if (idsToPanes.size <= numberOfInitiallyOpenedObjects) {
-			pane.setExpanded(true)
+			pane.isExpanded = true
 		}
 		rebindValidProperty()
 	}
@@ -81,20 +81,17 @@ class JsonPropertiesEditor(
 		objId: String,
 		obj: JSONObject
 	) {
-		val titledPane = idsToPanes.get(objId)
-		if (titledPane == null) {
-			return
-		}
+		val titledPane = idsToPanes[objId] ?: return
 		titledPane.fillData(obj)
 	}
 
 	fun removeObject(objId: String) {
-		getChildren().remove(idsToPanes.remove(objId))
+		children.remove(idsToPanes.remove(objId))
 		rebindValidProperty()
 	}
 
 	fun clear() {
-		getChildren().clear()
+		children.clear()
 		idsToPanes.clear()
 		filterText.clear()
 		rebindValidProperty()
@@ -117,7 +114,7 @@ class JsonPropertiesEditor(
 		filter: String,
 		callback: (JSONObject) -> JSONObject
 	): JsonPropertiesPane =
-		JsonPropertiesPane(title, data, schema, filter, referencePropsalProvider) { obj, pane ->
+		JsonPropertiesPane(title, data, schema, filter, referenceProposalProvider) { obj, pane ->
 			pane.fillData(callback(obj))
 		}
 }

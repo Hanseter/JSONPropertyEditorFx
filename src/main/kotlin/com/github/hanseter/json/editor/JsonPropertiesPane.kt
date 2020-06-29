@@ -26,7 +26,7 @@ class JsonPropertiesPane(
 	val valid = SimpleBooleanProperty(true)
 
 	init {
-		setExpanded(false)
+		isExpanded = false
 		expandedProperty().addListener { _, _, new ->
 			if (new) {
 				contentHandler.handleExpansion()
@@ -37,7 +37,7 @@ class JsonPropertiesPane(
 	private fun initObjectControl() {
 		objectControl = ObjectControl(schema, refProvider)
 		valid.bind(objectControl?.valid)
-		setContent(objectControl?.node?.getContent())
+		content = objectControl?.node?.content
 	}
 
 	fun setPropertyFilter(filter: String) {
@@ -80,7 +80,7 @@ class JsonPropertiesPane(
 
 		fun updateData(data: JSONObject) {
 			this.data = data
-			if (isExpanded()) {
+			if (isExpanded) {
 				fillSheet(data)
 			} else {
 				dataDirty = true
@@ -89,7 +89,7 @@ class JsonPropertiesPane(
 
 		fun updateFilter(filter: String) {
 			this.filterString = filter
-			if (isExpanded()) {
+			if (isExpanded) {
 				filterSheet(filterString)
 			} else {
 				dataDirty = true
