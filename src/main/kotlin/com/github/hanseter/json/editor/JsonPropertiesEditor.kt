@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ObservableBooleanValue
+import javafx.scene.control.ScrollPane
 
 class JsonPropertiesEditor(
 		private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
@@ -21,7 +22,9 @@ class JsonPropertiesEditor(
 ) :
 	VBox() {
 	private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
+	private val scrollPane = ScrollPane()
 	private val filterText = TextField()
+	private val paneContainer = VBox()
 	private val valid_ = SimpleBooleanProperty(true)
 	val valid: ReadOnlyBooleanProperty
 		get() = valid_
@@ -30,7 +33,9 @@ class JsonPropertiesEditor(
 	init {
 		filterText.promptText = "Filter properties";
 		filterText.textProperty().addListener { _, _, new -> idsToPanes.values.forEach { it.setPropertyFilter(new) } }
-		this.children.add(filterText)
+		scrollPane.content = paneContainer
+		scrollPane.isFitToWidth = true
+		this.children.addAll(filterText, scrollPane)
 	}
 
 	@JvmOverloads
@@ -50,7 +55,7 @@ class JsonPropertiesEditor(
 			createTitledPaneForSchema(title, obj, parseSchema(schema, resolutionScope), filterText.text, callback)
 		pane.fillData(obj)
 		idsToPanes[objId] = pane
-		children.add(pane)
+		paneContainer.children.add(pane)
 		if (idsToPanes.size <= numberOfInitiallyOpenedObjects) {
 			pane.isExpanded = true
 		}
