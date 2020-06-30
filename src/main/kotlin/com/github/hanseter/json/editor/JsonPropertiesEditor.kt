@@ -96,12 +96,11 @@ class JsonPropertiesEditor(
 	}
 
 	fun clear() {
-		children.clear()
 		idsToPanes.clear()
 		filterText.clear()
+		paneContainer.children.clear()
 		rebindValidProperty()
 	}
-
 
 	private fun rebindValidProperty() {
 		if (idsToPanes.isEmpty()) {
