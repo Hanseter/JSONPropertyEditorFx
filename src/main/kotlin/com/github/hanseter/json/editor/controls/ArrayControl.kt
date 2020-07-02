@@ -1,38 +1,29 @@
 package com.github.hanseter.json.editor.controls
 
-import javafx.scene.layout.VBox
-import org.everit.json.schema.ArraySchema
-import org.everit.json.schema.Schema
 import com.github.hanseter.json.editor.ControlFactory
-import javafx.scene.control.TitledPane
-import com.github.hanseter.json.editor.util.BindableJsonType
-import org.json.JSONArray
-import javafx.scene.control.ContextMenu
-import javafx.scene.control.MenuItem
-import javafx.event.EventHandler
-import javafx.scene.control.SeparatorMenuItem
-import com.github.hanseter.json.editor.util.BindableJsonObject
-import org.json.JSONObject
-import com.github.hanseter.json.editor.util.BindableJsonArray
-import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
-import org.controlsfx.validation.ValidationSupport
-import org.controlsfx.validation.Validator
+import com.github.hanseter.json.editor.util.BindableJsonArray
+import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
+import com.github.hanseter.json.editor.util.BindableJsonType
+import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleBooleanProperty
-import org.controlsfx.control.decoration.Decorator
-import org.controlsfx.control.decoration.Decoration
-import org.controlsfx.control.decoration.GraphicDecoration
-import org.controlsfx.validation.decoration.GraphicValidationDecoration
-import sun.security.validator.SimpleValidator
-import org.controlsfx.validation.ValidationMessage
-import org.controlsfx.validation.Severity
-import javafx.scene.control.Control
+import javafx.beans.property.SimpleObjectProperty
+import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.Label
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.InvalidationListener
+import javafx.scene.control.*
+import javafx.scene.layout.VBox
+import org.controlsfx.control.decoration.Decoration
+import org.controlsfx.control.decoration.Decorator
+import org.controlsfx.control.decoration.GraphicDecoration
+import org.controlsfx.validation.Severity
+import org.controlsfx.validation.ValidationMessage
+import org.controlsfx.validation.decoration.GraphicValidationDecoration
+import org.everit.json.schema.ArraySchema
+import org.everit.json.schema.Schema
+import org.json.JSONArray
+import org.json.JSONObject
 
 class ArrayControl(
 	override val schema: SchemaWrapper<ArraySchema>,
@@ -41,7 +32,7 @@ class ArrayControl(
 ) : TypeWithChildrenControl(schema) {
 
 	private val content = VBox()
-	override protected val children =  mutableListOf<TypeControl>()
+	override val children =  mutableListOf<TypeControl>()
 
 	private var bound: BindableJsonType? = null
 	private var contextMenu: ContextMenu? = null
@@ -57,7 +48,7 @@ class ArrayControl(
 
 	init {
 		if (!schema.readOnly) {
-			node.onContextMenuRequested = EventHandler({ showContextMenu(null, it.screenX, it.screenY) })
+			node.onContextMenuRequested = EventHandler { showContextMenu(null, it.screenX, it.screenY) }
 		}
 		node.content = content
 		itemCountValidationMessage.addListener(onValidationStateChanged)

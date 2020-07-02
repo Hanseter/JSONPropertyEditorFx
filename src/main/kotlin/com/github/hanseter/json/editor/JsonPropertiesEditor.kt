@@ -2,6 +2,11 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import javafx.beans.binding.Bindings
+import javafx.beans.property.ReadOnlyBooleanProperty
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.ObservableBooleanValue
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.TextField
 import javafx.scene.layout.VBox
 import org.everit.json.schema.ObjectSchema
@@ -9,11 +14,6 @@ import org.everit.json.schema.Schema
 import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONObject
 import java.net.URI
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.ReadOnlyBooleanProperty
-import javafx.beans.binding.Bindings
-import javafx.beans.value.ObservableBooleanValue
-import javafx.scene.control.ScrollPane
 
 class JsonPropertiesEditor(
 		private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
@@ -91,7 +91,7 @@ class JsonPropertiesEditor(
 	}
 
 	fun removeObject(objId: String) {
-		children.remove(idsToPanes.remove(objId))
+		paneContainer.children.remove(idsToPanes.remove(objId))
 		rebindValidProperty()
 	}
 

@@ -1,6 +1,8 @@
 TODO:
 
-Exception in integer spinner
+Give possibility to display elements without root titledPane
+
+Rework optional/required seperation. TitledPanes are not suited.
 
 Add reset button to set value to default or null
 

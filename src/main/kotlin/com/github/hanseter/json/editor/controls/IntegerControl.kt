@@ -42,7 +42,6 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
         }
     }
 
-
     class IntegerSpinnerValueFactoryNullSafe(min: Int, max: Int) : SpinnerValueFactory<Int?>() {
         init {
             converter = IntegerStringConverter()
