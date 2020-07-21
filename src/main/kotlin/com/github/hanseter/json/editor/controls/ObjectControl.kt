@@ -1,37 +1,45 @@
 package com.github.hanseter.json.editor.controls
 
-import org.everit.json.schema.ObjectSchema
-import javafx.scene.control.TitledPane
-import com.github.hanseter.json.editor.ControlFactory
-import javafx.scene.layout.VBox
-import org.json.JSONObject
-import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.util.BindableJsonObject
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
+import com.github.hanseter.json.editor.ResolutionScopeProvider
+import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.TreeItemData
+import com.github.hanseter.json.editor.util.BindableJsonObject
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.value.ObservableBooleanValue
+import org.everit.json.schema.ObjectSchema
+import org.json.JSONObject
 
 class ObjectControl(
 	override val schema: SchemaWrapper<ObjectSchema>,
-	refProvider: IdReferenceProposalProvider
+	refProvider: IdReferenceProposalProvider,
+	resolutionScopeProvider: ResolutionScopeProvider
 ) : TypeWithChildrenControl(schema) {
 
 	private val requiredChildren: List<TypeControl>
 	private val optionalChildren: List<TypeControl>
-	override protected val children: List<TypeControl>
+	override val children: List<TypeControl>
 		get() = requiredChildren + optionalChildren
 	override val valid: ObservableBooleanValue
 
 	init {
-		val childSchemas = schema.schema.getPropertySchemas().toMutableMap()
-		requiredChildren = createTypeControlsFromSchemas(schema.schema.getRequiredProperties().map {
+		val childSchemas = schema.schema.propertySchemas.toMutableMap()
+		requiredChildren = createTypeControlsFromSchemas(schema.schema.requiredProperties.mapNotNull {
 			childSchemas.remove(it)
-		}.filterNotNull(), refProvider)
-		optionalChildren = createTypeControlsFromSchemas(childSchemas.values, refProvider)
+		}, refProvider, resolutionScopeProvider)
+		optionalChildren = createTypeControlsFromSchemas(childSchemas.values, refProvider, resolutionScopeProvider)
 		valid = createValidityBinding()
-		node.content = VBox(TitledPane("Required", VBox(*requiredChildren.map { it.node }.toTypedArray())),
-			TitledPane("Optional", VBox(*optionalChildren.map { it.node }.toTypedArray()))
-		)
+
+		if(requiredChildren.isNotEmpty()) {
+			node.add(FilterableTreeItem(TreeItemData("Required", null, null, null, isRoot = false, isHeadline = true)))
+			node.addAll(requiredChildren.map { it.node })
+		}
+
+		if (optionalChildren.isNotEmpty()) {
+			node.add(FilterableTreeItem(TreeItemData("Optional", null, null, null, isRoot = false, isHeadline = true)))
+			node.addAll(optionalChildren.map { it.node })
+		}
 	}
 
 	fun bindChildrenToObject(json: BindableJsonType) {
@@ -43,7 +51,6 @@ class ObjectControl(
 	override fun bindTo(type: BindableJsonType) {
 		bindChildrenToObject(createSubType(type))
 	}
-
 
 	private fun createSubType(parent: BindableJsonType): BindableJsonObject {
 		var obj = parent.getValue(schema) as? JSONObject

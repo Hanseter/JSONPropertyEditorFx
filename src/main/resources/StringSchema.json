@@ -46,6 +46,19 @@
 				"maxLength": 5
 			}
 		},
+		"string_list_readonly": {
+			"type": "array",
+			"items": {
+				"type": "string",
+			},
+			"readOnly": true
+		},
+		"referenced_point_schema": {
+			"type": "array",
+			"items": {
+				"$ref": "ReferencedPointSchema.json"
+			}
+		},
 		"tuple": {
 			"type": "array",
 			"items": [

@@ -37,7 +37,7 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 			formatValidator: FormatValidator?
 		): Validator<String>? {
 			val validator = createFormatValidation(formatValidator) ?: return null
-			validation.registerValidator(textField, validator)
+			validation.registerValidator(textField, false, validator)
 			return validator
 		}
 
@@ -61,7 +61,7 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 			maxLength: Int?
 		): Validator<String>? {
 			val validator = createLengthValidation(minLength, maxLength) ?: return null
-			validation.registerValidator(textField, validator)
+			validation.registerValidator(textField, false, validator)
 			return validator
 		}
 
@@ -97,7 +97,7 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 		): Validator<String>? {
 			if (pattern == null) return null
 			val validator = Validator.createRegexValidator("Has to match pattern $pattern", pattern, Severity.ERROR)
-			validation.registerValidator(textField, validator)
+			validation.registerValidator(textField, false, validator)
 			return validator
 		}
 	}

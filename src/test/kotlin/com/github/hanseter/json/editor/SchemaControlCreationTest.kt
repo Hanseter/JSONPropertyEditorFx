@@ -16,7 +16,8 @@ import org.everit.json.schema.NumberSchema
 class SchemaControlCreationTest {
 	private val rootSchema: ObjectSchema = SchemaLoader.builder().useDefaults(true)
 		.schemaJson(JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json"))))
-		.build().load().build() as ObjectSchema
+			.resolutionScope(this::class.java.getClassLoader().getResource("").toURI())
+			.build().load().build() as ObjectSchema
 
 	@Test
 	fun verifyRootSchema() {
