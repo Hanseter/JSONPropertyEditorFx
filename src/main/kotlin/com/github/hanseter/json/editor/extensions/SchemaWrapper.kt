@@ -10,5 +10,5 @@ class SchemaWrapper<T : Schema>(val parent: SchemaWrapper<*>?, val schema: T, cu
 
 	fun getPropertyName(): String = schema.getSchemaLocation().drop(1).split('/').last()
 
+	fun getPropertyOrder(): List<String> = (schema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()?.toList()?.distinct() ?: emptyList()
 }
-

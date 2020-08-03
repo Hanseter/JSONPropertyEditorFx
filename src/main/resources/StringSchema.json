@@ -104,5 +104,6 @@
 		}
 	},
 	"required":["string", "ref","color", "Some named boolean"],
+	"order":["string", "ref", "color", "notExistingPropertyName","tuple", "integer", "enum", "color", null, 1],
 	"title": "schema"
 }

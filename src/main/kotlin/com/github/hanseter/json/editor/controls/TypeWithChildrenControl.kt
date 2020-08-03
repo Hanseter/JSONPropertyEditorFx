@@ -20,8 +20,28 @@ abstract class TypeWithChildrenControl(schema: SchemaWrapper<*>) : TypeControl {
 		contentSchemas: Collection<Schema>,
 		refProvider: IdReferenceProposalProvider,
 		resolutionScopeProvider: ResolutionScopeProvider
-	) = contentSchemas.map { ControlFactory.convert(SchemaWrapper(schema, it), refProvider, resolutionScopeProvider) }
-		.sortedBy { it.schema.getPropertyName().toLowerCase() }
+	): List<TypeControl> {
+		val controls = contentSchemas.map { ControlFactory.convert(
+				SchemaWrapper(schema, it), refProvider, resolutionScopeProvider)
+		}.sortedBy { it.schema.parent?.getPropertyOrder()?.indexOf(it.schema.getPropertyName()) }
+		var orderedControls : List<TypeControl> = mutableListOf()
+		var unorderedControls: List<TypeControl>
+		val orderedPropertiesCount = controls.count {
+			schema.getPropertyOrder().contains(it.schema.getPropertyName())
+		}
+
+		when {
+			orderedPropertiesCount > 0 -> {
+				orderedControls = controls.takeLast(orderedPropertiesCount)
+				unorderedControls = controls.take(controls.size-orderedPropertiesCount).sortedBy {
+					it.schema.getPropertyName().toLowerCase()
+				}
+			}
+			else -> unorderedControls = controls.sortedBy { it.schema.getPropertyName().toLowerCase() }
+		}
+
+		return orderedControls + unorderedControls
+	}
 
 	protected fun createValidityBinding() =
 		children.map { it.valid }.fold(SimpleBooleanProperty(true) as ObservableBooleanValue) { a, b ->
