@@ -1,10 +1,5 @@
 package com.github.hanseter.json.editor.util
 
-import org.json.JSONObject
-import org.everit.json.schema.Schema
-import org.everit.json.schema.ObjectSchema
-import org.everit.json.schema.ArraySchema
-import org.json.JSONArray
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 
 abstract class BindableJsonType(private val parent: BindableJsonType?) {

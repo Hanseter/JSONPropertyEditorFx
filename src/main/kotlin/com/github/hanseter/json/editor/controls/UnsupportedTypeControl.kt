@@ -1,18 +1,13 @@
 package com.github.hanseter.json.editor.controls
 
-import org.everit.json.schema.Schema
-import javafx.scene.control.Label
-import org.json.JSONObject
-import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.TreeItemData
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.property.SimpleBooleanProperty
 
 class UnsupportedTypeControl(override val schema: SchemaWrapper<*>) : TypeControl {
-	override val valid = SimpleBooleanProperty(true)
-
-	override fun matchesFilter(filterString: String, parentAttributeDisplayName: String): Boolean = true
-	override val node =
-		Label("Schema ${schema.schema.schemaLocation} with type ${schema.schema::class.java.name} cannot be displayed.")
-
-	override fun bindTo(type: BindableJsonType) {}
+    override val valid = SimpleBooleanProperty(true)
+    override val node = FilterableTreeItem(TreeItemData(schema.title, "Schema ${schema.schema.schemaLocation} with type ${schema.schema::class.java.name} cannot be displayed.", null, null))
+    override fun bindTo(type: BindableJsonType) {}
 }

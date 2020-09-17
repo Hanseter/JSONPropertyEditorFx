@@ -1,58 +1,51 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
-import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory
-import org.everit.json.schema.NumberSchema
 import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory
 import javafx.scene.control.TextFormatter
-import java.util.function.UnaryOperator
-import java.text.ParseException
+import javafx.util.StringConverter
+import org.everit.json.schema.NumberSchema
 import java.text.DecimalFormat
 import java.text.ParsePosition
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.application.Platform
-import javafx.util.StringConverter
-import javafx.beans.property.ReadOnlyBooleanProperty
-import javafx.beans.property.ReadOnlyDoubleProperty
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.Property
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
 
 class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
 	RowBasedControl<NumberSchema, Number, Spinner<Double>>(
 		schema,
-		Spinner<Double>(),
+		Spinner(),
 		SimpleObjectProperty<Number>(null),
-		schema.schema.getDefaultValue() as? Double
+		schema.schema.defaultValue as? Double
 	) {
-	private val minInclusive = schema.schema.getMinimum()?.toDouble()
-	private val minExclusive = schema.schema.getExclusiveMinimumLimit()?.toDouble()
-	private val maxInclusive = schema.schema.getMaximum()?.toDouble()
-	private val maxExclusive = schema.schema.getExclusiveMaximumLimit()?.toDouble()
+	private val minInclusive = schema.schema.minimum?.toDouble()
+	private val minExclusive = schema.schema.exclusiveMinimumLimit?.toDouble()
+	private val maxInclusive = schema.schema.maximum?.toDouble()
+	private val maxExclusive = schema.schema.exclusiveMaximumLimit?.toDouble()
 	private val textFormatter = TextFormatter<String>(this::filterChange)
 
 	init {
-		control.setValueFactory(DoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE))
-		control.setEditable(true)
-		control.valueFactory.setConverter(CONVERTER)
+		control.minWidth = 150.0
+		control.valueFactory = DoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE)
+		control.isEditable = true
+		control.valueFactory.converter = CONVERTER
 		control.focusedProperty().addListener { _, _, new ->
 			if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
-				control.editor.text = control.valueFactory.converter.toString(value.getValue()?.toDouble())
+				control.editor.text = control.valueFactory.converter.toString(value.value?.toDouble())
 			}
 
 		}
-		control.editor.text = control.valueFactory.converter.toString(value.getValue()?.toDouble())
+		control.editor.text = control.valueFactory.converter.toString(value.value?.toDouble())
 		control.editor.textFormatterProperty().set(textFormatter)
 	}
 
 	private fun filterChange(change: TextFormatter.Change): TextFormatter.Change? {
-		if (!change.isContentChange() || change.getControlNewText() == "-") {
+		if (!change.isContentChange || change.controlNewText == "-") {
 			return change
 		}
 		val parsePos = ParsePosition(0)
-		val number = DECIMAL_FORMAT.parse(change.getControlNewText(), parsePos)?.toDouble()
-		if (parsePos.getIndex() < change.getControlNewText().length) {
+		val number = DECIMAL_FORMAT.parse(change.controlNewText, parsePos)?.toDouble()
+		if (parsePos.index < change.controlNewText.length) {
 			return null
 		}
 
@@ -73,7 +66,7 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
 				updateValueAndText(minExclusive + 1); null
 			}
 			else -> {
-				value.setValue(number); change
+				value.value = number; change
 			}
 		}
 	}
@@ -81,7 +74,7 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
 	private fun updateValueAndText(newValue: Double, newText: String = DECIMAL_FORMAT.format(newValue)) {
 		control.editor.textFormatterProperty().set(null)
 		control.editor.text = newText
-		value.setValue(newValue)
+		value.value = newValue
 		control.editor.selectAll()
 		control.editor.textFormatterProperty().set(textFormatter)
 	}

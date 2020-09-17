@@ -2,13 +2,14 @@ package com.github.hanseter.json.editor.extensions
 
 import org.everit.json.schema.Schema
 
-class SchemaWrapper<T : Schema>(val parent: SchemaWrapper<*>?, val schema: T, customTitle: String? = null) {
+interface SchemaWrapper<T : Schema> {
+    val parent: SchemaWrapper<*>?
+    val schema: T
+    val title: String
+    val readOnly: Boolean
 
-	val title = customTitle ?: schema.getTitle() ?: getPropertyName()
+    fun getPropertyName(): String
 
-	val readOnly: Boolean = (parent?.readOnly ?: false) || (schema.isReadOnly() ?: false)
-
-	fun getPropertyName(): String = schema.getSchemaLocation().drop(1).split('/').last()
-
+    fun getPropertyOrder(): List<String> = (schema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()?.toList()?.distinct()
+            ?: emptyList()
 }
-

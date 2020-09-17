@@ -5,7 +5,7 @@ import org.json.JSONObject
 interface IdReferenceProposalProvider {
 	object IdReferenceProposalProviderEmpty : IdReferenceProposalProvider {
 		override fun calcCompletionProposals(part: String): List<String> = emptyList()
-		override fun getReferenceDesciption(reference: String): String = ""
+		override fun getReferenceDescription(reference: String): String = ""
 		override fun isValidReference(userInput: String?): Boolean = true
 	}
 
@@ -23,7 +23,7 @@ interface IdReferenceProposalProvider {
 	 * @param reference The typed reference id
 	 * @return A desciptive string for the element identified by the preference.
 	 */
-	fun getReferenceDesciption(reference: String): String
+	fun getReferenceDescription(reference: String): String
 
 	/**
 	 * Checks whether the provided user input is a valid reference.

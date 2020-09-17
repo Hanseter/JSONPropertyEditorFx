@@ -1,100 +1,75 @@
 package com.github.hanseter.json.editor
 
-import javafx.scene.control.TitledPane
-import org.json.JSONObject
-import javafx.scene.layout.VBox
-import javafx.beans.value.ChangeListener
-import org.everit.json.schema.Schema
-import org.everit.json.schema.ObjectSchema
 import com.github.hanseter.json.editor.controls.ObjectControl
-import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.extensions.FilterableTreeItem
+import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
+import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonObject
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import javafx.beans.property.SimpleBooleanProperty
+import org.everit.json.schema.ObjectSchema
+import org.json.JSONObject
 
 class JsonPropertiesPane(
-	title: String,
-	data: JSONObject,
-	schema: ObjectSchema,
-	filter: String,
-	private val refProvider: IdReferenceProposalProvider,
-	private val changeListener: (JSONObject, JsonPropertiesPane) -> Unit
-) : TitledPane(title, null) {
-	private val schema = SchemaWrapper<ObjectSchema>(null, schema, title)
-	private var objectControl: ObjectControl? = null
-	private val contentHandler = ContentHandler(data, filter)
-	val valid = SimpleBooleanProperty(true)
+        title: String,
+        data: JSONObject,
+        schema: ObjectSchema,
+        private val refProvider: IdReferenceProposalProvider,
+        private val resolutionScopeProvider: ResolutionScopeProvider,
+        private val changeListener: (JSONObject, JsonPropertiesPane) -> Unit
+) : FilterableTreeItem<TreeItemData>(TreeItemData(title, null, null, null, true)) {
+    private val schema = RegularSchemaWrapper(null, schema, title)
+    private var objectControl: ObjectControl? = null
+    private val contentHandler = ContentHandler(data)
+    val valid = SimpleBooleanProperty(true)
 
-	init {
-		isExpanded = false
-		expandedProperty().addListener { _, _, new ->
-			if (new) {
-				contentHandler.handleExpansion()
-			}
-		}
-	}
+    init {
+        isExpanded = false
+        expandedProperty().addListener { _, _, new ->
+            if (new) {
+                contentHandler.handleExpansion()
+            }
+        }
+    }
 
-	private fun initObjectControl() {
-		objectControl = ObjectControl(schema, refProvider)
-		valid.bind(objectControl?.valid)
-		content = objectControl?.node?.content
-	}
+    private fun initObjectControl() {
+        objectControl = ObjectControl(schema, refProvider, resolutionScopeProvider)
+        valid.bind(objectControl?.valid)
+        objectControl?.node?.list?.let { addAll(it) }
+    }
 
-	fun setPropertyFilter(filter: String) {
-		contentHandler.updateFilter(filter)
-	}
+    fun fillData(data: JSONObject) {
+        contentHandler.updateData(data)
+    }
 
-	fun fillData(data: JSONObject) {
-		contentHandler.updateData(data)
-	}
+    private fun fillSheet(data: JSONObject) {
+        val type = BindableJsonObject(null, data)
+        objectControl?.bindChildrenToObject(type)
+        type.registerListener {
+            changeListener(type.obj, this)
+        }
+    }
 
-	private fun fillSheet(data: JSONObject) {
-		val type = BindableJsonObject(null, data)
-		objectControl?.bindChildrenToObject(type)
-		type.registerListener {
-			changeListener(type.obj, this)
-		}
-	}
+    private inner class ContentHandler(private var data: JSONObject) {
+        private var dataDirty = true
 
-	private fun filterSheet(filter: String) {
-		objectControl?.applyFilter(filter, "")
-	}
+        fun handleExpansion() {
+            if (objectControl == null) {
+                initObjectControl()
+            }
+            if (dataDirty) {
+                fillSheet(data)
+                dataDirty = false
+            }
+        }
 
-	private inner class ContentHandler(private var data: JSONObject, private var filterString: String) {
-		private var dataDirty = true
-		private var filterDirty = true
-
-		fun handleExpansion() {
-			if (objectControl == null) {
-				initObjectControl()
-			}
-			if (dataDirty) {
-				fillSheet(data)
-				dataDirty = false
-			}
-			if (filterDirty) {
-				filterSheet(filterString)
-				filterDirty = false
-			}
-		}
-
-		fun updateData(data: JSONObject) {
-			this.data = data
-			if (isExpanded) {
-				fillSheet(data)
-			} else {
-				dataDirty = true
-			}
-		}
-
-		fun updateFilter(filter: String) {
-			this.filterString = filter
-			if (isExpanded) {
-				filterSheet(filterString)
-			} else {
-				dataDirty = true
-			}
-		}
-	}
+        fun updateData(data: JSONObject) {
+            this.data = data
+            if (isExpanded) {
+                fillSheet(data)
+            } else {
+                dataDirty = true
+            }
+        }
+    }
 
 }

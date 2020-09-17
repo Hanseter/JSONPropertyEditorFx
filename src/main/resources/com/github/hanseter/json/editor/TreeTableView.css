@@ -1,0 +1,48 @@
+.control-cell {
+    -fx-padding: 0.1em 0.35em 0.4em 1.0em;
+}
+
+.isHeadlineRow,
+.isHeadlineRow:filled,
+.isHeadlineRow:filled:selected {
+    -fx-background-color: derive(-fx-color, -2%);
+    -fx-opacity: 0.5;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-table-cell-border-color: transparent;
+}
+
+.isRootRow {
+    -fx-text-fill: -fx-text-base-color;
+    -fx-background-color:
+            linear-gradient(to bottom,
+            derive(-fx-color,-15%) 95%,
+            derive(-fx-color,-25%) 100%
+            ),
+            -fx-inner-border, -fx-body-color;
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 3 3 0 0, 2 2 0 0, 1 1 0 0;
+    -fx-table-cell-border-color: transparent;
+}
+.isRootRow:focused {
+    -fx-color: -fx-base;
+}
+
+.isRootRow:hover {
+    -fx-color: -fx-hover-base;
+}
+
+.isRootRow:filled:selected > .tree-disclosure-node > .arrow,
+.isRootRow:selected > .tree-disclosure-node > .arrow,
+.isRootRow > .tree-disclosure-node > .arrow {
+    -fx-background-color: -fx-mark-color;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-fill: -fx-text-base-color;
+}
+
+.isRootRow:filled:selected .text,
+.isRootRow:selected .text,
+.isRootRow:filled .text,
+.isRootRow .text  {
+    -fx-text-fill: -fx-text-base-color;
+    -fx-fill: -fx-text-base-color;
+}

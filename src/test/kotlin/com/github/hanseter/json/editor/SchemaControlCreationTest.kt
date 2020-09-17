@@ -1,22 +1,19 @@
 package com.github.hanseter.json.editor
 
-import org.junit.jupiter.api.Test
-import org.everit.json.schema.loader.SchemaLoader
-import org.json.JSONObject
-import org.everit.json.schema.ObjectSchema
-import org.everit.json.schema.Schema
-import org.json.JSONTokener
-import org.everit.json.schema.loader.SchemaLoader.SchemaLoaderBuilder
-import org.everit.json.schema.loader.SchemaClient
-import org.everit.json.schema.loader.internal.DefaultSchemaClient
-import org.everit.json.schema.StringSchema
 import org.everit.json.schema.ArraySchema
 import org.everit.json.schema.NumberSchema
+import org.everit.json.schema.ObjectSchema
+import org.everit.json.schema.StringSchema
+import org.everit.json.schema.loader.SchemaLoader
+import org.json.JSONObject
+import org.json.JSONTokener
+import org.junit.jupiter.api.Test
 
 class SchemaControlCreationTest {
 	private val rootSchema: ObjectSchema = SchemaLoader.builder().useDefaults(true)
 		.schemaJson(JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json"))))
-		.build().load().build() as ObjectSchema
+			.resolutionScope(this::class.java.getClassLoader().getResource("").toURI())
+			.build().load().build() as ObjectSchema
 
 	@Test
 	fun verifyRootSchema() {

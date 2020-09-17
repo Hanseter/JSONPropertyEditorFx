@@ -1,27 +1,24 @@
 package com.github.hanseter.json.editor.controls
 
-import org.everit.json.schema.StringSchema
-import javafx.beans.value.ChangeListener
-import org.json.JSONObject
-import javafx.beans.value.ObservableValue
-import javafx.beans.property.Property
-import javafx.scene.control.ColorPicker
-import javafx.beans.property.SimpleObjectProperty
-import javafx.scene.paint.Color
-import javafx.beans.property.SimpleStringProperty
-import javafx.beans.binding.Bindings
-import javafx.util.StringConverter
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import javafx.beans.binding.Bindings
+import javafx.beans.property.SimpleStringProperty
+import javafx.scene.control.ColorPicker
+import javafx.scene.paint.Color
+import javafx.util.StringConverter
+import org.everit.json.schema.StringSchema
 
 class ColorControl(schema: SchemaWrapper<StringSchema>) :
 	RowBasedControl<StringSchema, String, ColorPicker>(
 		schema,
 		ColorPicker(),
 		SimpleStringProperty("#FFFFFFFF"),
-		schema.schema.getDefaultValue() as? String
+		schema.schema.defaultValue as? String
 	) {
 
 	init {
+		control.minHeight = 25.0
+		control.minWidth = 150.0
 		Bindings.bindBidirectional(value, control.valueProperty(), ColorStringConverter)
 	}
 
