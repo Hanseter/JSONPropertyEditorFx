@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.hanseter</groupId>
     <artifactId>json-properties-fx</artifactId>
-    <version>0.0.0.1</version>
+    <version>0.0.0.4</version>
 
     <packaging>bundle</packaging>
     <name>JSON Properties Editor Fx</name>
@@ -33,7 +33,7 @@
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>
-                <version>1.3.50</version>
+                <version>1.4.10</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-            <version>1.3.50</version>
+            <version>1.4.10</version>
         </dependency>
         <dependency>
             <groupId>com.github.everit-org.json-schema</groupId>
@@ -106,7 +106,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20190722</version>
+            <version>20200518</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
