@@ -9,29 +9,37 @@ import org.json.JSONTokener
 import java.net.URI
 
 fun main(args: Array<String>) {
-	Application.launch(JsonPropertiesEditorTestApp::class.java, *args)
+    Application.launch(JsonPropertiesEditorTestApp::class.java, *args)
 }
 
 class JsonPropertiesEditorTestApp : Application() {
-	override fun start(primaryStage: Stage) {
-		val customResolutionScopeProvider = object : ResolutionScopeProvider {
-			override fun getResolutionScopeForElement(elementId: String): URI? {
-				return this::class.java.classLoader.getResource("").toURI()
-			}
-		}
+    override fun start(primaryStage: Stage) {
+        val customResolutionScopeProvider = object : ResolutionScopeProvider {
+            override fun getResolutionScopeForElement(elementId: String): URI? =
+                    this::class.java.classLoader.getResource("")?.toURI()
+        }
 
-		val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2, customResolutionScopeProvider)
-		val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")
-			.put("string list", listOf("A", "B"))
-				.put("string_list_readonly", listOf("A", "B"))
-				.put("referenced_point_schema", listOf(
-						JSONObject().put("x", 1.0).put("y", 2.0),
-						JSONObject().put("x", 3.0).put("y", 4.0)
-				))
-				.put("enum", "bar")
-				.put("ref", "Hello")
+        val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2, customResolutionScopeProvider)
+//        val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")
+//                .put("string list", listOf("A", "B"))
+//                .put("string_list_readonly", listOf("A", "B"))
+//                .put("referenced_point_schema", listOf(
+//                        JSONObject().put("x", 1.0).put("y", 2.0),
+//                        JSONObject().put("x", 3.0).put("y", 4.0)
+//                ))
+//                .put("enum", "bar")
+//                .put("ref", "Hello")
 
-		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
+        val testData = JSONObject("{\n" +
+                " \"fromNested\": \"test\",\n" +
+                " \"additional\": 9,\n" +
+                " \"name\": \"waht?\",\n" +
+                " \"x\": 6,\n" +
+                " \"y\": 5\n" +
+                "}")
+
+        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("nestedCompositeSchema.json")))
+//		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
 //		propEdit.display("test4", "test4", testData, schema) { it }
 //		propEdit.display("test5", "test5", testData, schema) { it }
@@ -41,50 +49,50 @@ class JsonPropertiesEditorTestApp : Application() {
 //		propEdit.display("test5", "test5", testData, schema) { it }
 //		propEdit.display("test6", "test6", testData, schema) { it }
 
-		propEdit.display("test", "isRoot 1 2 3 4 5 long text", testData, schema) {
-			println(it.toString(1))
-			Platform.runLater {
-				propEdit.updateObject("test", it)
-			}
-			it
-		}
+        propEdit.display("test", "isRoot 1 2 3 4 5 long text", testData, schema) {
+            println(it.toString(1))
+            Platform.runLater {
+                propEdit.updateObject("test", it)
+            }
+            it
+        }
 //		propEdit.display("test2", "test2", testData, schema) { it }
 //		propEdit.display("test3", "test3", testData, schema) { it }
 
-		propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
-		primaryStage.setScene(Scene(propEdit, 800.0, 800.0))
-		primaryStage.show()
-	}
+        propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
+        primaryStage.scene = Scene(propEdit, 800.0, 800.0)
+        primaryStage.show()
+    }
 
-	object ReferenceProvider : IdReferenceProposalProvider {
-		private val possibleProposals =
-			mapOf(
-				"Hello" to Pair<JSONObject, JSONObject>(
-					JSONObject().put("name", "world").put("ref", "Foo"),
-					JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
-				),
-				"Goodbye" to Pair<JSONObject, JSONObject>(
-					JSONObject().put("name", "my love"),
-					JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
-				),
-				"Foo" to Pair<JSONObject, JSONObject>(
-					JSONObject().put("name", "Bar"),
-					JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
-				)
-			)
+    object ReferenceProvider : IdReferenceProposalProvider {
+        private val possibleProposals =
+                mapOf(
+                        "Hello" to Pair<JSONObject, JSONObject>(
+                                JSONObject().put("name", "world").put("ref", "Foo"),
+                                JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                        ),
+                        "Goodbye" to Pair<JSONObject, JSONObject>(
+                                JSONObject().put("name", "my love"),
+                                JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                        ),
+                        "Foo" to Pair<JSONObject, JSONObject>(
+                                JSONObject().put("name", "Bar"),
+                                JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                        )
+                )
 
-		override fun calcCompletionProposals(part: String): List<String> =
-			possibleProposals.keys.filter { it.startsWith(part) }
+        override fun calcCompletionProposals(part: String): List<String> =
+                possibleProposals.keys.filter { it.startsWith(part) }
 
-		override fun getReferenceDescription(reference: String): String =
-			possibleProposals.get(reference)?.first?.optString("name") ?: ""
+        override fun getReferenceDescription(reference: String): String =
+                possibleProposals[reference]?.first?.optString("name") ?: ""
 
-		override fun isValidReference(userInput: String?): Boolean = possibleProposals.contains(userInput)
+        override fun isValidReference(userInput: String?): Boolean = possibleProposals.contains(userInput)
 
-		override fun getDataAndSchema(id: String): Pair<JSONObject, JSONObject>? = possibleProposals.get(id)
-		override fun isOpenable(id: String) = true
-		override fun openElement(id: String) {
-			println("Request to open " + id)
-		}
-	}
+        override fun getDataAndSchema(id: String): Pair<JSONObject, JSONObject>? = possibleProposals[id]
+        override fun isOpenable(id: String) = true
+        override fun openElement(id: String) {
+            println("Request to open $id")
+        }
+    }
 }

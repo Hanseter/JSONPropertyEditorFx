@@ -8,6 +8,6 @@ import javafx.beans.property.SimpleBooleanProperty
 
 class UnsupportedTypeControl(override val schema: SchemaWrapper<*>) : TypeControl {
     override val valid = SimpleBooleanProperty(true)
-    override val node = FilterableTreeItem(TreeItemData(schema.title, "Schema ${schema.schema.schemaLocation} with type ${schema.schema::class.java.name} cannot be displayed.", null, null))
+    override val node = FilterableTreeItem(TreeItemData("!!Error", "Schema ${schema.schema.schemaLocation} with type ${schema.schema::class.java.name} cannot be displayed.", null, null))
     override fun bindTo(type: BindableJsonType) {}
 }

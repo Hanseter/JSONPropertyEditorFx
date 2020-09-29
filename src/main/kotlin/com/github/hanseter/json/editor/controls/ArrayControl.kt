@@ -33,7 +33,7 @@ class ArrayControl(
         private val refProvider: IdReferenceProposalProvider,
         private val resolutionScopeProvider: ResolutionScopeProvider
 ) : TypeWithChildrenControl(schema) {
-    override val children = mutableListOf<TypeControl>()
+    private val children = mutableListOf<TypeControl>()
     private var bound: BindableJsonType? = null
     private var subArray: BindableJsonArray? = null
     private val itemCountValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
@@ -100,7 +100,7 @@ class ArrayControl(
         }
         bound?.setValue(schema, children)
         validateChildCount(children)
-        valid.bind(validInternal.and(createValidityBinding()))
+        valid.bind(validInternal.and(createValidityBinding(this.children)))
     }
 
     private inner class ArrayChildWrapper(wrapped: TypeControl, addArrayControls: Boolean) : TypeControl by wrapped {

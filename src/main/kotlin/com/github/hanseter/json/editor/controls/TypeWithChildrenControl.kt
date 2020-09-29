@@ -15,7 +15,6 @@ import org.everit.json.schema.Schema
 
 abstract class TypeWithChildrenControl(schema: SchemaWrapper<*>) : TypeControl {
     override val node = FilterableTreeItem(TreeItemData(schema.title, null, Label(), null))
-    protected abstract val children: List<TypeControl>
 
     protected fun createTypeControlsFromSchemas(
             contentSchemas: Collection<Schema>,
@@ -45,8 +44,8 @@ abstract class TypeWithChildrenControl(schema: SchemaWrapper<*>) : TypeControl {
         return orderedControls + unorderedControls
     }
 
-    protected fun createValidityBinding() =
-            children.map { it.valid }.fold(SimpleBooleanProperty(true) as ObservableBooleanValue) { a, b ->
-                Bindings.and(a, b)
+    protected fun createValidityBinding(children: List<TypeControl>) =
+            children.fold(SimpleBooleanProperty(true) as ObservableBooleanValue) { a, b ->
+                Bindings.and(a, b.valid)
             }
 }

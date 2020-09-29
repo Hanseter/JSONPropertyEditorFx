@@ -12,13 +12,13 @@ import org.json.JSONArray
 
 class TupleControl(
 	override val schema: SchemaWrapper<ArraySchema>,
-	private val contentSchemas: List<Schema>,
+	contentSchemas: List<Schema>,
 	refProvider: IdReferenceProposalProvider,
 	resolutionScopeProvider: ResolutionScopeProvider
 ) : TypeWithChildrenControl(schema) {
 
-	override val children: List<TypeControl> = createTypeControlsFromSchemas(contentSchemas, refProvider, resolutionScopeProvider)
-	override val valid: ObservableBooleanValue = createValidityBinding()
+	private val children: List<TypeControl> = createTypeControlsFromSchemas(contentSchemas, refProvider, resolutionScopeProvider)
+	override val valid: ObservableBooleanValue = createValidityBinding(children)
 
 	init {
 		node.addAll(children.map { it.node })

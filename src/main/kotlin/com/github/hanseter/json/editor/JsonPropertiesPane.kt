@@ -1,24 +1,24 @@
 package com.github.hanseter.json.editor
 
-import com.github.hanseter.json.editor.controls.ObjectControl
+import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
-import com.github.hanseter.json.editor.util.BindableJsonObject
+import com.github.hanseter.json.editor.util.RootBindableType
 import javafx.beans.property.SimpleBooleanProperty
-import org.everit.json.schema.ObjectSchema
+import org.everit.json.schema.Schema
 import org.json.JSONObject
 
 class JsonPropertiesPane(
         title: String,
         data: JSONObject,
-        schema: ObjectSchema,
+        schema: Schema,
         private val refProvider: IdReferenceProposalProvider,
         private val resolutionScopeProvider: ResolutionScopeProvider,
         private val changeListener: (JSONObject, JsonPropertiesPane) -> Unit
 ) : FilterableTreeItem<TreeItemData>(TreeItemData(title, null, null, null, true)) {
     private val schema = RegularSchemaWrapper(null, schema, title)
-    private var objectControl: ObjectControl? = null
+    private var objectControl: TypeControl? = null
     private val contentHandler = ContentHandler(data)
     val valid = SimpleBooleanProperty(true)
 
@@ -32,9 +32,11 @@ class JsonPropertiesPane(
     }
 
     private fun initObjectControl() {
-        objectControl = ObjectControl(schema, refProvider, resolutionScopeProvider)
-        valid.bind(objectControl?.valid)
-        objectControl?.node?.list?.let { addAll(it) }
+        val objectControl = ControlFactory.convert(schema, refProvider, resolutionScopeProvider)
+        valid.bind(objectControl.valid)
+        if (objectControl.node.list.isEmpty()) add(objectControl.node)
+        else addAll(objectControl.node.list)
+        this.objectControl = objectControl
     }
 
     fun fillData(data: JSONObject) {
@@ -42,10 +44,10 @@ class JsonPropertiesPane(
     }
 
     private fun fillSheet(data: JSONObject) {
-        val type = BindableJsonObject(null, data)
-        objectControl?.bindChildrenToObject(type)
+        val type = RootBindableType(data)
+        objectControl?.bindTo(type)
         type.registerListener {
-            changeListener(type.obj, this)
+            changeListener(type.value!!, this)
         }
     }
 
