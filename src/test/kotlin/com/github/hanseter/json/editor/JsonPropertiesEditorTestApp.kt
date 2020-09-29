@@ -30,15 +30,17 @@ class JsonPropertiesEditorTestApp : Application() {
 //                .put("enum", "bar")
 //                .put("ref", "Hello")
 
-        val testData = JSONObject("{\n" +
-                " \"fromNested\": \"test\",\n" +
-                " \"additional\": 9,\n" +
-                " \"name\": \"waht?\",\n" +
-                " \"x\": 6,\n" +
-                " \"y\": 5\n" +
-                "}")
+//        val testData = JSONObject("{\n" +
+////                " \"fromNested\": \"test\",\n" +
+////                " \"additional\": 9,\n" +
+////                " \"name\": \"waht?\",\n" +
+////                " \"x\": 6,\n" +
+////                " \"y\": 5\n" +
+////                "}")
 
-        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("nestedCompositeSchema.json")))
+        val testData = JSONObject()
+
+        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("Balise.json")))
 //		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
 //		propEdit.display("test4", "test4", testData, schema) { it }
