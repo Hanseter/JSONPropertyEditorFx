@@ -16,11 +16,11 @@ import java.util.regex.Pattern
 
 class StringControl(schema: SchemaWrapper<StringSchema>) :
         RowBasedControl<StringSchema, String, TextField>(
-				schema,
-				TextField(),
-				{ it.textProperty() },
-				schema.schema.defaultValue as? String
-		) {
+                schema,
+                TextField(),
+                { it.textProperty() },
+                schema.schema.defaultValue as? String
+        ) {
     private val validation = ValidationSupport()
     private val formatValidator: Validator<String>?
     private val lengthValidator: Validator<String>?
@@ -36,10 +36,12 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
         if (!isRequired) {
             node.value.action = HBox().apply {
 
-                children += Button("⟲").apply {
-                    tooltip = Tooltip("Reset to default")
-                    onAction = EventHandler {
-                        resetValueToDefault()
+                if (defaultValue != null) {
+                    children += Button("⟲").apply {
+                        tooltip = Tooltip("Reset to default")
+                        onAction = EventHandler {
+                            resetValueToDefault()
+                        }
                     }
                 }
 
@@ -55,10 +57,10 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
 
     companion object {
         fun addFormatValidation(
-				validation: ValidationSupport,
-				textField: TextField,
-				formatValidator: FormatValidator?
-		): Validator<String>? {
+                validation: ValidationSupport,
+                textField: TextField,
+                formatValidator: FormatValidator?
+        ): Validator<String>? {
             val validator = createFormatValidation(formatValidator) ?: return null
             validation.registerValidator(textField, false, validator)
             return validator
@@ -70,19 +72,19 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
             Validator { control, value: String? ->
                 val validationResult = format.validate(value).orElse(null)
                 ValidationResult.fromErrorIf(
-						control,
-						validationResult,
-						validationResult != null
-				)
+                        control,
+                        validationResult,
+                        validationResult != null
+                )
             }
         }
 
         fun addLengthValidation(
-				validation: ValidationSupport,
-				textField: TextField,
-				minLength: Int?,
-				maxLength: Int?
-		): Validator<String>? {
+                validation: ValidationSupport,
+                textField: TextField,
+                minLength: Int?,
+                maxLength: Int?
+        ): Validator<String>? {
             val validator = createLengthValidation(minLength, maxLength) ?: return null
             validation.registerValidator(textField, false, validator)
             return validator
@@ -91,33 +93,33 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
         private fun createLengthValidation(minLength: Int?, maxLength: Int?): Validator<String>? = when {
             minLength != null && maxLength != null -> Validator { control, value: String? ->
                 ValidationResult.fromErrorIf(
-						control,
-						"Has to be $minLength to $maxLength characters",
-						value?.length ?: 0 < minLength || value?.length ?: 0 > maxLength
-				)
+                        control,
+                        "Has to be $minLength to $maxLength characters",
+                        value?.length ?: 0 < minLength || value?.length ?: 0 > maxLength
+                )
             }
             minLength != null -> Validator { control, value: String? ->
                 ValidationResult.fromErrorIf(
-						control,
-						"Has to be at max $minLength characters",
-						value?.length ?: 0 < minLength
-				)
+                        control,
+                        "Has to be at max $minLength characters",
+                        value?.length ?: 0 < minLength
+                )
             }
             maxLength != null -> Validator { control, value: String? ->
                 ValidationResult.fromErrorIf(
-						control,
-						"Has to be at least $maxLength characters",
-						value?.length ?: 0 > maxLength
-				)
+                        control,
+                        "Has to be at least $maxLength characters",
+                        value?.length ?: 0 > maxLength
+                )
             }
             else -> null
         }
 
         fun addPatternValidation(
-				validation: ValidationSupport,
-				textField: TextField,
-				pattern: Pattern?
-		): Validator<String>? {
+                validation: ValidationSupport,
+                textField: TextField,
+                pattern: Pattern?
+        ): Validator<String>? {
             if (pattern == null) return null
             val validator = Validator.createRegexValidator("Has to match pattern $pattern", pattern, Severity.ERROR)
             validation.registerValidator(textField, false, validator)

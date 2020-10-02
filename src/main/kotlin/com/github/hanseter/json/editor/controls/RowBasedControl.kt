@@ -56,30 +56,18 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
     override fun bindTo(type: BindableJsonType) {
         bound = null
         val rawVal = type.getValue(schema)
-        var newVal: TYPE?
+        val newVal: TYPE?
 
-        control.styleClass.removeAll("at-default-value", "has-undefined-value", "has-null-value")
+        control.styleClass.removeAll("has-null-value")
 
-        if (rawVal == JSONObject.NULL) {
-            newVal = null
+        newVal = if (rawVal == JSONObject.NULL) null else rawVal as? TYPE
+
+        if (newVal == null) {
             if ("has-null-value" !in control.styleClass) {
                 control.styleClass.add("has-null-value")
             }
         } else {
-            newVal = rawVal as? TYPE
-            if (newVal == null) {
-                if (defaultValue != null) {
-                    newVal = defaultValue
-
-                    if ("at-default-value" !in control.styleClass) {
-                        control.styleClass.add("at-default-value")
-                    }
-                } else {
-                    if ("has-undefined-value" !in control.styleClass) {
-                        control.styleClass.add("has-undefined-value")
-                    }
-                }
-            }
+            control.styleClass.remove("has-null-value")
         }
 
         if (newVal != this.value.value) {
@@ -96,8 +84,10 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
     }
 
     protected open fun resetValueToDefault() {
-        bound?.setValue(schema, null)
-        valueNewlyBound()
+        if (defaultValue != null) {
+            bound?.setValue(schema, defaultValue)
+            valueNewlyBound()
+        }
     }
 
     protected open fun valueNewlyBound() {}

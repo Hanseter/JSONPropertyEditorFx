@@ -50,10 +50,12 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
         if (!isRequired) {
             node.value.action = HBox().apply {
 
-                children += Button("⟲").apply {
-                    tooltip = Tooltip("Reset to default")
-                    onAction = EventHandler {
-                        resetValueToDefault()
+                if (defaultValue != null) {
+                    children += Button("⟲").apply {
+                        tooltip = Tooltip("Reset to default")
+                        onAction = EventHandler {
+                            resetValueToDefault()
+                        }
                     }
                 }
 

@@ -74,27 +74,10 @@
     -fx-background-insets: 0, 1;
 }
 
-.toggle-switch.at-default-value .thumb-area {
-    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
-    linear-gradient(to bottom, derive(#CCA9A3, 30%), #CCA9A3);
-    -fx-background-insets: 0, 1;
-}
 
 .toggle-switch:selected .thumb-area {
     -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
     linear-gradient(to bottom, derive(#0b99c9, 30%), #0b99c9);
-    -fx-background-insets: 0, 1;
-}
-
-.toggle-switch.at-default-value:selected .thumb-area {
-    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -10%), derive(-fx-text-box-border, -10%)),
-    linear-gradient(to bottom, derive(#A3C4CE, 30%), #A3C4CE);
-    -fx-background-insets: 0, 1;
-}
-
-.toggle-switch.has-undefined-value .thumb-area {
-    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -0%), derive(-fx-text-box-border, -0%)),
-    #f5f5f5;
     -fx-background-insets: 0, 1;
 }
 

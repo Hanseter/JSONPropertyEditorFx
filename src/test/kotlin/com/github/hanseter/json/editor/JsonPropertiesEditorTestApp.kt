@@ -42,7 +42,8 @@ class JsonPropertiesEditorTestApp : Application() {
 {
   "reqBool": true,
   "reqInt": 5,
-  "reqDouble": 42.24
+  "reqDouble": 42.24,
+  "defDouble": null
 }
 """)
 

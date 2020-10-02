@@ -13,11 +13,11 @@ import org.everit.json.schema.Schema
 //TODO this control makes every enum a string, even if it is something else. This needs to be improved.
 class EnumControl(schema: SchemaWrapper<Schema>, enumSchema: EnumSchema) :
         RowBasedControl<Schema, String, ComboBox<String>>(
-				schema,
-				ComboBox(),
-				SimpleObjectProperty<String>(""),
-				schema.schema.defaultValue as? String
-		) {
+                schema,
+                ComboBox(),
+                SimpleObjectProperty<String>(""),
+                schema.schema.defaultValue as? String
+        ) {
 
     init {
         control.minWidth = 150.0
@@ -33,10 +33,12 @@ class EnumControl(schema: SchemaWrapper<Schema>, enumSchema: EnumSchema) :
         if (!isRequired) {
             node.value.action = HBox().apply {
 
-                children += Button("⟲").apply {
-                    tooltip = Tooltip("Reset to default")
-                    onAction = EventHandler {
-                        resetValueToDefault()
+                if (defaultValue != null) {
+                    children += Button("⟲").apply {
+                        tooltip = Tooltip("Reset to default")
+                        onAction = EventHandler {
+                            resetValueToDefault()
+                        }
                     }
                 }
 

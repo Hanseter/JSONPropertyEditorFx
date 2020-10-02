@@ -9,6 +9,9 @@
     "optBool": {
       "type": "boolean"
     },
+    "optBool2": {
+      "type": "boolean"
+    },
     "defBool": {
       "type": "boolean",
       "default": true
@@ -16,6 +19,10 @@
     "defBool2": {
       "type": "boolean",
       "default": false
+    },
+    "roBool": {
+      "type": "boolean",
+      "readOnly": true
     },
     "reqInt": {
       "type": "integer"
