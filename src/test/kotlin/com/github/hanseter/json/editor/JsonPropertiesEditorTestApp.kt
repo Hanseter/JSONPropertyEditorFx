@@ -30,15 +30,26 @@ class JsonPropertiesEditorTestApp : Application() {
 //                .put("enum", "bar")
 //                .put("ref", "Hello")
 
-        val testData = JSONObject("{\n" +
-                " \"fromNested\": \"test\",\n" +
-                " \"additional\": 9,\n" +
-                " \"name\": \"waht?\",\n" +
-                " \"x\": 6,\n" +
-                " \"y\": 5\n" +
-                "}")
+        val testData = JSONObject("""{
+ "fromNested": "test",
+ "additional": 9,
+ "name": "waht?",
+ "x": 6,
+ "y": 5,
+ "bool": true
+}""")
+        val resettableTestData = JSONObject("""
+{
+  "reqBool": true,
+  "reqInt": 5,
+  "reqDouble": 42.24
+}
+""")
 
-        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("nestedCompositeSchema.json")))
+        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
+//                "nestedCompositeSchema.json"
+                "resettableSchema.json"
+        )))
 //		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
 //		propEdit.display("test4", "test4", testData, schema) { it }
@@ -49,7 +60,7 @@ class JsonPropertiesEditorTestApp : Application() {
 //		propEdit.display("test5", "test5", testData, schema) { it }
 //		propEdit.display("test6", "test6", testData, schema) { it }
 
-        propEdit.display("test", "isRoot 1 2 3 4 5 long text", testData, schema) {
+        propEdit.display("test", "isRoot 1 2 3 4 5 long text", resettableTestData, schema) {
             println(it.toString(1))
             Platform.runLater {
                 propEdit.updateObject("test", it)

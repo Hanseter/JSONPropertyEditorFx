@@ -1,0 +1,101 @@
+{
+  "type": "object",
+  "title": "Resettable",
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "properties": {
+    "reqBool": {
+      "type": "boolean"
+    },
+    "optBool": {
+      "type": "boolean"
+    },
+    "defBool": {
+      "type": "boolean",
+      "default": true
+    },
+    "defBool2": {
+      "type": "boolean",
+      "default": false
+    },
+    "reqInt": {
+      "type": "integer"
+    },
+    "optInt": {
+      "type": "integer"
+    },
+    "defInt": {
+      "type": "integer",
+      "default": 42
+    },
+    "reqDouble": {
+      "type": "number"
+    },
+    "optDouble": {
+      "type": "number"
+    },
+    "defDouble": {
+      "type": "number",
+      "default": 21.1
+    },
+    "reqString": {
+      "type": "string"
+    },
+    "optString": {
+      "type": "string"
+    },
+    "defString": {
+      "type": "string",
+      "default": "foo"
+    },
+    "reqEnum": {
+      "enum": [
+        "val 1",
+        "val 2",
+        "val 3"
+      ]
+    },
+    "optEnum": {
+      "enum": [
+        "val 1",
+        "val 2",
+        "val 3"
+      ]
+    },
+    "defEnum": {
+      "enum": [
+        "val 1",
+        "val 2",
+        "val 3"
+      ],
+      "default": "val 2"
+    },
+    "reqColor": {
+      "type": "string",
+      "format": "color"
+    },
+    "optColor": {
+      "type": "string",
+      "format": "color"
+    },
+    "defColor": {
+      "type": "string",
+      "format": "color",
+      "default": "#FF0000"
+    },
+    "ref": {
+      "type": "string",
+      "format": "id-reference",
+      "minLength": 3,
+      "maxLength": 5,
+      "pattern": "H.*"
+    }
+  },
+  "required": [
+    "reqBool",
+    "reqInt",
+    "reqDouble",
+    "reqString",
+    "reqEnum",
+    "reqColor"
+  ]
+}

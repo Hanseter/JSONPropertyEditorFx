@@ -2,8 +2,12 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import javafx.beans.value.ChangeListener
+import javafx.event.EventHandler
+import javafx.scene.control.Button
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
+import javafx.scene.control.Tooltip
+import javafx.scene.layout.HBox
 import javafx.util.converter.IntegerStringConverter
 import org.everit.json.schema.NumberSchema
 
@@ -26,7 +30,9 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
     init {
         control.isEditable = true
         control.editor.textProperty().addListener { _, _, new ->
-            if (new.isNotEmpty() && new != "-") {
+            if (new.isEmpty() && !isRequired) {
+                control.increment(0)
+            } else if (new.isNotEmpty() && new != "-") {
                 try {
                     control.increment(0); // won't change value, but will commit editor
                 } catch (e: NumberFormatException) {
@@ -35,10 +41,29 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
             }
         }
         control.focusedProperty().addListener { _, _, new ->
-            if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
+            if (!new && ((control.editor.text.isEmpty() && isRequired) || control.editor.text == "-")) {
                 control.editor.text = control.valueFactory.value?.toString() ?: ""
             }
 
+        }
+
+        if (!isRequired) {
+            node.value.action = HBox().apply {
+
+                children += Button("⟲").apply {
+                    tooltip = Tooltip("Reset to default")
+                    onAction = EventHandler {
+                        resetValueToDefault()
+                    }
+                }
+
+                children += Button("Ø").apply {
+                    tooltip = Tooltip("Set to NULL")
+                    onAction = EventHandler {
+                        setValueToNull()
+                    }
+                }
+            }
         }
     }
 
