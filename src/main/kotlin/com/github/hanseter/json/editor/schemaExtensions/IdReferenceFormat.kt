@@ -1,6 +1,6 @@
 package com.github.hanseter.json.editor.schemaExtensions
 
-import java.util.Optional
+import java.util.*
 
 object IdReferenceFormat {
 	const val formatName = "id-reference"

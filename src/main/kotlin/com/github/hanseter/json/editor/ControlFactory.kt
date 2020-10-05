@@ -77,10 +77,7 @@ object ControlFactory {
         if (schema.schema.criterion == CombinedSchema.ALL_CRITERION) {
             return createAllOfControl(schema, refProvider, resolutionScopeProvider, actions)
         }
-        val enumSchema = schema.schema.subschemas.find { it is EnumSchema } as? EnumSchema
-        if (enumSchema != null) {
-            return createEnumControl(schema, enumSchema, actions)
-        }
+
         return UnsupportedTypeControl(schema)
     }
 
@@ -88,11 +85,23 @@ object ControlFactory {
                                    refProvider: IdReferenceProposalProvider,
                                    resolutionScopeProvider: ResolutionScopeProvider,
                                    actions: List<EditorAction>): TypeControl {
+        if (CombinedSchemaSyntheticChecker.isSynthetic(schema.schema)) {
+            return createControlFromSyntheticAllOf(schema, actions)
+        }
+
         val subSchemas = schema.schema.subschemas.map { RegularSchemaWrapper(schema, it) }
         val controls = subSchemas.map { convert(it, refProvider, resolutionScopeProvider, actions) }
         if (controls.any { it !is ObjectControl }) {
             return UnsupportedTypeControl(schema)
         }
         return CombinedObjectControl(schema, controls as List<ObjectControl>, actions)
+    }
+
+    private fun createControlFromSyntheticAllOf(schema: SchemaWrapper<CombinedSchema>, actions: List<EditorAction>) : TypeControl {
+        val enumSchema = schema.schema.subschemas.find { it is EnumSchema } as? EnumSchema
+        if (enumSchema != null) {
+            return createEnumControl(schema, enumSchema, actions)
+        }
+        return UnsupportedTypeControl(schema)
     }
 }

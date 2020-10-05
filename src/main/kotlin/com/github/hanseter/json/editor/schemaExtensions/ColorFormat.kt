@@ -1,10 +1,10 @@
 package com.github.hanseter.json.editor.schemaExtensions
 
-import java.util.Optional
+import java.util.*
 
 object ColorFormat {
 	val format = Regex.fromLiteral("^#[0-9A-F]{8}$")
-	val formatName = "color"
+	const val formatName = "color"
 
 	object Validator : org.everit.json.schema.FormatValidator {
 		

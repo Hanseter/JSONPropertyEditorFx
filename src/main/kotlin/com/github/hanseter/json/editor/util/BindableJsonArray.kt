@@ -1,13 +1,12 @@
 package com.github.hanseter.json.editor.util
 
-import org.json.JSONObject
-import org.everit.json.schema.Schema
-import org.json.JSONArray
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import org.json.JSONArray
+import org.json.JSONObject
 
 class BindableJsonArray(parent: BindableJsonType?, private val arr: JSONArray) : BindableJsonType(parent) {
 
-	override protected fun setValueInternal(schema: SchemaWrapper<*>, value: Any?) =
+	override fun setValueInternal(schema: SchemaWrapper<*>, value: Any?) =
 		setValueInternal(schema.getPropertyName().toInt(), value)
 
 	fun setValueInternal(index: Int, value: Any?) {
