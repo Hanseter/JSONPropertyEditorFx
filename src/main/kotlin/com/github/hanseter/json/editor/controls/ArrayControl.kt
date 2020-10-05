@@ -3,6 +3,9 @@ package com.github.hanseter.json.editor.controls
 import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.ResolutionScopeProvider
+import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.actions.ReadOnlyAction
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
@@ -31,10 +34,10 @@ class ArrayControl(
         override val schema: SchemaWrapper<ArraySchema>,
         private val contentSchema: Schema,
         private val refProvider: IdReferenceProposalProvider,
-        private val resolutionScopeProvider: ResolutionScopeProvider
-) : TypeWithChildrenControl(schema) {
+        private val resolutionScopeProvider: ResolutionScopeProvider,
+        private val actions: List<EditorAction>
+) : TypeWithChildrenControl(schema, listOf()) {
     private val children = mutableListOf<TypeControl>()
-    private var bound: BindableJsonType? = null
     private var subArray: BindableJsonArray? = null
     private val itemCountValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
     private val uniqueItemValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
@@ -45,16 +48,22 @@ class ArrayControl(
         validInternal.set(itemCountValidationMessage.get() == null && uniqueItemValidationMessage.get() == null)
     }
 
+
     init {
         itemCountValidationMessage.addListener(onValidationStateChanged)
         uniqueItemValidationMessage.addListener(onValidationStateChanged)
 
-        if (!schema.readOnly) {
-            node.value.action = Button("Add item").apply {
-                tooltip = Tooltip("Inserts a new empty item at the end of the list")
-                onAction = EventHandler { addItemAt(children.lastIndex + 1) }
+        editorActionsContainer.addAction(ReadOnlyAction("+", ActionTargetSelector.Always()) { _, _ ->
+            addItemAt(children.lastIndex + 1)
+        }.apply {
+            disablePredicate = { schema, value ->
+                schema.readOnly || (value is JSONArray && value.length() >= this@ArrayControl.schema.schema.maxItems ?: Integer.MAX_VALUE)
             }
-        }
+
+            description = "Inserts a new empty item at the end of the list"
+        })
+
+        actions.filter { it.matches(schema) }.forEach { editorActionsContainer.addAction(it) }
     }
 
     override fun bindTo(type: BindableJsonType) {
@@ -62,7 +71,8 @@ class ArrayControl(
         subArray = createSubArray(type)
         updateChildCount()
         validateChildUniqueness()
-        bound = type
+
+        super.bindTo(type)
     }
 
     private fun createSubArray(parent: BindableJsonType): BindableJsonArray {
@@ -86,7 +96,8 @@ class ArrayControl(
         while (this.children.size < children.length()) {
             val new = ArrayChildWrapper(
                     ControlFactory.convert(RegularSchemaWrapper(schema, contentSchema,
-                            this.children.size.toString()), refProvider, resolutionScopeProvider
+                            this.children.size.toString()), refProvider, resolutionScopeProvider,
+                            actions
                     ), !schema.readOnly
             )
             this.children.add(new)

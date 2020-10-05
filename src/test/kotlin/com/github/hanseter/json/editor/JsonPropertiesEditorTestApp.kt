@@ -1,5 +1,8 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.ChangeValueEditorAction
+import com.github.hanseter.json.editor.actions.TestEditorAction
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.Scene
@@ -19,7 +22,26 @@ class JsonPropertiesEditorTestApp : Application() {
                     this::class.java.classLoader.getResource("")?.toURI()
         }
 
-        val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2, customResolutionScopeProvider)
+        val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2, customResolutionScopeProvider, listOf(
+                TestEditorAction("S", ActionTargetSelector.Single("/properties/reqString")),
+                ChangeValueEditorAction("⟲", ActionTargetSelector.Custom {
+                    it.schema.defaultValue != null
+                }) { schema, _ ->
+                    schema.schema.defaultValue
+                }.apply {
+                    description = "Reset to Default"
+                },
+                ChangeValueEditorAction(
+                        "Ø",
+                        ActionTargetSelector.AllOf(listOf(
+                                ActionTargetSelector.Required().invert(),
+                                ActionTargetSelector.SchemaType("string", "boolean", "number", "integer")
+                        ))) { _, _ ->
+                    JSONObject.NULL
+                }.apply {
+                    description = "Make Null"
+                }
+        ))
 //        val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")
 //                .put("string list", listOf("A", "B"))
 //                .put("string_list_readonly", listOf("A", "B"))
@@ -42,8 +64,7 @@ class JsonPropertiesEditorTestApp : Application() {
 {
   "reqBool": true,
   "reqInt": 5,
-  "reqDouble": 42.24,
-  "defDouble": null
+  "reqDouble": 42.24
 }
 """)
 

@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
@@ -27,7 +28,8 @@ class JsonPropertiesEditor(
         private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
         private val readOnly: Boolean = false,
         private val numberOfInitiallyOpenedObjects: Int = 5,
-        private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty
+        private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
+        private val actions: List<EditorAction>
 ) :
         VBox() {
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -134,7 +136,7 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(title: String, data: JSONObject,
                                           schema: Schema, callback: (JSONObject) -> JSONObject): JsonPropertiesPane =
-            JsonPropertiesPane(title, data, schema, referenceProposalProvider, resolutionScopeProvider) { obj, pane ->
+            JsonPropertiesPane(title, data, schema, referenceProposalProvider, resolutionScopeProvider, actions) { obj, pane ->
                 pane.fillData(callback(obj))
             }
 

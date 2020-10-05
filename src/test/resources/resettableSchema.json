@@ -95,6 +95,108 @@
       "minLength": 3,
       "maxLength": 5,
       "pattern": "H.*"
+    },
+    "reqArray": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "default": "nop"
+      }
+    },
+    "optArray": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "default": "nop"
+      }
+    },
+    "defArray": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "default": "nop"
+      },
+      "default": [
+        "foo",
+        "bar"
+      ]
+    },
+    "reqObject": {
+      "type": "object",
+      "properties": {
+        "sub1": {
+          "type": "string"
+        },
+        "sub2": {
+          "type": "string"
+        }
+      }
+    },
+    "optObject": {
+      "type": "object",
+      "properties": {
+        "sub1": {
+          "type": "string"
+        },
+        "sub2": {
+          "type": "string"
+        }
+      }
+    },
+    "defObject": {
+      "type": "object",
+      "properties": {
+        "sub1": {
+          "type": "string"
+        },
+        "sub2": {
+          "type": "string"
+        }
+      },
+      "default": {
+        "sub1": "foo",
+        "sub2": "bar"
+      }
+    },
+    "reqTuple": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "optTuple": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "defTuple": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "default": [
+        "foo",
+        42
+      ]
     }
   },
   "required": [
@@ -103,6 +205,9 @@
     "reqDouble",
     "reqString",
     "reqEnum",
-    "reqColor"
+    "reqColor",
+    "reqArray",
+    "reqObject",
+    "reqTuple"
   ]
 }

@@ -10,4 +10,6 @@ class UnsupportedTypeControl(override val schema: SchemaWrapper<*>) : TypeContro
     override val valid = SimpleBooleanProperty(true)
     override val node = FilterableTreeItem(TreeItemData("!!Error", "Schema ${schema.schema.schemaLocation} with type ${schema.schema::class.java.name} cannot be displayed.", null, null))
     override fun bindTo(type: BindableJsonType) {}
+    override fun setBoundValue(newVal: Any?) {}
+    override fun getBoundValue(): Any? = null
 }

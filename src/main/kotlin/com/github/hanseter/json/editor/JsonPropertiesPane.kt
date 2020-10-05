@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
@@ -15,6 +16,7 @@ class JsonPropertiesPane(
         schema: Schema,
         private val refProvider: IdReferenceProposalProvider,
         private val resolutionScopeProvider: ResolutionScopeProvider,
+        private val actions: List<EditorAction>,
         private val changeListener: (JSONObject, JsonPropertiesPane) -> Unit
 ) : FilterableTreeItem<TreeItemData>(TreeItemData(title, null, null, null, true)) {
     private val schema = RegularSchemaWrapper(null, schema, title)
@@ -32,7 +34,7 @@ class JsonPropertiesPane(
     }
 
     private fun initObjectControl() {
-        val objectControl = ControlFactory.convert(schema, refProvider, resolutionScopeProvider)
+        val objectControl = ControlFactory.convert(schema, refProvider, resolutionScopeProvider, actions)
         valid.bind(objectControl.valid)
         if (objectControl.node.list.isEmpty()) add(objectControl.node)
         else addAll(objectControl.node.list)

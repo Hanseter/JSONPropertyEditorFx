@@ -3,10 +3,12 @@ package com.github.hanseter.json.editor.controls
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.JsonPropertiesEditor
 import com.github.hanseter.json.editor.ResolutionScopeProvider
+import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.actions.ReadOnlyAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.property.SimpleStringProperty
-import javafx.event.ActionEvent
-import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.control.ScrollPane
@@ -24,14 +26,15 @@ import org.everit.json.schema.StringSchema
 class IdReferenceControl(
         schema: SchemaWrapper<StringSchema>,
         private val idReferenceProposalProvider: IdReferenceProposalProvider,
-        private val resolutionScopeProvider: ResolutionScopeProvider
+        private val resolutionScopeProvider: ResolutionScopeProvider,
+        actions: List<EditorAction>
 ) :
         RowBasedControl<StringSchema, String, TextField>(
                 schema,
                 TextField(),
                 SimpleStringProperty(null),
                 schema.schema.defaultValue as? String,
-                Button("⤴")
+                listOf()
         ) {
     private val validation = ValidationSupport()
     private val formatValidator: Validator<String>?
@@ -44,7 +47,7 @@ class IdReferenceControl(
     private var description = ""
     private val textFormatter = TextFormatter<String>(this::filterChange)
 
-    private val previewButton: Button = node.value.action as Button
+    // private val previewButton: Button = node.value.action as Button
 
     init {
         formatValidator = StringControl.addFormatValidation(validation, control, schema.schema.formatValidator)
@@ -70,14 +73,14 @@ class IdReferenceControl(
         control.textFormatterProperty().set(textFormatter)
         value.addListener { _, _, new -> idChanged(new) }
 
-        previewButton.onAction = EventHandler<ActionEvent> {
-            val value = value.value
+        editorActionsContainer.addAction(ReadOnlyAction("⤴", ActionTargetSelector.Always()) { _, rawValue ->
+            val value = rawValue as? String
             if (value != null) {
                 val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value)
                 if (dataAndSchema != null) {
                     popOver?.hide()
                     val (data, previewSchema) = dataAndSchema
-                    val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1, resolutionScopeProvider)
+                    val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1, resolutionScopeProvider, actions)
                     preview.display(value, control.text, data, previewSchema) { it }
                     val scrollPane = ScrollPane(preview)
                     scrollPane.maxHeight = 500.0
@@ -91,11 +94,25 @@ class IdReferenceControl(
                     popOver.title = value
                     popOver.isAnimated = false
                     popOver.root.stylesheets.add(IdReferenceControl::class.java.classLoader.getResource("unblurText.css")!!.toExternalForm())
-                    popOver.show(previewButton)
+                    popOver.show(editorActionsContainer)
                     this.popOver = popOver
                 }
             }
-        }
+        }.apply {
+            disablePredicate = { _, value ->
+                value !is String || !idReferenceProposalProvider.isValidReference(value)
+            }
+            description = "Open Preview for Reference Target"
+        })
+
+        actions.filter { it.matches(schema) }.forEach { editorActionsContainer.addAction(it) }
+
+    }
+
+    override fun bindTo(type: BindableJsonType) {
+        super.bindTo(type)
+
+        control.promptText = if (isBoundToNull()) "Null" else ""
     }
 
     private fun addOpenButtonIfWanted(refId: String, refPane: ScrollPane) =
@@ -164,7 +181,7 @@ class IdReferenceControl(
     }
 
     private fun referenceValidationFinished(invalid: Boolean) {
-        previewButton.isDisable = invalid
+        // previewButton.isDisable = invalid
     }
 
     private fun addReferenceValidation(): Validator<String> {

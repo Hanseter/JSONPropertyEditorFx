@@ -1,11 +1,9 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
-import javafx.event.EventHandler
-import javafx.scene.control.Button
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.scene.control.TextField
-import javafx.scene.control.Tooltip
-import javafx.scene.layout.HBox
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationResult
 import org.controlsfx.validation.ValidationSupport
@@ -14,12 +12,13 @@ import org.everit.json.schema.FormatValidator
 import org.everit.json.schema.StringSchema
 import java.util.regex.Pattern
 
-class StringControl(schema: SchemaWrapper<StringSchema>) :
+class StringControl(schema: SchemaWrapper<StringSchema>, actions: List<EditorAction>) :
         RowBasedControl<StringSchema, String, TextField>(
                 schema,
                 TextField(),
                 { it.textProperty() },
-                schema.schema.defaultValue as? String
+                schema.schema.defaultValue as? String,
+                actions
         ) {
     private val validation = ValidationSupport()
     private val formatValidator: Validator<String>?
@@ -32,27 +31,12 @@ class StringControl(schema: SchemaWrapper<StringSchema>) :
                 addLengthValidation(validation, control, schema.schema.minLength, schema.schema.maxLength)
         patternValidator = addPatternValidation(validation, control, schema.schema.pattern)
         valid.bind(validation.invalidProperty().not())
+    }
 
-        if (!isRequired) {
-            node.value.action = HBox().apply {
+    override fun bindTo(type: BindableJsonType) {
+        super.bindTo(type)
 
-                if (defaultValue != null) {
-                    children += Button("⟲").apply {
-                        tooltip = Tooltip("Reset to default")
-                        onAction = EventHandler {
-                            resetValueToDefault()
-                        }
-                    }
-                }
-
-                children += Button("Ø").apply {
-                    tooltip = Tooltip("Set to NULL")
-                    onAction = EventHandler {
-                        setValueToNull()
-                    }
-                }
-            }
-        }
+        control.promptText = if (isBoundToNull()) "Null" else ""
     }
 
     companion object {

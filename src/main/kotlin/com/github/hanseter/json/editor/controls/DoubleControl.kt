@@ -1,22 +1,23 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import javafx.beans.property.SimpleObjectProperty
-import javafx.event.EventHandler
-import javafx.scene.control.*
-import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory
-import javafx.scene.layout.HBox
+import javafx.scene.control.Spinner
+import javafx.scene.control.SpinnerValueFactory
+import javafx.scene.control.TextFormatter
 import javafx.util.StringConverter
 import org.everit.json.schema.NumberSchema
 import java.text.DecimalFormat
 import java.text.ParsePosition
 
-class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
+class DoubleControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAction>) :
         RowBasedControl<NumberSchema, Number, Spinner<Double>>(
                 schema,
                 Spinner(),
                 SimpleObjectProperty<Number>(null),
-                schema.schema.defaultValue as? Double
+                schema.schema.defaultValue as? Double,
+                actions
         ) {
     private val minInclusive = schema.schema.minimum?.toDouble()
     private val minExclusive = schema.schema.exclusiveMinimumLimit?.toDouble()
@@ -36,27 +37,6 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
         }
         control.editor.text = control.valueFactory.converter.toString(value.value?.toDouble())
         control.editor.textFormatterProperty().set(textFormatter)
-
-        if (!isRequired) {
-            node.value.action = HBox().apply {
-
-                if (defaultValue != null) {
-                    children += Button("⟲").apply {
-                        tooltip = Tooltip("Reset to default")
-                        onAction = EventHandler {
-                            resetValueToDefault()
-                        }
-                    }
-                }
-
-                children += Button("Ø").apply {
-                    tooltip = Tooltip("Set to NULL")
-                    onAction = EventHandler {
-                        setValueToNull()
-                    }
-                }
-            }
-        }
     }
 
     private fun filterChange(change: TextFormatter.Change): TextFormatter.Change? {
@@ -109,32 +89,17 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
             control.valueFactory.converter.toString(value.toDouble())
         }
     }
+    
+    private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory.DoubleSpinnerValueFactory(min, max) {
 
-    private class NumberSpinnerValueFactory() : SpinnerValueFactory<Number>() {
         override fun increment(steps: Int) {
-//		    val currentValue = BigDecimal.valueOf(getValue());
-//            final BigDecimal minBigDecimal = BigDecimal.valueOf(getMin());
-//            final BigDecimal maxBigDecimal = BigDecimal.valueOf(getMax());
-//            final BigDecimal amountToStepByBigDecimal = BigDecimal.valueOf(getAmountToStepBy());
-//            BigDecimal newValue = currentValue.add(amountToStepByBigDecimal.multiply(BigDecimal.valueOf(steps)));
-//            setValue(newValue.compareTo(maxBigDecimal) <= 0 ? newValue.doubleValue() :
-//                    (isWrapAround() ? Spinner.wrapValue(newValue, minBigDecimal, maxBigDecimal).doubleValue() : getMax()));
+            if (value != null) super.increment(steps)
         }
 
         override fun decrement(steps: Int) {
-//			        @Override public void decrement(int steps) {
-//            final BigDecimal currentValue = BigDecimal.valueOf(getValue());
-//            final BigDecimal minBigDecimal = BigDecimal.valueOf(getMin());
-//            final BigDecimal maxBigDecimal = BigDecimal.valueOf(getMax());
-//            final BigDecimal amountToStepByBigDecimal = BigDecimal.valueOf(getAmountToStepBy());
-//            BigDecimal newValue = currentValue.subtract(amountToStepByBigDecimal.multiply(BigDecimal.valueOf(steps)));
-//            setValue(newValue.compareTo(minBigDecimal) >= 0 ? newValue.doubleValue() :
-//                    (isWrapAround() ? Spinner.wrapValue(newValue, minBigDecimal, maxBigDecimal).doubleValue() : getMin()));
-//        }
-//
-//        /** {@inheritDoc} */
-//        @Override public void increment(int steps) {
+            if (value != null) super.decrement(steps)
         }
+
     }
 
     companion object {
@@ -144,7 +109,7 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>) :
                     if (`object` == null) "" else DECIMAL_FORMAT.format(`object`)
 
             override fun fromString(string: String?): Double? =
-                    if (string == null) null else DECIMAL_FORMAT.parse(string)?.toDouble()
+                    if (string.isNullOrBlank()) null else DECIMAL_FORMAT.parse(string)?.toDouble()
         }
     }
 

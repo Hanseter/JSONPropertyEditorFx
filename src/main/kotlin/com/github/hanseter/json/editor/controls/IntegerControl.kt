@@ -1,17 +1,14 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import javafx.beans.value.ChangeListener
-import javafx.event.EventHandler
-import javafx.scene.control.Button
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
-import javafx.scene.control.Tooltip
-import javafx.scene.layout.HBox
 import javafx.util.converter.IntegerStringConverter
 import org.everit.json.schema.NumberSchema
 
-class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
+class IntegerControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAction>) :
         RowBasedControl<NumberSchema, Int, Spinner<Int?>>(
                 schema,
                 Spinner(
@@ -24,7 +21,8 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
                                         ?: Int.MAX_VALUE)
                 ),
                 { it.valueFactory.valueProperty() },
-                schema.schema.defaultValue as? Int
+                schema.schema.defaultValue as? Int,
+                actions
         ) {
 
     init {
@@ -45,27 +43,6 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
                 control.editor.text = control.valueFactory.value?.toString() ?: ""
             }
 
-        }
-
-        if (!isRequired) {
-            node.value.action = HBox().apply {
-
-                if (defaultValue != null) {
-                    children += Button("⟲").apply {
-                        tooltip = Tooltip("Reset to default")
-                        onAction = EventHandler {
-                            resetValueToDefault()
-                        }
-                    }
-                }
-
-                children += Button("Ø").apply {
-                    tooltip = Tooltip("Set to NULL")
-                    onAction = EventHandler {
-                        setValueToNull()
-                    }
-                }
-            }
         }
     }
 

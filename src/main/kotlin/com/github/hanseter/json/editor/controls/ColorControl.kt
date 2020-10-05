@@ -1,50 +1,27 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleStringProperty
-import javafx.event.EventHandler
-import javafx.scene.control.Button
 import javafx.scene.control.ColorPicker
-import javafx.scene.control.Tooltip
-import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
 import javafx.util.StringConverter
 import org.everit.json.schema.StringSchema
 
-class ColorControl(schema: SchemaWrapper<StringSchema>) :
+class ColorControl(schema: SchemaWrapper<StringSchema>, actions: List<EditorAction>) :
         RowBasedControl<StringSchema, String, ColorPicker>(
                 schema,
                 ColorPicker(),
                 SimpleStringProperty("#FFFFFFFF"),
-                schema.schema.defaultValue as? String
+                schema.schema.defaultValue as? String,
+                actions
         ) {
 
     init {
         control.minHeight = 25.0
         control.minWidth = 150.0
         Bindings.bindBidirectional(value, control.valueProperty(), ColorStringConverter)
-
-        if (!isRequired) {
-            node.value.action = HBox().apply {
-
-                if (defaultValue != null) {
-                    children += Button("⟲").apply {
-                        tooltip = Tooltip("Reset to default")
-                        onAction = EventHandler {
-                            resetValueToDefault()
-                        }
-                    }
-                }
-
-                children += Button("Ø").apply {
-                    tooltip = Tooltip("Set to NULL")
-                    onAction = EventHandler {
-                        setValueToNull()
-                    }
-                }
-            }
-        }
     }
 
     object ColorStringConverter : StringConverter<Color>() {
