@@ -4,7 +4,7 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import org.json.JSONObject
 
 class BindableJsonObject(parent: BindableJsonType?, val obj: JSONObject) : BindableJsonType(parent) {
-	override protected fun setValueInternal(schema: SchemaWrapper<*>, value: Any?) {
+	override fun setValueInternal(schema: SchemaWrapper<*>, value: Any?) {
 		val key = schema.getPropertyName()
 		obj.put(key, value)
 	}

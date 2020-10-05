@@ -1,6 +1,5 @@
 package com.github.hanseter.json.editor.util
 
-import org.everit.json.schema.Schema
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 
 class BindableJsonArrayEntry(private val parentArr: BindableJsonArray, private val index: Int) :
