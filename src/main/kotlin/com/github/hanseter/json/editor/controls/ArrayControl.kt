@@ -4,8 +4,8 @@ import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.ResolutionScopeProvider
 import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.ChangeValueEditorAction
 import com.github.hanseter.json.editor.actions.EditorAction
-import com.github.hanseter.json.editor.actions.ReadOnlyAction
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
@@ -20,7 +20,6 @@ import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Control
 import javafx.scene.control.Tooltip
-import javafx.scene.layout.HBox
 import org.controlsfx.control.decoration.Decorator
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
@@ -54,17 +53,14 @@ class ArrayControl(
         uniqueItemValidationMessage.addListener(onValidationStateChanged)
 
         // \uD83D\uDFA3 = 🞣
-        editorActionsContainer.addAction(ReadOnlyAction("\uD83D\uDFA3", ActionTargetSelector.Always()) { _, _ ->
+        editorActionsContainer.addActionIfMatches(ChangeValueEditorAction("\uD83D\uDFA3", ActionTargetSelector.Always()) { _, _ ->
             addItemAt(children.lastIndex + 1)
         }.apply {
-            disablePredicate = { schema, value ->
-                schema.readOnly || (value is JSONArray && value.length() >= this@ArrayControl.schema.schema.maxItems ?: Integer.MAX_VALUE)
-            }
-
+            ignoreReturnValue = true
             description = "Inserts a new empty item at the end of the list"
-        })
+        }, schema)
 
-        actions.filter { it.matches(schema) }.forEach { editorActionsContainer.addAction(it) }
+        actions.forEach { editorActionsContainer.addActionIfMatches(it, schema) }
     }
 
     override fun bindTo(type: BindableJsonType) {
@@ -117,6 +113,28 @@ class ArrayControl(
 
     private inner class ArrayChildWrapper(wrapped: TypeControl, addArrayControls: Boolean) : TypeControl by wrapped {
         override val node: FilterableTreeItem<TreeItemData>
+
+        private val arrayItemActions = listOf(
+                ChangeValueEditorAction("-", ActionTargetSelector.Always()) { schema, value ->
+                    removeItem(this@ArrayChildWrapper)
+                }.apply {
+                    ignoreReturnValue = true
+                    description = "Remove this item"
+                },
+                ChangeValueEditorAction("↑", ActionTargetSelector.Always()) { schema, value ->
+                    moveItemUp(this@ArrayChildWrapper)
+                }.apply {
+                    ignoreReturnValue = true
+                    description = "Move this item one row up"
+                },
+                ChangeValueEditorAction("↓", ActionTargetSelector.Always()) { schema, value ->
+                    moveItemDown(this@ArrayChildWrapper)
+                }.apply {
+                    ignoreReturnValue = true
+                    description = "Move this item one row down"
+                }
+        )
+
         private val removeButton = Button("-").apply {
             tooltip = Tooltip("Remove this item")
             onAction = EventHandler { removeItem(this@ArrayChildWrapper) }
@@ -135,14 +153,13 @@ class ArrayControl(
             val children = origNode.list.toList()
             origNode.clear()
             val origItemData = origNode.value
-            val actions = HBox()
-            actions.spacing = 3.0
+            val actions = ActionsContainer(this@ArrayChildWrapper, listOf())
 
             if (addArrayControls) {
-                actions.children.addAll(removeButton, upButton, downButton)
+                arrayItemActions.forEach { actions.addActionIfMatches(it, this@ArrayChildWrapper.schema) }
             }
             if (origItemData.action != null) {
-                actions.children.add(origItemData.action)
+                this@ArrayControl.actions.forEach { actions.addActionIfMatches(it, this@ArrayChildWrapper.schema) }
             }
             this.node = FilterableTreeItem(TreeItemData(origItemData.key, origItemData.description, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
             node.addAll(children)

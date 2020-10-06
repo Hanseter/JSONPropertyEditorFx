@@ -11,13 +11,17 @@ class ActionsContainer(private val control: TypeControl, actions: List<EditorAct
 
     private val actionButtons: MutableMap<EditorAction, Button> = mutableMapOf()
 
-    constructor(control: TypeControl) : this(control, listOf())
-
     init {
         actions.forEach { addAction(it) }
     }
 
-    fun addAction(action: EditorAction) {
+    fun addActionIfMatches(action: EditorAction, schema: SchemaWrapper<*>) {
+        if (action.matches(schema)) {
+            addAction(action)
+        }
+    }
+
+    protected fun addAction(action: EditorAction) {
         val b = Button(action.text).apply {
             onAction = EventHandler {
                 action.apply(control)

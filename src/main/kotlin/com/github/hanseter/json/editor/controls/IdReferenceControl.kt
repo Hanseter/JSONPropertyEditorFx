@@ -73,7 +73,7 @@ class IdReferenceControl(
         control.textFormatterProperty().set(textFormatter)
         value.addListener { _, _, new -> idChanged(new) }
 
-        editorActionsContainer.addAction(ReadOnlyAction("⤴", ActionTargetSelector.Always()) { _, rawValue ->
+        editorActionsContainer.addActionIfMatches(ReadOnlyAction("⤴", ActionTargetSelector.Always()) { _, rawValue ->
             val value = rawValue as? String
             if (value != null) {
                 val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value)
@@ -103,9 +103,9 @@ class IdReferenceControl(
                 value !is String || !idReferenceProposalProvider.isValidReference(value)
             }
             description = "Open Preview for Reference Target"
-        })
+        }, schema)
 
-        actions.filter { it.matches(schema) }.forEach { editorActionsContainer.addAction(it) }
+        actions.forEach { editorActionsContainer.addActionIfMatches(it, schema) }
 
     }
 

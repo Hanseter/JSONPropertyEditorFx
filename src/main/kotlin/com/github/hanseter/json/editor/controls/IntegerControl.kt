@@ -3,7 +3,6 @@ package com.github.hanseter.json.editor.controls
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.util.BindableJsonType
-import javafx.beans.value.ChangeListener
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
 import javafx.util.converter.IntegerStringConverter
@@ -56,7 +55,7 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAc
         init {
             converter = IntegerStringConverter()
 
-            valueProperty().addListener(ChangeListener { _, _, newValue: Int? ->
+            valueProperty().addListener { _, _, newValue: Int? ->
                 if (newValue != null) {
                     if (newValue < min) {
                         value = min
@@ -64,7 +63,7 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAc
                         value = max
                     }
                 }
-            })
+            }
         }
 
         override fun increment(steps: Int) {

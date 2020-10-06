@@ -4,11 +4,8 @@ import javafx.scene.Node
 import javafx.scene.control.TreeTableCell
 import javafx.scene.control.TreeTableColumn
 import javafx.util.Callback
-import org.controlsfx.control.ToggleSwitch
 
 class NodeTreeTableCell<S, T>(private val nodeGetter: (T) -> Node?) : TreeTableCell<S, T>() {
-
-    val switch = ToggleSwitch()
 
     init {
         graphic = null
@@ -27,6 +24,9 @@ class NodeTreeTableCell<S, T>(private val nodeGetter: (T) -> Node?) : TreeTableC
             if (node.parent == null) {
                 graphic = node
             } else {
+                // when auto-resizing a column, the cells are temporarily duplicated to measure their width
+                // this prevents the duplicates from stealing the graphic
+
                 val parent = node as? TreeTableCell<*, *>
                 if (parent != this && parent?.index == index) {
                     text = "Workaround"
