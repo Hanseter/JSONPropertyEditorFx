@@ -69,6 +69,7 @@
       ]
     },
     "defEnum": {
+      "type": "string",
       "enum": [
         "val 1",
         "val 2",

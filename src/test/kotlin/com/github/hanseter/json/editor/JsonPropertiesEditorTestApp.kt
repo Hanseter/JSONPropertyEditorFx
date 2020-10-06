@@ -2,7 +2,6 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.actions.ActionTargetSelector
 import com.github.hanseter.json.editor.actions.ChangeValueEditorAction
-import com.github.hanseter.json.editor.actions.TestEditorAction
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.Scene
@@ -23,8 +22,7 @@ class JsonPropertiesEditorTestApp : Application() {
         }
 
         val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2, customResolutionScopeProvider, listOf(
-                TestEditorAction("S", ActionTargetSelector.Single("/properties/reqString")),
-                ChangeValueEditorAction("⟲", ActionTargetSelector.Custom {
+                ChangeValueEditorAction("↻", ActionTargetSelector.Custom {
                     it.schema.defaultValue != null
                 }) { schema, _ ->
                     schema.schema.defaultValue
@@ -35,7 +33,7 @@ class JsonPropertiesEditorTestApp : Application() {
                         "Ø",
                         ActionTargetSelector.AllOf(listOf(
                                 ActionTargetSelector.Required().invert(),
-                                ActionTargetSelector.SchemaType("string", "boolean", "number", "integer")
+                                ActionTargetSelector.SchemaType("object", "array").invert()
                         ))) { _, _ ->
                     JSONObject.NULL
                 }.apply {

@@ -18,6 +18,8 @@ class ColorControl(schema: SchemaWrapper<StringSchema>, actions: List<EditorActi
                 actions
         ) {
 
+    // TODO ColorPicker does not support promptText, so the Null Prompt cannot be set easily
+
     init {
         control.minHeight = 25.0
         control.minWidth = 150.0

@@ -53,7 +53,8 @@ class ArrayControl(
         itemCountValidationMessage.addListener(onValidationStateChanged)
         uniqueItemValidationMessage.addListener(onValidationStateChanged)
 
-        editorActionsContainer.addAction(ReadOnlyAction("+", ActionTargetSelector.Always()) { _, _ ->
+        // \uD83D\uDFA3 = 🞣
+        editorActionsContainer.addAction(ReadOnlyAction("\uD83D\uDFA3", ActionTargetSelector.Always()) { _, _ ->
             addItemAt(children.lastIndex + 1)
         }.apply {
             disablePredicate = { schema, value ->

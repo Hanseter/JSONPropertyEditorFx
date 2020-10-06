@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
@@ -89,7 +90,12 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAct
             control.valueFactory.converter.toString(value.toDouble())
         }
     }
-    
+
+    override fun bindTo(type: BindableJsonType) {
+        super.bindTo(type)
+        control.editor.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
+    }
+
     private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory.DoubleSpinnerValueFactory(min, max) {
 
         override fun increment(steps: Int) {

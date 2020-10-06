@@ -47,24 +47,22 @@
     -fx-fill: -fx-text-base-color;
 }
 
-.spinner.at-default-value .text-field,
-.text-field.at-default-value {
-    -fx-text-fill: derive(-fx-control-inner-background, -30%);
-}
-
-.combo-box.at-default-value > .list-cell,
-.color-picker.at-default-value > .label {
+.combo-box.has-null-value > .list-cell, .combo-box.has-default-value > .list-cell,
+.color-picker.has-null-value > .label, .color-picker.has-default-value > .label {
     -fx-text-fill: derive(-fx-control-inner-background, -45%);
-}
-
-.color-picker.has-undefined-value > .label {
-    -fx-opacity: 0;
 }
 
 .color-picker.has-null-value > .label {
     -fx-opacity: 0;
 }
 
+.spinner.has-default-value .text-input {
+    -fx-text-fill: gray;
+}
+
+.text-field.has-default-value {
+    -fx-text-fill: gray;
+}
 
 /*
  TOGGLE SWITCHES
@@ -88,3 +86,21 @@
     -fx-background-insets: 0, 1;
 }
 
+.toggle-switch.has-default-value .thumb-area {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+    linear-gradient(to bottom, derive(#CCA9A3, 30%), #CCA9A3);
+    -fx-background-insets: 0, 1;
+}
+
+.toggle-switch.has-default-value:selected .thumb-area {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+    linear-gradient(to bottom, derive(#A3C4CE, 30%), #A3C4CE);
+    -fx-background-insets: 0, 1;
+}
+
+.toggle-switch .label {
+    -fx-min-width: 25px;
+    -fx-pref-width: 25px;
+    -fx-max-width: 25px;
+    -fx-text-fill: gray;
+}

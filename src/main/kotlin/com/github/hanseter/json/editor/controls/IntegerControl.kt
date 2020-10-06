@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.value.ChangeListener
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
@@ -44,6 +45,11 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAc
             }
 
         }
+    }
+
+    override fun bindTo(type: BindableJsonType) {
+        super.bindTo(type)
+        control.editor.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
     class IntegerSpinnerValueFactoryNullSafe(min: Int, max: Int) : SpinnerValueFactory<Int?>() {

@@ -66,8 +66,6 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
         val rawVal = type.getValue(schema)
         val newVal: TYPE?
 
-        control.styleClass.removeAll("has-null-value")
-
         newVal = when (rawVal) {
             null -> {
                 defaultValue
@@ -80,14 +78,6 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
             }
         }
 
-        if (newVal == null) {
-            if ("has-null-value" !in control.styleClass) {
-                control.styleClass.add("has-null-value")
-            }
-        } else {
-            control.styleClass.remove("has-null-value")
-        }
-
         if (newVal != this.value.value) {
             this.value.value = newVal
             valueNewlyBound()
@@ -95,7 +85,28 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
 
         bound = type
 
+        updateStyleClasses(rawVal)
         editorActionsContainer.updateDisablement()
+    }
+
+    protected fun updateStyleClasses(rawVal: Any?) {
+        control.styleClass.removeAll("has-null-value", "has-default-value")
+
+        if (rawVal == JSONObject.NULL) {
+            if ("has-null-value" !in control.styleClass) {
+                control.styleClass += "has-null-value"
+            }
+        } else if (rawVal == null) {
+            if (defaultValue != null) {
+                if ("has-default-value" !in control.styleClass) {
+                    control.styleClass += "has-default-value"
+                }
+            } else {
+                if ("has-null-value" !in control.styleClass) {
+                    control.styleClass += "has-null-value"
+                }
+            }
+        }
     }
 
     override fun setBoundValue(newVal: Any?) {
@@ -108,7 +119,11 @@ abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
     }
 
     protected fun isBoundToNull(): Boolean {
-        return JSONObject.NULL == getBoundValue()
+        return !isBoundToDefault() && JSONObject.NULL == getBoundValue()
+    }
+
+    protected fun isBoundToDefault(): Boolean {
+        return defaultValue != null && null == getBoundValue()
     }
 
     protected open fun valueNewlyBound() {}

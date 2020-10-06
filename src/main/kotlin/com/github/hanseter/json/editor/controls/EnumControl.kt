@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ComboBox
 import org.everit.json.schema.EnumSchema
@@ -37,5 +38,12 @@ class EnumControl(schema: SchemaWrapper<Schema>, enumSchema: EnumSchema, actions
         } else {
             control.selectionModel.select(defaultValue);
         }
+
+
+    }
+
+    override fun bindTo(type: BindableJsonType) {
+        super.bindTo(type)
+        control.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 }

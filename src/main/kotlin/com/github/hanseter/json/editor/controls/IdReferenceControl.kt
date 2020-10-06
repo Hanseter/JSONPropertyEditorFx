@@ -112,7 +112,7 @@ class IdReferenceControl(
     override fun bindTo(type: BindableJsonType) {
         super.bindTo(type)
 
-        control.promptText = if (isBoundToNull()) "Null" else ""
+        control.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
     private fun addOpenButtonIfWanted(refId: String, refPane: ScrollPane) =

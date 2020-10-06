@@ -32,6 +32,11 @@ abstract class ActionTargetSelector {
 
     }
 
+    class AnyOf(private val selectors: List<ActionTargetSelector>) : ActionTargetSelector() {
+
+        override fun matches(schema: SchemaWrapper<*>) = selectors.any { it.matches(schema) }
+    }
+
     class Inverted(private val selector: ActionTargetSelector) : ActionTargetSelector() {
 
         override fun matches(schema: SchemaWrapper<*>) = !selector.matches(schema)
@@ -85,10 +90,11 @@ abstract class ActionTargetSelector {
 
     }
 
-    class HasCustomField(private val fieldName: String) : ActionTargetSelector() {
-
+    class HasCustomField(private val fieldName: String, private val value: Any? = null) : ActionTargetSelector() {
+        
         override fun matches(schema: SchemaWrapper<*>): Boolean {
             return schema.schema.unprocessedProperties.containsKey(fieldName)
+                    && (null == value || schema.schema.unprocessedProperties[fieldName] == value)
         }
 
     }

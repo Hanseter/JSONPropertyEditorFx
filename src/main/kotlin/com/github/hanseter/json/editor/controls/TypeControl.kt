@@ -16,4 +16,8 @@ interface TypeControl {
     fun getBoundValue(): Any?
 
     fun setBoundValue(newVal: Any?)
+
+    companion object {
+        const val NULL_PROMPT = "Null"
+    }
 }

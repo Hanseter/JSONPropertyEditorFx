@@ -36,7 +36,7 @@ class StringControl(schema: SchemaWrapper<StringSchema>, actions: List<EditorAct
     override fun bindTo(type: BindableJsonType) {
         super.bindTo(type)
 
-        control.promptText = if (isBoundToNull()) "Null" else ""
+        control.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
     companion object {
