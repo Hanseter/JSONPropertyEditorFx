@@ -1,22 +1,23 @@
 package com.github.hanseter.json.editor.actions
 
-import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import org.json.JSONObject
 
 /**
  *
  */
-abstract class EditorAction(val text: String, private val selector: ActionTargetSelector) {
+interface EditorAction {
+
+    val text: String
+
+    val description: String
+
+    val selector: ActionTargetSelector
 
     fun matches(schema: SchemaWrapper<*>) = selector.matches(schema)
 
-    abstract fun apply(control: TypeControl)
+    fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject?
 
-    var disablePredicate: (schema: SchemaWrapper<*>, value: Any?) -> Boolean = { _, _ -> false }
-
-    open fun shouldBeDisabled(control: TypeControl): Boolean {
-        return disablePredicate(control.schema, control.getBoundValue())
-    }
-
-    var description: String = ""
+    fun shouldBeDisabled(schema: SchemaWrapper<*>): Boolean =
+            schema.readOnly
 }

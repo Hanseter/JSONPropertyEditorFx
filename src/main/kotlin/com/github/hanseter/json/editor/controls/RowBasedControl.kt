@@ -1,130 +1,91 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.property.Property
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
-import javafx.scene.Node
 import javafx.scene.control.Control
 import org.everit.json.schema.ObjectSchema
-import org.everit.json.schema.Schema
 import org.json.JSONObject
 
+interface ControlProvider<T> {
+    val schema: SchemaWrapper<*>
+    val control: Control
+    val value: Property<out T?>
+    val defaultValue: T?
+    val editorActionsContainer: ActionsContainer
+}
 
-abstract class RowBasedControl<S : Schema, TYPE : Any, C : Control>(
-        final override val schema: SchemaWrapper<S>,
-        protected val control: C,
-        protected val value: Property<TYPE?>,
-        protected val defaultValue: TYPE?,
-        protected val actions: List<EditorAction>,
-        action: Node? = null
-) : TypeControl, ChangeListener<TYPE?> {
-    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, control, action, false))
+class RowBasedControl<T>(private val provider: ControlProvider<T>) : ChangeListener<Any?> {
+    val node = FilterableTreeItem(TreeItemData(provider.schema.title, provider.schema.schema.description, provider.control, provider.editorActionsContainer))
     private var bound: BindableJsonType? = null
-    override val valid = SimpleBooleanProperty(true)
 
-    protected val editorActionsContainer = ActionsContainer.forActions(this, schema, actions)
-
-    protected val isRequired = (schema.parent?.schema as? ObjectSchema)?.let {
-        schema.getPropertyName() in it.requiredProperties
+    val isRequired = (provider.schema.parent?.schema as? ObjectSchema)?.let {
+        provider.schema.getPropertyName() in it.requiredProperties
     } ?: true
 
     init {
-        control.isDisable = schema.readOnly
-        value.value = defaultValue
-        value.addListener(this)
-
-        node.value.action = editorActionsContainer
+        provider.control.isDisable = provider.schema.readOnly
+        provider.value.value = provider.defaultValue
+        provider.value.addListener(this)
     }
 
-    constructor(
-            schema: SchemaWrapper<S>,
-            control: C,
-            propExtractor: (C) -> Property<TYPE?>,
-            defaultValue: TYPE?,
-            actions: List<EditorAction>
-    ) : this(
-            schema,
-            control,
-            propExtractor(control),
-            defaultValue,
-            actions
-    )
-
-    override fun changed(observable: ObservableValue<out TYPE?>, oldValue: TYPE?, newValue: TYPE?) {
-        bound?.setValue(schema, newValue)
+    override fun changed(observable: ObservableValue<out Any?>, oldValue: Any?, newValue: Any?) {
+        bound?.setValue(provider.schema, newValue)
     }
 
+    /**
+     * Returns whether the value actually changed
+     */
     @Suppress("UNCHECKED_CAST")
-    override fun bindTo(type: BindableJsonType) {
+    fun bindTo(type: BindableJsonType): Boolean {
         bound = null
-        val rawVal = type.getValue(schema)
-        val newVal: TYPE?
+        val rawVal = type.getValue(provider.schema)
 
-        newVal = when (rawVal) {
-            null -> {
-                defaultValue
-            }
-            JSONObject.NULL -> {
-                null
-            }
-            else -> {
-                rawVal as? TYPE
-            }
+        val toAssign = when (rawVal) {
+            null -> provider.defaultValue
+            JSONObject.NULL -> null
+            else -> rawVal as T
         }
-
-        if (newVal != this.value.value) {
-            this.value.value = newVal
-            valueNewlyBound()
+        val changed = toAssign != provider.value.value
+        if (changed) {
+            provider.value.value = toAssign
         }
 
         bound = type
 
         updateStyleClasses(rawVal)
-        editorActionsContainer.updateDisablement()
+        provider.editorActionsContainer.updateDisablement()
+        return changed
     }
 
-    protected fun updateStyleClasses(rawVal: Any?) {
-        control.styleClass.removeAll("has-null-value", "has-default-value")
+    private fun updateStyleClasses(rawVal: Any?) {
+        provider.control.styleClass.removeAll("has-null-value", "has-default-value")
 
         if (rawVal == JSONObject.NULL) {
-            if ("has-null-value" !in control.styleClass) {
-                control.styleClass += "has-null-value"
+            if ("has-null-value" !in provider.control.styleClass) {
+                provider.control.styleClass += "has-null-value"
             }
         } else if (rawVal == null) {
-            if (defaultValue != null) {
-                if ("has-default-value" !in control.styleClass) {
-                    control.styleClass += "has-default-value"
+            if (provider.defaultValue != null) {
+                if ("has-default-value" !in provider.control.styleClass) {
+                    provider.control.styleClass += "has-default-value"
                 }
             } else {
-                if ("has-null-value" !in control.styleClass) {
-                    control.styleClass += "has-null-value"
+                if ("has-null-value" !in provider.control.styleClass) {
+                    provider.control.styleClass += "has-null-value"
                 }
             }
         }
     }
 
-    override fun setBoundValue(newVal: Any?) {
-        bound?.setValue(schema, newVal)
-        valueNewlyBound()
-    }
+    fun getBoundValue(): Any? = bound?.getValue(provider.schema)
 
-    override fun getBoundValue(): Any? {
-        return bound?.getValue(schema)
-    }
+    fun isBoundToNull(): Boolean = !isBoundToDefault() && JSONObject.NULL == getBoundValue()
 
-    protected fun isBoundToNull(): Boolean {
-        return !isBoundToDefault() && JSONObject.NULL == getBoundValue()
-    }
-
-    protected fun isBoundToDefault(): Boolean {
-        return defaultValue != null && null == getBoundValue()
-    }
-
-    protected open fun valueNewlyBound() {}
+    fun isBoundToDefault(): Boolean = provider.defaultValue != null && null == getBoundValue()
 }

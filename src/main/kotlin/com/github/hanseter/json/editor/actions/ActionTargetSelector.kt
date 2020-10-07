@@ -7,37 +7,29 @@ import java.util.function.Predicate
 /**
  *
  */
-abstract class ActionTargetSelector {
+interface ActionTargetSelector {
 
-    abstract fun matches(schema: SchemaWrapper<*>): Boolean
+    fun matches(schema: SchemaWrapper<*>): Boolean
 
-    open fun invert(): ActionTargetSelector = Inverted(this)
+    fun invert(): ActionTargetSelector = Inverted(this)
 
-    class Custom(private val predicate: Predicate<SchemaWrapper<*>>) : ActionTargetSelector() {
-
+    class Custom(private val predicate: Predicate<SchemaWrapper<*>>) : ActionTargetSelector {
         override fun matches(schema: SchemaWrapper<*>) = predicate.test(schema)
-
-
     }
 
-    class Always : ActionTargetSelector() {
-
+    class Always : ActionTargetSelector {
         override fun matches(schema: SchemaWrapper<*>) = true
-
     }
 
-    class AllOf(private val selectors: List<ActionTargetSelector>) : ActionTargetSelector() {
-
+    class AllOf(private val selectors: List<ActionTargetSelector>) : ActionTargetSelector {
         override fun matches(schema: SchemaWrapper<*>) = selectors.all { it.matches(schema) }
-
     }
 
-    class AnyOf(private val selectors: List<ActionTargetSelector>) : ActionTargetSelector() {
-
+    class AnyOf(private val selectors: List<ActionTargetSelector>) : ActionTargetSelector {
         override fun matches(schema: SchemaWrapper<*>) = selectors.any { it.matches(schema) }
     }
 
-    class Inverted(private val selector: ActionTargetSelector) : ActionTargetSelector() {
+    class Inverted(private val selector: ActionTargetSelector) : ActionTargetSelector {
 
         override fun matches(schema: SchemaWrapper<*>) = !selector.matches(schema)
 
@@ -45,7 +37,7 @@ abstract class ActionTargetSelector {
 
     }
 
-    class Single(private val jsonPointerFragment: String) : ActionTargetSelector() {
+    class Single(private val jsonPointerFragment: String) : ActionTargetSelector {
 
         private fun getFragmentFromJsonPointer(pointer: String): String? {
             val index = pointer.indexOf('#')
@@ -60,7 +52,7 @@ abstract class ActionTargetSelector {
         }
     }
 
-    class Required : ActionTargetSelector() {
+    class Required : ActionTargetSelector {
 
         override fun matches(schema: SchemaWrapper<*>) =
                 (schema.parent?.schema as? ObjectSchema)?.let {
@@ -69,7 +61,7 @@ abstract class ActionTargetSelector {
 
     }
 
-    class SchemaType(private vararg val types: String) : ActionTargetSelector() {
+    class SchemaType(private vararg val types: String) : ActionTargetSelector {
 
         private fun matches(schema: Schema): Boolean {
             return when (schema) {
@@ -90,8 +82,8 @@ abstract class ActionTargetSelector {
 
     }
 
-    class HasCustomField(private val fieldName: String, private val value: Any? = null) : ActionTargetSelector() {
-        
+    class HasCustomField(private val fieldName: String, private val value: Any? = null) : ActionTargetSelector {
+
         override fun matches(schema: SchemaWrapper<*>): Boolean {
             return schema.schema.unprocessedProperties.containsKey(fieldName)
                     && (null == value || schema.schema.unprocessedProperties[fieldName] == value)

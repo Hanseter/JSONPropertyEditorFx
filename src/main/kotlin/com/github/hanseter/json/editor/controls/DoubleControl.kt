@@ -1,9 +1,14 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.actions.ActionsContainer
+import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.util.EditorContext
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
 import javafx.scene.control.TextFormatter
@@ -12,14 +17,18 @@ import org.everit.json.schema.NumberSchema
 import java.text.DecimalFormat
 import java.text.ParsePosition
 
-class DoubleControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAction>) :
-        RowBasedControl<NumberSchema, Number, Spinner<Double>>(
-                schema,
-                Spinner(),
-                SimpleObjectProperty<Number>(null),
-                schema.schema.defaultValue as? Double,
-                actions
-        ) {
+class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: EditorContext) : TypeControl, ControlProvider<Double> {
+    override val control = Spinner<Double>()
+    override val value = SimpleObjectProperty<Double?>(null)
+    override val defaultValue: Double?
+        get() = schema.schema.defaultValue as? Double
+    override val editorActionsContainer: ActionsContainer = context.createActionContainer(this)
+
+    private val delegate = RowBasedControl(this)
+
+    override val node: FilterableTreeItem<TreeItemData> = delegate.node
+    override val valid: ObservableBooleanValue = SimpleBooleanProperty(true)
+
     private val minInclusive = schema.schema.minimum?.toDouble()
     private val minExclusive = schema.schema.exclusiveMinimumLimit?.toDouble()
     private val maxInclusive = schema.schema.maximum?.toDouble()
@@ -52,7 +61,7 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAct
 
         return when {
             number == null -> {
-                if (isRequired) updateValueAndText(0.0, "0") else updateValueAndText(null, ""); null
+                if (delegate.isRequired) updateValueAndText(0.0, "0") else updateValueAndText(null, ""); null
             }
             maxInclusive != null && number > maxInclusive -> {
                 updateValueAndText(maxInclusive); null
@@ -81,19 +90,22 @@ class DoubleControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAct
     }
 
 
-    protected override fun valueNewlyBound() {
-        val foo = value.getValue()
+    override fun bindTo(type: BindableJsonType) {
+        if (delegate.bindTo(type)) {
+            valueNewlyBound()
+        }
+        control.editor.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
+    }
+
+    private fun valueNewlyBound() {
+        val foo = value.value
+        // we need to cast explicitly here since value could still be a number
         val value = foo?.toDouble()
         control.editor.text = if (value == null) {
             ""
         } else {
             control.valueFactory.converter.toString(value.toDouble())
         }
-    }
-
-    override fun bindTo(type: BindableJsonType) {
-        super.bindTo(type)
-        control.editor.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
     private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory.DoubleSpinnerValueFactory(min, max) {

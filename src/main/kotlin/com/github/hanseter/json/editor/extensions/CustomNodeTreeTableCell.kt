@@ -1,21 +1,19 @@
-package com.github.hanseter.json.editor.controls
+package com.github.hanseter.json.editor.extensions
 
 import javafx.scene.Node
 import javafx.scene.control.TreeTableCell
-import javafx.scene.control.TreeTableColumn
-import javafx.util.Callback
 
-class NodeTreeTableCell<S, T>(private val nodeGetter: (T) -> Node?) : TreeTableCell<S, T>() {
+
+class CustomNodeTreeTableCell<S, T>(private val valueExtractor: (T) -> Node?) : TreeTableCell<S, T>() {
 
     init {
         graphic = null
     }
 
-
     override fun updateItem(item: T?, empty: Boolean) {
         super.updateItem(item, empty)
 
-        val node = item?.let(nodeGetter)
+        val node = item?.let(valueExtractor)
 
         if (node == null || empty) {
             text = null
@@ -34,18 +32,5 @@ class NodeTreeTableCell<S, T>(private val nodeGetter: (T) -> Node?) : TreeTableC
                 }
             }
         }
-
-
     }
-
-    companion object {
-
-        fun <S, T> forColumn(getter: (T) -> Node?): Callback<TreeTableColumn<S, T>, TreeTableCell<S, T>> {
-            return Callback {
-                NodeTreeTableCell(getter)
-            }
-        }
-
-    }
-
 }

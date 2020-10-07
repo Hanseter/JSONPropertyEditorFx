@@ -1,7 +1,7 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.actions.EditorAction
-import com.github.hanseter.json.editor.controls.NodeTreeTableCell
+import com.github.hanseter.json.editor.extensions.CustomNodeTreeTableCell
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
@@ -82,13 +82,10 @@ class JsonPropertiesEditor(
         )
         pane.fillData(obj)
         idsToPanes[objId] = pane
-        (treeTableView.root as FilterableTreeItem).add(pane)
-        pane.isExpanded = true
-        if (idsToPanes.size > numberOfInitiallyOpenedObjects) {
-            pane.isExpanded = false
-        }
+        (treeTableView.root as FilterableTreeItem).add(pane.treeItem)
+        pane.treeItem.isExpanded = idsToPanes.size <= numberOfInitiallyOpenedObjects
         rebindValidProperty()
-    }
+    }               
 
     private fun parseSchema(schema: JSONObject, resolutionScope: URI?): Schema {
         val slb = SchemaLoader.builder()
@@ -140,10 +137,10 @@ class JsonPropertiesEditor(
             }
 
     private fun initTreeTableView() {
-        val keyColumn = TreeTableColumn<TreeItemData, String>().also {
-            it.text = "Key"
-            it.cellValueFactory = Callback { SimpleStringProperty(it.value.value.key) }
-            it.cellFactory = Callback {
+        val keyColumn = TreeTableColumn<TreeItemData, String>().apply {
+            text = "Key"
+            cellValueFactory = Callback { SimpleStringProperty(it.value.value.key) }
+            cellFactory = Callback { _ ->
                 object : TreeTableCell<TreeItemData, String>() {
                     override fun updateItem(item: String?, empty: Boolean) {
                         if (item === getItem()) return
@@ -155,26 +152,26 @@ class JsonPropertiesEditor(
                     }
                 }
             }
-            it.minWidth = 150.0
-            it.isSortable = false
+            minWidth = 150.0
+            isSortable = false
         }
-        val controlColumn = TreeTableColumn<TreeItemData, TreeItemData>().also {
-            it.text = "Value"
-            it.cellValueFactory = Callback { it.value.valueProperty() }
-            it.cellFactory = NodeTreeTableCell.forColumn { it.control }
-            it.minWidth = 150.0
-            it.styleClass.add("control-cell")
-            it.isSortable = false
+        val controlColumn = TreeTableColumn<TreeItemData, TreeItemData>().apply {
+            text = "Value"
+            cellValueFactory = Callback { it.value.valueProperty() }
+            cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.control } }
+            minWidth = 150.0
+            styleClass.add("control-cell")
+            isSortable = false
         }
-        val actionColumn = TreeTableColumn<TreeItemData, TreeItemData>().also {
-            it.text = "Action"
-            it.cellFactory = NodeTreeTableCell.forColumn { it.action }
-            it.cellValueFactory = Callback { it.value.valueProperty() }
-            it.minWidth = 100.0
-            it.prefWidth = 100.0
-            it.styleClass.add("action-cell")
-            it.style = "-fx-alignment: CENTER"
-            it.isSortable = false
+        val actionColumn = TreeTableColumn<TreeItemData, TreeItemData>().apply {
+            text = "Action"
+            cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.action } }
+            cellValueFactory = Callback { it.value.valueProperty() }
+            minWidth = 100.0
+            prefWidth = 100.0
+            styleClass.add("action-cell")
+            style = "-fx-alignment: CENTER"
+            isSortable = false
         }
 
         treeTableView.rowFactory = Callback {

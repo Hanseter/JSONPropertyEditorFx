@@ -1,25 +1,20 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.ControlFactory
-import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.ResolutionScopeProvider
 import com.github.hanseter.json.editor.actions.ActionTargetSelector
-import com.github.hanseter.json.editor.actions.ChangeValueEditorAction
 import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.extensions.ArraySchemaWrapper
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonArray
 import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
-import javafx.event.EventHandler
-import javafx.scene.control.Button
 import javafx.scene.control.Control
-import javafx.scene.control.Tooltip
 import org.controlsfx.control.decoration.Decorator
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
@@ -29,13 +24,18 @@ import org.everit.json.schema.Schema
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ArrayControl(
-        override val schema: SchemaWrapper<ArraySchema>,
-        private val contentSchema: Schema,
-        private val refProvider: IdReferenceProposalProvider,
-        private val resolutionScopeProvider: ResolutionScopeProvider,
-        private val actions: List<EditorAction>
-) : TypeWithChildrenControl(schema, listOf()) {
+class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val contentSchema: Schema, private val context: EditorContext)
+    : TypeControl {
+
+    private val editorActionsContainer = context.createActionContainer(this,
+            // \uD83D\uDFA3 = 🞣
+            additionalActions = listOf(ArrayAction("\uD83D\uDFA3", "Inserts a new empty item at the end of the list") {
+                addItemAt(children.lastIndex + 1)
+            }))
+
+    override val node = FilterableTreeItem(TreeItemData(schema.title, null, null, editorActionsContainer))
+
+    private var bound: BindableJsonType? = null
     private val children = mutableListOf<TypeControl>()
     private var subArray: BindableJsonArray? = null
     private val itemCountValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
@@ -51,25 +51,12 @@ class ArrayControl(
     init {
         itemCountValidationMessage.addListener(onValidationStateChanged)
         uniqueItemValidationMessage.addListener(onValidationStateChanged)
-
-        // \uD83D\uDFA3 = 🞣
-        editorActionsContainer.addActionIfMatches(ChangeValueEditorAction("\uD83D\uDFA3", ActionTargetSelector.Always()) { _, _ ->
-            addItemAt(children.lastIndex + 1)
-        }.apply {
-            ignoreReturnValue = true
-            description = "Inserts a new empty item at the end of the list"
-        }, schema)
-
-        actions.forEach { editorActionsContainer.addActionIfMatches(it, schema) }
     }
 
     override fun bindTo(type: BindableJsonType) {
         bound = type
         subArray = createSubArray(type)
-        updateChildCount()
-        validateChildUniqueness()
-
-        super.bindTo(type)
+        valuesChanged()
     }
 
     private fun createSubArray(parent: BindableJsonType): BindableJsonArray {
@@ -81,98 +68,50 @@ class ArrayControl(
         return BindableJsonArray(parent, arr)
     }
 
-    private fun updateChildCount() {
-        val subArray = subArray
-        var children = bound?.getValue(schema) as? JSONArray
-        if (children == null) {
-            children = JSONArray()
-        }
-        while (this.children.size > children.length()) {
-            node.remove(this.children.removeAt(this.children.size - 1).node)
-        }
-        while (this.children.size < children.length()) {
-            val new = ArrayChildWrapper(
-                    ControlFactory.convert(RegularSchemaWrapper(schema, contentSchema,
-                            this.children.size.toString()), refProvider, resolutionScopeProvider,
-                            actions
-                    ), !schema.readOnly
-            )
-            this.children.add(new)
-            node.add(new.node)
-        }
-        if (subArray != null) {
-            for (i in 0 until children.length()) {
-                val obj = BindableJsonArrayEntry(subArray, i)
-                this.children[i].bindTo(obj)
-            }
-        }
-        bound?.setValue(schema, children)
-        validateChildCount(children)
-        valid.bind(validInternal.and(createValidityBinding(this.children)))
-    }
-
-    private inner class ArrayChildWrapper(wrapped: TypeControl, addArrayControls: Boolean) : TypeControl by wrapped {
-        override val node: FilterableTreeItem<TreeItemData>
-
-        private val arrayItemActions = listOf(
-                ChangeValueEditorAction("-", ActionTargetSelector.Always()) { schema, value ->
-                    removeItem(this@ArrayChildWrapper)
-                }.apply {
-                    ignoreReturnValue = true
-                    description = "Remove this item"
-                },
-                ChangeValueEditorAction("↑", ActionTargetSelector.Always()) { schema, value ->
-                    moveItemUp(this@ArrayChildWrapper)
-                }.apply {
-                    ignoreReturnValue = true
-                    description = "Move this item one row up"
-                },
-                ChangeValueEditorAction("↓", ActionTargetSelector.Always()) { schema, value ->
-                    moveItemDown(this@ArrayChildWrapper)
-                }.apply {
-                    ignoreReturnValue = true
-                    description = "Move this item one row down"
+    private fun valuesChanged() {
+        fun rebindChildren(subArray: BindableJsonArray?, values: JSONArray) {
+            if (subArray != null) {
+                for (i in 0 until values.length()) {
+                    val obj = BindableJsonArrayEntry(subArray, i)
+                    children[i].bindTo(obj)
                 }
-        )
-
-        private val removeButton = Button("-").apply {
-            tooltip = Tooltip("Remove this item")
-            onAction = EventHandler { removeItem(this@ArrayChildWrapper) }
-        }
-        private val upButton = Button("↑").apply {
-            tooltip = Tooltip("Move this item one row up")
-            onAction = EventHandler { moveItemUp(this@ArrayChildWrapper) }
-        }
-        private val downButton = Button("↓").apply {
-            tooltip = Tooltip("Move this item one row down")
-            onAction = EventHandler { moveItemDown(this@ArrayChildWrapper) }
-        }
-
-        init {
-            val origNode = wrapped.node
-            val children = origNode.list.toList()
-            origNode.clear()
-            val origItemData = origNode.value
-            val actions = ActionsContainer(this@ArrayChildWrapper, listOf())
-
-            if (addArrayControls) {
-                arrayItemActions.forEach { actions.addActionIfMatches(it, this@ArrayChildWrapper.schema) }
             }
-            if (origItemData.action != null) {
-                this@ArrayControl.actions.forEach { actions.addActionIfMatches(it, this@ArrayChildWrapper.schema) }
+        }
+
+        fun addNeededUiCells(values: JSONArray) {
+            while (children.size < values.length()) {
+                val currentChildIndex = children.size
+                val childSchema = ArraySchemaWrapper(schema, contentSchema, currentChildIndex)
+                val arrayActions = if (schema.readOnly) emptyList()
+                else listOf(ArrayAction("-", "Remove this item") { removeItem(currentChildIndex) },
+                        ArrayAction("↑", "Move this item one row up") { moveItemUp(currentChildIndex) },
+                        ArrayAction("↓", "Move this item one row down") { moveItemDown(currentChildIndex) })
+                val control = ControlFactory.convert(childSchema, context)
+
+                val new = ArrayChildWrapper(control, arrayActions)
+                children.add(new)
+                node.add(new.node)
             }
-            this.node = FilterableTreeItem(TreeItemData(origItemData.key, origItemData.description, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
-            node.addAll(children)
         }
 
-    }
-
-    private fun redecorate() {
-        Decorator.removeAllDecorations(this.node.value.control)
-        val message = itemCountValidationMessage.get() ?: uniqueItemValidationMessage.get()
-        if (message != null) {
-            GraphicValidationDecoration().applyValidationDecoration(message)
+        fun removeAdditionalUiCells(values: JSONArray) {
+            while (children.size > values.length()) {
+                node.remove(children.removeAt(children.size - 1).node)
+            }
         }
+
+        val subArray = subArray
+        var values = bound?.getValue(schema) as? JSONArray
+        if (values == null) {
+            values = JSONArray()
+        }
+        removeAdditionalUiCells(values)
+        addNeededUiCells(values)
+        rebindChildren(subArray, values)
+        bound?.setValue(schema, values)
+        validateChildCount(values)
+        validateChildUniqueness()
+        valid.bind(validInternal.and(createValidityBinding(this.children)))
     }
 
     private fun validateChildCount(children: JSONArray) {
@@ -193,6 +132,12 @@ class ArrayControl(
         )
     }
 
+    private fun hasTooManyItems(childCount: Int) =
+            schema.schema.maxItems != null && childCount > schema.schema.maxItems
+
+    private fun hasTooFewItems(childCount: Int) =
+            schema.schema.minItems != null && childCount < schema.schema.minItems
+
     class SimpleValidationMessage(
             private val target: Control,
             private val text: String,
@@ -203,44 +148,34 @@ class ArrayControl(
         override fun getSeverity(): Severity = severity
     }
 
-    private fun hasTooManyItems(childCount: Int) =
-            schema.schema.maxItems != null && childCount > schema.schema.maxItems
-
-    private fun hasTooFewItems(childCount: Int) =
-            schema.schema.minItems != null && childCount < schema.schema.minItems
-
     private fun addItemAt(position: Int) {
         val children = bound?.getValue(schema) as? JSONArray ?: return
         children.put(position, JSONObject.NULL)
-        updateChildCount()
-        validateChildUniqueness()
+        valuesChanged()
     }
 
-    private fun removeItem(toRemove: TypeControl) {
+    private fun removeItem(index: Int) {
         val children = bound?.getValue(schema) as? JSONArray ?: return
-        val index = this.children.indexOf(toRemove)
         children.remove(index)
-        updateChildCount()
+        valuesChanged()
     }
 
-    private fun moveItemUp(toMove: TypeControl) {
+    private fun moveItemUp(index: Int) {
         val children = bound?.getValue(schema) as? JSONArray ?: return
-        val index = this.children.indexOf(toMove)
         if (index == 0) return
         val tmp = children.get(index - 1)
         children.put(index - 1, children.get(index))
         children.put(index, tmp)
-        updateChildCount()
+        valuesChanged()
     }
 
-    private fun moveItemDown(toMove: TypeControl) {
+    private fun moveItemDown(index: Int) {
         val children = bound?.getValue(schema) as? JSONArray ?: return
-        val index = this.children.indexOf(toMove)
         if (index >= children.length() - 1) return
         val tmp = children.get(index + 1)
         children.put(index + 1, children.get(index))
         children.put(index, tmp)
-        updateChildCount()
+        valuesChanged()
     }
 
     private fun validateChildUniqueness() {
@@ -268,5 +203,37 @@ class ArrayControl(
         is JSONObject -> a.similar(b)
         is JSONArray -> a.similar(b)
         else -> a == b
+    }
+
+    private inner class ArrayChildWrapper(wrapped: TypeControl, arrayActions: List<ArrayAction>) : TypeControl by wrapped {
+        override val node: FilterableTreeItem<TreeItemData>
+
+        init {
+            val origNode = wrapped.node
+            val children = origNode.list.toList()
+            origNode.clear()
+            val origItemData = origNode.value
+            val actions = context.createActionContainer(this, additionalActions = arrayActions)
+
+            this.node = FilterableTreeItem(TreeItemData(origItemData.key, origItemData.description, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
+            node.addAll(children)
+        }
+
+    }
+
+    private fun redecorate() {
+        Decorator.removeAllDecorations(this.node.value.control)
+        val message = itemCountValidationMessage.get() ?: uniqueItemValidationMessage.get()
+        if (message != null) {
+            GraphicValidationDecoration().applyValidationDecoration(message)
+        }
+    }
+
+    private class ArrayAction(override val text: String, override val description: String, private val action: () -> Unit) : EditorAction {
+        override val selector: ActionTargetSelector = ActionTargetSelector.Always()
+        override fun apply(currentValue: JSONObject, schema: SchemaWrapper<*>): JSONObject? {
+            action()
+            return null
+        }
     }
 }

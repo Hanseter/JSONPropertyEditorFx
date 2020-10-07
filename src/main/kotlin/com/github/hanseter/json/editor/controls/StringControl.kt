@@ -1,8 +1,13 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.actions.ActionsContainer
+import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.util.EditorContext
+import javafx.beans.property.Property
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.TextField
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationResult
@@ -12,14 +17,17 @@ import org.everit.json.schema.FormatValidator
 import org.everit.json.schema.StringSchema
 import java.util.regex.Pattern
 
-class StringControl(schema: SchemaWrapper<StringSchema>, actions: List<EditorAction>) :
-        RowBasedControl<StringSchema, String, TextField>(
-                schema,
-                TextField(),
-                { it.textProperty() },
-                schema.schema.defaultValue as? String,
-                actions
-        ) {
+class StringControl(override val schema: SchemaWrapper<StringSchema>, context: EditorContext) : TypeControl, ControlProvider<String> {
+    override val control = TextField()
+    override val value: Property<String?>
+        get() = control.textProperty()
+    override val defaultValue: String?
+        get() = schema.schema.defaultValue as? String
+    override val editorActionsContainer: ActionsContainer = context.createActionContainer(this)
+    private val delegate = RowBasedControl(this)
+    override val node: FilterableTreeItem<TreeItemData> = delegate.node
+    override val valid = SimpleBooleanProperty(true)
+
     private val validation = ValidationSupport()
     private val formatValidator: Validator<String>?
     private val lengthValidator: Validator<String>?
@@ -34,9 +42,9 @@ class StringControl(schema: SchemaWrapper<StringSchema>, actions: List<EditorAct
     }
 
     override fun bindTo(type: BindableJsonType) {
-        super.bindTo(type)
+        delegate.bindTo(type)
 
-        control.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
+        control.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
     companion object {

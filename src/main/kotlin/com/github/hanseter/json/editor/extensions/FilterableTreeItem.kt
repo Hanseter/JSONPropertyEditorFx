@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.extensions
 
+import com.github.hanseter.json.editor.actions.ActionsContainer
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -14,7 +15,7 @@ import java.util.function.Predicate
  * @param value value of the filterable TreeItem
  */
 
-open class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
+class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
     val list: ObservableList<FilterableTreeItem<T>> = FXCollections.observableArrayList()
     private val filteredList: FilteredList<FilterableTreeItem<T>> = FilteredList(list)
 
@@ -97,4 +98,4 @@ open class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
  *
  */
 class TreeItemData(val key: String, val description: String?, val control: Node?,
-                   var action: Node?, val isRoot: Boolean = false, val isHeadline: Boolean = false)
+                   val action: ActionsContainer?, val isRoot: Boolean = false, val isHeadline: Boolean = false)

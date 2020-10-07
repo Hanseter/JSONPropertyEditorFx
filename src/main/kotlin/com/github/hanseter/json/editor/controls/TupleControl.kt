@@ -1,25 +1,23 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.ResolutionScopeProvider
-import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonArray
 import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.value.ObservableBooleanValue
 import org.everit.json.schema.ArraySchema
 import org.everit.json.schema.Schema
 import org.json.JSONArray
 
-class TupleControl(
-        override val schema: SchemaWrapper<ArraySchema>,
-        contentSchemas: List<Schema>,
-        refProvider: IdReferenceProposalProvider,
-        resolutionScopeProvider: ResolutionScopeProvider,
-        actions: List<EditorAction>
-) : TypeWithChildrenControl(schema, actions) {
+class TupleControl(override val schema: SchemaWrapper<ArraySchema>, contentSchemas: List<Schema>, context: EditorContext)
+    : TypeControl {
 
-    private val children: List<TypeControl> = createTypeControlsFromSchemas(contentSchemas, refProvider, resolutionScopeProvider, actions)
+    private val editorActionsContainer = context.createActionContainer(this)
+    override val node = FilterableTreeItem(TreeItemData(schema.title, null, null, editorActionsContainer))
+    private var bound: BindableJsonType? = null
+    private val children: List<TypeControl> = createTypeControlsFromSchemas(schema, contentSchemas, context)
     override val valid: ObservableBooleanValue = createValidityBinding(children)
 
     init {
@@ -29,7 +27,7 @@ class TupleControl(
     override fun bindTo(type: BindableJsonType) {
         val subType = createSubArray(type)
         children.forEach { it.bindTo(subType) }
-        super.bindTo(type)
+        bound = type
     }
 
     private fun createSubArray(parent: BindableJsonType): BindableJsonArray {

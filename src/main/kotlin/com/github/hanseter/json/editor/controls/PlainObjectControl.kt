@@ -1,21 +1,23 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.ResolutionScopeProvider
-import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonObject
 import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.value.ObservableBooleanValue
 import org.everit.json.schema.ObjectSchema
 import org.json.JSONObject
 
-class PlainObjectControl(
-        override val schema: SchemaWrapper<ObjectSchema>,
-        refProvider: IdReferenceProposalProvider,
-        resolutionScopeProvider: ResolutionScopeProvider,
-        actions: List<EditorAction>
-) : TypeWithChildrenControl(schema, actions), ObjectControl {
+class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, context: EditorContext)
+    : ObjectControl {
+
+    private val editorActionsContainer = context.createActionContainer(this)
+
+    override val node = FilterableTreeItem(TreeItemData(schema.title, null, null, editorActionsContainer))
+
+    private var bound: BindableJsonType? = null
 
     override val requiredChildren: List<TypeControl>
     override val optionalChildren: List<TypeControl>
@@ -23,10 +25,10 @@ class PlainObjectControl(
 
     init {
         val childSchemas = schema.schema.propertySchemas.toMutableMap()
-        requiredChildren = createTypeControlsFromSchemas(schema.schema.requiredProperties.mapNotNull {
+        requiredChildren = createTypeControlsFromSchemas(schema, schema.schema.requiredProperties.mapNotNull {
             childSchemas.remove(it)
-        }, refProvider, resolutionScopeProvider, actions)
-        optionalChildren = createTypeControlsFromSchemas(childSchemas.values, refProvider, resolutionScopeProvider, actions)
+        }, context)
+        optionalChildren = createTypeControlsFromSchemas(schema, childSchemas.values, context)
         valid = createValidityBinding(requiredChildren + optionalChildren)
 
         addRequiredAndOptionalChildren(node, requiredChildren, optionalChildren)
@@ -40,7 +42,7 @@ class PlainObjectControl(
 
     override fun bindTo(type: BindableJsonType) {
         bindChildrenToObject(createSubType(type))
-        super.bindTo(type)
+        bound = type
     }
 
     private fun createSubType(parent: BindableJsonType): BindableJsonObject {

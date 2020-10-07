@@ -13,10 +13,6 @@ interface TypeControl {
 
     fun bindTo(type: BindableJsonType)
 
-    fun getBoundValue(): Any?
-
-    fun setBoundValue(newVal: Any?)
-
     companion object {
         const val NULL_PROMPT = "Null"
     }
