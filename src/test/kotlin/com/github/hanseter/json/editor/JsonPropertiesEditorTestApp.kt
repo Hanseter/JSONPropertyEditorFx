@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.ChangeValueEditorAction
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.Scene
@@ -19,7 +21,25 @@ class JsonPropertiesEditorTestApp : Application() {
                     this::class.java.classLoader.getResource("")?.toURI()
         }
 
-        val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2, customResolutionScopeProvider)
+        val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2, customResolutionScopeProvider, listOf(
+                ChangeValueEditorAction("↻", ActionTargetSelector.Custom {
+                    it.schema.defaultValue != null
+                }) { schema, _ ->
+                    schema.schema.defaultValue
+                }.apply {
+                    description = "Reset to Default"
+                },
+                ChangeValueEditorAction(
+                        "Ø",
+                        ActionTargetSelector.AllOf(listOf(
+                                ActionTargetSelector.Required().invert(),
+                                ActionTargetSelector.SchemaType("object", "array").invert()
+                        ))) { _, _ ->
+                    JSONObject.NULL
+                }.apply {
+                    description = "Make Null"
+                }
+        ))
 //        val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")
 //                .put("string list", listOf("A", "B"))
 //                .put("string_list_readonly", listOf("A", "B"))
@@ -30,17 +50,26 @@ class JsonPropertiesEditorTestApp : Application() {
 //                .put("enum", "bar")
 //                .put("ref", "Hello")
 
-//        val testData = JSONObject("{\n" +
-////                " \"fromNested\": \"test\",\n" +
-////                " \"additional\": 9,\n" +
-////                " \"name\": \"waht?\",\n" +
-////                " \"x\": 6,\n" +
-////                " \"y\": 5\n" +
-////                "}")
+        val testData = JSONObject("""{
+ "fromNested": "test",
+ "additional": 9,
+ "name": "waht?",
+ "x": 6,
+ "y": 5,
+ "bool": true
+}""")
+        val resettableTestData = JSONObject("""
+{
+  "reqBool": true,
+  "reqInt": 5,
+  "reqDouble": 42.24
+}
+""")
 
-        val testData = JSONObject()
-
-        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("Balise.json")))
+        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
+//                "nestedCompositeSchema.json"
+                "resettableSchema.json"
+        )))
 //		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
 //		propEdit.display("test4", "test4", testData, schema) { it }
@@ -51,7 +80,7 @@ class JsonPropertiesEditorTestApp : Application() {
 //		propEdit.display("test5", "test5", testData, schema) { it }
 //		propEdit.display("test6", "test6", testData, schema) { it }
 
-        propEdit.display("test", "isRoot 1 2 3 4 5 long text", testData, schema) {
+        propEdit.display("test", "isRoot 1 2 3 4 5 long text", resettableTestData, schema) {
             println(it.toString(1))
             Platform.runLater {
                 propEdit.updateObject("test", it)

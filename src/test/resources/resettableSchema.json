@@ -1,0 +1,214 @@
+{
+  "type": "object",
+  "title": "Resettable",
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "properties": {
+    "reqBool": {
+      "type": "boolean"
+    },
+    "optBool": {
+      "type": "boolean"
+    },
+    "optBool2": {
+      "type": "boolean"
+    },
+    "defBool": {
+      "type": "boolean",
+      "default": true
+    },
+    "defBool2": {
+      "type": "boolean",
+      "default": false
+    },
+    "roBool": {
+      "type": "boolean",
+      "readOnly": true
+    },
+    "reqInt": {
+      "type": "integer"
+    },
+    "optInt": {
+      "type": "integer"
+    },
+    "defInt": {
+      "type": "integer",
+      "default": 42
+    },
+    "reqDouble": {
+      "type": "number"
+    },
+    "optDouble": {
+      "type": "number"
+    },
+    "defDouble": {
+      "type": "number",
+      "default": 21.1
+    },
+    "reqString": {
+      "type": "string"
+    },
+    "optString": {
+      "type": "string"
+    },
+    "defString": {
+      "type": "string",
+      "default": "foo"
+    },
+    "reqEnum": {
+      "enum": [
+        "val 1",
+        "val 2",
+        "val 3"
+      ]
+    },
+    "optEnum": {
+      "enum": [
+        "val 1",
+        "val 2",
+        "val 3"
+      ]
+    },
+    "defEnum": {
+      "type": "string",
+      "enum": [
+        "val 1",
+        "val 2",
+        "val 3"
+      ],
+      "default": "val 2"
+    },
+    "reqColor": {
+      "type": "string",
+      "format": "color"
+    },
+    "optColor": {
+      "type": "string",
+      "format": "color"
+    },
+    "defColor": {
+      "type": "string",
+      "format": "color",
+      "default": "#FF0000"
+    },
+    "ref": {
+      "type": "string",
+      "format": "id-reference",
+      "minLength": 3,
+      "maxLength": 5,
+      "pattern": "H.*"
+    },
+    "reqArray": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "default": "nop"
+      }
+    },
+    "optArray": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "default": "nop"
+      }
+    },
+    "defArray": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "default": "nop"
+      },
+      "default": [
+        "foo",
+        "bar"
+      ]
+    },
+    "reqObject": {
+      "type": "object",
+      "properties": {
+        "sub1": {
+          "type": "string"
+        },
+        "sub2": {
+          "type": "string"
+        }
+      }
+    },
+    "optObject": {
+      "type": "object",
+      "properties": {
+        "sub1": {
+          "type": "string"
+        },
+        "sub2": {
+          "type": "string"
+        }
+      }
+    },
+    "defObject": {
+      "type": "object",
+      "properties": {
+        "sub1": {
+          "type": "string"
+        },
+        "sub2": {
+          "type": "string"
+        }
+      },
+      "default": {
+        "sub1": "foo",
+        "sub2": "bar"
+      }
+    },
+    "reqTuple": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "optTuple": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "defTuple": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "default": [
+        "foo",
+        42
+      ]
+    }
+  },
+  "required": [
+    "reqBool",
+    "reqInt",
+    "reqDouble",
+    "reqString",
+    "reqEnum",
+    "reqColor",
+    "reqArray",
+    "reqObject",
+    "reqTuple"
+  ]
+}

@@ -1,13 +1,14 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
-import javafx.beans.value.ChangeListener
+import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
 import javafx.util.converter.IntegerStringConverter
 import org.everit.json.schema.NumberSchema
 
-class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
+class IntegerControl(schema: SchemaWrapper<NumberSchema>, actions: List<EditorAction>) :
         RowBasedControl<NumberSchema, Int, Spinner<Int?>>(
                 schema,
                 Spinner(
@@ -20,13 +21,16 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
                                         ?: Int.MAX_VALUE)
                 ),
                 { it.valueFactory.valueProperty() },
-                schema.schema.defaultValue as? Int
+                schema.schema.defaultValue as? Int,
+                actions
         ) {
 
     init {
         control.isEditable = true
         control.editor.textProperty().addListener { _, _, new ->
-            if (new.isNotEmpty() && new != "-") {
+            if (new.isEmpty() && !isRequired) {
+                control.increment(0)
+            } else if (new.isNotEmpty() && new != "-") {
                 try {
                     control.increment(0); // won't change value, but will commit editor
                 } catch (e: NumberFormatException) {
@@ -35,18 +39,23 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
             }
         }
         control.focusedProperty().addListener { _, _, new ->
-            if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
+            if (!new && ((control.editor.text.isEmpty() && isRequired) || control.editor.text == "-")) {
                 control.editor.text = control.valueFactory.value?.toString() ?: ""
             }
 
         }
     }
 
+    override fun bindTo(type: BindableJsonType) {
+        super.bindTo(type)
+        control.editor.promptText = if (isBoundToNull()) TypeControl.NULL_PROMPT else ""
+    }
+
     class IntegerSpinnerValueFactoryNullSafe(min: Int, max: Int) : SpinnerValueFactory<Int?>() {
         init {
             converter = IntegerStringConverter()
 
-            valueProperty().addListener(ChangeListener { _, _, newValue: Int? ->
+            valueProperty().addListener { _, _, newValue: Int? ->
                 if (newValue != null) {
                     if (newValue < min) {
                         value = min
@@ -54,7 +63,7 @@ class IntegerControl(schema: SchemaWrapper<NumberSchema>) :
                         value = max
                     }
                 }
-            })
+            }
         }
 
         override fun increment(steps: Int) {

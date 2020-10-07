@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.controls.NodeTreeTableCell
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
@@ -7,11 +9,9 @@ import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Cursor
-import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
@@ -27,7 +27,8 @@ class JsonPropertiesEditor(
         private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
         private val readOnly: Boolean = false,
         private val numberOfInitiallyOpenedObjects: Int = 5,
-        private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty
+        private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
+        private val actions: List<EditorAction>
 ) :
         VBox() {
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -134,7 +135,7 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(title: String, data: JSONObject,
                                           schema: Schema, callback: (JSONObject) -> JSONObject): JsonPropertiesPane =
-            JsonPropertiesPane(title, data, schema, referenceProposalProvider, resolutionScopeProvider) { obj, pane ->
+            JsonPropertiesPane(title, data, schema, referenceProposalProvider, resolutionScopeProvider, actions) { obj, pane ->
                 pane.fillData(callback(obj))
             }
 
@@ -157,23 +158,22 @@ class JsonPropertiesEditor(
             it.minWidth = 150.0
             it.isSortable = false
         }
-        val controlColumn = TreeTableColumn<TreeItemData, Node>().also {
+        val controlColumn = TreeTableColumn<TreeItemData, TreeItemData>().also {
             it.text = "Value"
-            it.cellValueFactory = Callback { SimpleObjectProperty(it.value.value.control) }
+            it.cellValueFactory = Callback { it.value.valueProperty() }
+            it.cellFactory = NodeTreeTableCell.forColumn { it.control }
             it.minWidth = 150.0
             it.styleClass.add("control-cell")
-            it.isResizable = false
             it.isSortable = false
         }
-        val actionColumn = TreeTableColumn<TreeItemData, Node>().also {
+        val actionColumn = TreeTableColumn<TreeItemData, TreeItemData>().also {
             it.text = "Action"
-            it.cellValueFactory = Callback { SimpleObjectProperty(it.value.value.action) }
+            it.cellFactory = NodeTreeTableCell.forColumn { it.action }
+            it.cellValueFactory = Callback { it.value.valueProperty() }
             it.minWidth = 100.0
             it.prefWidth = 100.0
-            it.maxWidth = 125.0
             it.styleClass.add("action-cell")
             it.style = "-fx-alignment: CENTER"
-            it.isResizable = false
             it.isSortable = false
         }
 
@@ -206,14 +206,18 @@ class JsonPropertiesEditor(
             it.stylesheets.add(javaClass.getResource("TreeTableView.css").toExternalForm())
             it.columns.addAll(keyColumn, controlColumn, actionColumn)
             it.isShowRoot = false
+            it.columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
         }
 
-        controlColumn.prefWidthProperty().bind(
+
+        /*
+        actionColumn.prefWidthProperty().bind(
                 treeTableView.widthProperty()
                         .subtract(keyColumn.widthProperty())
-                        .subtract(actionColumn.widthProperty())
+                        .subtract(controlColumn.widthProperty())
                         .subtract(15)
         )
+        */
 
     }
 }

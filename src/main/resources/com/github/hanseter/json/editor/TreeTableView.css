@@ -13,16 +13,16 @@
 
 .isRootRow {
     -fx-text-fill: -fx-text-base-color;
-    -fx-background-color:
-            linear-gradient(to bottom,
-            derive(-fx-color,-15%) 95%,
-            derive(-fx-color,-25%) 100%
-            ),
-            -fx-inner-border, -fx-body-color;
+    -fx-background-color: linear-gradient(to bottom,
+    derive(-fx-color, -15%) 95%,
+    derive(-fx-color, -25%) 100%
+    ),
+    -fx-inner-border, -fx-body-color;
     -fx-background-insets: 0, 1, 2;
     -fx-background-radius: 3 3 0 0, 2 2 0 0, 1 1 0 0;
     -fx-table-cell-border-color: transparent;
 }
+
 .isRootRow:focused {
     -fx-color: -fx-base;
 }
@@ -42,7 +42,65 @@
 .isRootRow:filled:selected .text,
 .isRootRow:selected .text,
 .isRootRow:filled .text,
-.isRootRow .text  {
+.isRootRow .text {
     -fx-text-fill: -fx-text-base-color;
     -fx-fill: -fx-text-base-color;
+}
+
+.combo-box.has-null-value > .list-cell, .combo-box.has-default-value > .list-cell,
+.color-picker.has-null-value > .label, .color-picker.has-default-value > .label {
+    -fx-text-fill: derive(-fx-control-inner-background, -45%);
+}
+
+.color-picker.has-null-value > .label {
+    -fx-opacity: 0;
+}
+
+.spinner.has-default-value .text-input {
+    -fx-text-fill: gray;
+}
+
+.text-field.has-default-value {
+    -fx-text-fill: gray;
+}
+
+/*
+ TOGGLE SWITCHES
+ */
+.toggle-switch .thumb-area {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+    linear-gradient(to bottom, derive(#C62B0B, 30%), #C62B0B);
+    -fx-background-insets: 0, 1;
+}
+
+
+.toggle-switch:selected .thumb-area {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+    linear-gradient(to bottom, derive(#0b99c9, 30%), #0b99c9);
+    -fx-background-insets: 0, 1;
+}
+
+.toggle-switch.has-null-value .thumb-area {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+    #f5f5f5;
+    -fx-background-insets: 0, 1;
+}
+
+.toggle-switch.has-default-value .thumb-area {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+    linear-gradient(to bottom, derive(#CCA9A3, 30%), #CCA9A3);
+    -fx-background-insets: 0, 1;
+}
+
+.toggle-switch.has-default-value:selected .thumb-area {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+    linear-gradient(to bottom, derive(#A3C4CE, 30%), #A3C4CE);
+    -fx-background-insets: 0, 1;
+}
+
+.toggle-switch .label {
+    -fx-min-width: 25px;
+    -fx-pref-width: 25px;
+    -fx-max-width: 25px;
+    -fx-text-fill: gray;
 }
