@@ -81,15 +81,15 @@ class JsonPropertiesEditorTestApp : Application() {
     object ReferenceProvider : IdReferenceProposalProvider {
         private val possibleProposals =
                 mapOf(
-                        "Hello" to Pair<JSONObject, JSONObject>(
+                        "Hello" to IdReferenceProposalProvider.DataWithSchema(
                                 JSONObject().put("name", "world").put("ref", "Foo"),
                                 JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
                         ),
-                        "Goodbye" to Pair<JSONObject, JSONObject>(
+                        "Goodbye" to IdReferenceProposalProvider.DataWithSchema(
                                 JSONObject().put("name", "my love"),
                                 JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
                         ),
-                        "Foo" to Pair<JSONObject, JSONObject>(
+                        "Foo" to IdReferenceProposalProvider.DataWithSchema(
                                 JSONObject().put("name", "Bar"),
                                 JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
                         )
@@ -99,11 +99,11 @@ class JsonPropertiesEditorTestApp : Application() {
                 possibleProposals.keys.filter { it.startsWith(part) }
 
         override fun getReferenceDescription(reference: String): String =
-                possibleProposals[reference]?.first?.optString("name") ?: ""
+                possibleProposals[reference]?.data?.optString("name") ?: ""
 
         override fun isValidReference(userInput: String?): Boolean = possibleProposals.contains(userInput)
 
-        override fun getDataAndSchema(id: String): Pair<JSONObject, JSONObject>? = possibleProposals[id]
+        override fun getDataAndSchema(id: String): IdReferenceProposalProvider.DataWithSchema? = possibleProposals[id]
         override fun isOpenable(id: String) = true
         override fun openElement(id: String) {
             println("Request to open $id")

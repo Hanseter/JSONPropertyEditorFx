@@ -77,7 +77,7 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
         control.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
-    private fun showPreviewPopup(dataAndSchema: Pair<JSONObject, JSONObject>, value: String) {
+    private fun showPreviewPopup(dataAndSchema: IdReferenceProposalProvider.DataWithSchema, value: String) {
         popOver?.hide()
         val (data, previewSchema) = dataAndSchema
         val preview = JsonPropertiesEditor(context.refProvider, true, 1, context.resolutionScopeProvider, context.actions)
