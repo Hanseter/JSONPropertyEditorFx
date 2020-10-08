@@ -14,7 +14,6 @@ class ResetToNullAction : EditorAction {
 
     override fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject {
         val key = schema.getPropertyName()
-        schema.pointer
         when (val parentContainer = schema.parent?.extractProperty(currentData)
                 ?: currentData) {
             null -> {

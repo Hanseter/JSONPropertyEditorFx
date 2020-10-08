@@ -147,6 +147,7 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
     private fun idChanged(id: String?) {
         if (id == null) {
             description = ""
+            updateTextField()
             return
         }
         val desc = context.refProvider.getReferenceDescription(id)
@@ -167,15 +168,14 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
         return validator
     }
 
-    private fun referenceValidationFinished(invalid: Boolean) {
+    private fun referenceValidationFinished() {
         editorActionsContainer.updateDisablement()
     }
 
     private fun createReferenceValidation(): Validator<String> =
             Validator { control, _ ->
                 val invalid = !context.refProvider.isValidReference(value.value)
-                //TODO check if button get's correctly enabled
-                referenceValidationFinished(invalid)
+                referenceValidationFinished()
                 ValidationResult.fromErrorIf(control, "Has to be a valid reference", invalid)
             }
 
@@ -183,8 +183,8 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
         override val text: String = "⤴"
         override val description: String = "Open Preview for Reference Target"
         override val selector: ActionTargetSelector = ActionTargetSelector.Always()
-        override fun apply(currentValue: JSONObject, schema: SchemaWrapper<*>): JSONObject? {
-            val value = schema.extractProperty(currentValue) as? String
+        override fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject? {
+            val value = schema.extractProperty(currentData) as? String
             if (value != null) {
                 val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value)
                 if (dataAndSchema != null) {

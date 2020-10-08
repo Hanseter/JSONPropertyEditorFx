@@ -104,10 +104,10 @@ class JsonPropertiesEditorTestApp : Application() {
                         )
                 )
 
-        override fun calcCompletionProposals(part: String): List<String> =
-                possibleProposals.keys.filter { it.startsWith(part) }
+        override fun calcCompletionProposals(part: String?): List<String> =
+                possibleProposals.keys.filter { it.startsWith(part?: "") }
 
-        override fun getReferenceDescription(reference: String): String =
+        override fun getReferenceDescription(reference: String?): String =
                 possibleProposals[reference]?.data?.optString("name") ?: ""
 
         override fun isValidReference(userInput: String?): Boolean = possibleProposals.contains(userInput)
