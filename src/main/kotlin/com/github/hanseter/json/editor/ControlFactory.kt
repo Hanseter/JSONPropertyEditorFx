@@ -1,8 +1,8 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.controls.*
+import com.github.hanseter.json.editor.extensions.CombinedSchemaWrapper
 import com.github.hanseter.json.editor.extensions.ReferredSchemaWrapper
-import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
@@ -72,7 +72,7 @@ object ControlFactory {
             return createControlFromSyntheticAllOf(schema, context)
         }
 
-        val subSchemas = schema.schema.subschemas.map { RegularSchemaWrapper(schema, it) }
+        val subSchemas = schema.schema.subschemas.map { CombinedSchemaWrapper(schema, it) }
         val controls = subSchemas.map { convert(it, context) }
         if (controls.any { it !is ObjectControl }) {
             return UnsupportedTypeControl(schema)

@@ -39,6 +39,7 @@ class JsonPropertiesPane(
         val objectControl = ControlFactory.convert(schema, EditorContext(refProvider, resolutionScopeProvider, actions) { action, control ->
             val ret = action.apply(contentHandler.data, control.schema)
             if (ret != null) {
+                changeListener(ret, this)
                 fillData(ret)
             }
         })

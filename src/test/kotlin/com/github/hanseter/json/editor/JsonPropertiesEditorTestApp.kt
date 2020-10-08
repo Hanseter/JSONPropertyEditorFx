@@ -33,14 +33,14 @@ class JsonPropertiesEditorTestApp : Application() {
 //                .put("enum", "bar")
 //                .put("ref", "Hello")
 
-        val testData = JSONObject("""{
- "fromNested": "test",
- "additional": 9,
- "name": "waht?",
- "x": 6,
- "y": 5,
- "bool": true
-}""")
+//        val testData = JSONObject("""{
+// "fromNested": "test",
+// "additional": 9,
+// "name": "waht?",
+// "x": 6,
+// "y": 5,
+// "bool": true
+//}""")
         val resettableTestData = JSONObject("""
 {
   "reqBool": true,
@@ -48,6 +48,15 @@ class JsonPropertiesEditorTestApp : Application() {
   "reqDouble": 42.24
 }
 """)
+
+        val nestedSchemaTestData = JSONObject("""
+            {
+             "additional": 312,
+             "x": 12,
+             "name": "MyName",
+             "y": 42
+            }
+        """)
 
         val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
 //                "nestedCompositeSchema.json"

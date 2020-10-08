@@ -90,6 +90,7 @@ class JsonPropertiesEditor(
     private fun parseSchema(schema: JSONObject, resolutionScope: URI?): Schema {
         val slb = SchemaLoader.builder()
                 .useDefaults(true)
+                .draftV7Support()
                 .addFormatValidator(ColorFormat.Validator)
                 .addFormatValidator(IdReferenceFormat.Validator)
                 .schemaJson(schema)
