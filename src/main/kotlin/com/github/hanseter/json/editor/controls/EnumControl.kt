@@ -40,7 +40,7 @@ class EnumControl(override val schema: SchemaWrapper<Schema>, enumSchema: EnumSc
     }
 
     override fun bindTo(type: BindableJsonType) {
-        if (delegate.bindTo(type)) {
+        if (delegate.bindTo(type, StringControl.STRING_CONVERTER)) {
             valueNewlyBound()
         }
         control.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""

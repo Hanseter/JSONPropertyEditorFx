@@ -36,7 +36,7 @@ class ColorControl(override val schema: SchemaWrapper<StringSchema>, context: Ed
     }
 
     override fun bindTo(type: BindableJsonType) {
-        delegate.bindTo(type)
+        delegate.bindTo(type, StringControl.STRING_CONVERTER)
     }
 
     object ColorStringConverter : StringConverter<Color>() {

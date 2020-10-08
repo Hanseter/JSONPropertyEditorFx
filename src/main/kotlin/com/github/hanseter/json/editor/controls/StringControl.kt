@@ -42,12 +42,14 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
     }
 
     override fun bindTo(type: BindableJsonType) {
-        delegate.bindTo(type)
+        delegate.bindTo(type, STRING_CONVERTER)
 
         control.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
     companion object {
+        val STRING_CONVERTER: (Any) -> String = { it as? String ?: it.toString() }
+
         fun addFormatValidation(
                 validation: ValidationSupport,
                 textField: TextField,

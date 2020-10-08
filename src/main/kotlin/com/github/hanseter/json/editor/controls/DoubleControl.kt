@@ -91,21 +91,16 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
 
 
     override fun bindTo(type: BindableJsonType) {
-        if (delegate.bindTo(type)) {
+        if (delegate.bindTo(type, DOUBLE_CONVERTER)) {
             valueNewlyBound()
         }
         control.editor.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
     private fun valueNewlyBound() {
-        val foo = value.value
-        // we need to cast explicitly here since value could still be a number
-        val value = foo?.toDouble()
-        control.editor.text = if (value == null) {
-            ""
-        } else {
-            control.valueFactory.converter.toString(value.toDouble())
-        }
+        val value = value.value
+        control.editor.text = if (value == null) ""
+        else control.valueFactory.converter.toString(value.toDouble())
     }
 
     private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory.DoubleSpinnerValueFactory(min, max) {
@@ -122,6 +117,8 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
 
     companion object {
         private val DECIMAL_FORMAT = DecimalFormat("#0.################")
+        val DOUBLE_CONVERTER: (Any?) -> Double? = { (it as? Number)?.toDouble() }
+
         private val CONVERTER = object : StringConverter<Double?>() {
             override fun toString(`object`: Double?): String? =
                     if (`object` == null) "" else DECIMAL_FORMAT.format(`object`)

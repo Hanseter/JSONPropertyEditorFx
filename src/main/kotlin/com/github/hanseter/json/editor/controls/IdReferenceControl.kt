@@ -73,7 +73,7 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
 
 
     override fun bindTo(type: BindableJsonType) {
-        delegate.bindTo(type)
+        delegate.bindTo(type, StringControl.STRING_CONVERTER)
         control.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 

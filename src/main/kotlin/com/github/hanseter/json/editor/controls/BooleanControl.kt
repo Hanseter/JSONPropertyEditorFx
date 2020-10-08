@@ -26,9 +26,13 @@ class BooleanControl(override val schema: SchemaWrapper<BooleanSchema>, context:
     override val valid: ObservableBooleanValue = SimpleBooleanProperty(true)
 
     override fun bindTo(type: BindableJsonType) {
-        delegate.bindTo(type)
+        delegate.bindTo(type, BOOLEAN_CONVERTER)
         control.text = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
+
+    companion object {
+        val BOOLEAN_CONVERTER: (Any?) -> Boolean? = { it as? Boolean }
+    }
 }
 

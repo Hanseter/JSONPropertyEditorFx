@@ -41,16 +41,22 @@ class RowBasedControl<T>(private val provider: ControlProvider<T>) : ChangeListe
     /**
      * Returns whether the value actually changed
      */
-    @Suppress("UNCHECKED_CAST")
-    fun bindTo(type: BindableJsonType): Boolean {
+    fun bindTo(type: BindableJsonType, converter: (Any) -> T?): Boolean {
         bound = null
         val rawVal = type.getValue(provider.schema)
 
         val toAssign = when (rawVal) {
             null -> provider.defaultValue
             JSONObject.NULL -> null
-            else -> rawVal as T
+            else -> {
+                val converted = converter(rawVal)
+                if (converted == null) {
+                    //TODO This should not happen with correct data and should be logged
+                }
+                converted
+            }
         }
+
         val changed = toAssign != provider.value.value
         if (changed) {
             provider.value.value = toAssign

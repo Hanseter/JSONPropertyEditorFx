@@ -7,7 +7,6 @@ import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
@@ -22,7 +21,7 @@ class IntegerControl(override val schema: SchemaWrapper<NumberSchema>, context: 
             schema.schema.maximum?.toInt()
                     ?: (schema.schema.exclusiveMaximumLimit?.toInt()?.dec())
                     ?: Int.MAX_VALUE))
-    override val value = SimpleObjectProperty<Int>(null)
+    override val value = control.valueFactory.valueProperty()
     override val defaultValue: Int?
         get() = schema.schema.defaultValue as? Int
     override val editorActionsContainer: ActionsContainer = context.createActionContainer(this)
@@ -54,7 +53,7 @@ class IntegerControl(override val schema: SchemaWrapper<NumberSchema>, context: 
     }
 
     override fun bindTo(type: BindableJsonType) {
-        delegate.bindTo(type)
+        delegate.bindTo(type, INTEGER_CONVERTER)
         control.editor.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
@@ -80,5 +79,9 @@ class IntegerControl(override val schema: SchemaWrapper<NumberSchema>, context: 
         override fun decrement(steps: Int) {
             value = value?.minus(steps)
         }
+    }
+
+    companion object {
+        val INTEGER_CONVERTER: (Any?) -> Int? = { (it as? Number)?.toInt() }
     }
 }
