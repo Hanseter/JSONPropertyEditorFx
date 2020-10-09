@@ -9,7 +9,7 @@ class ResetToNullAction : EditorAction {
     override val description: String = "Reset to null"
     override val selector: ActionTargetSelector = ActionTargetSelector.AllOf(listOf(
             ActionTargetSelector.Required().invert(),
-            ActionTargetSelector.SchemaType("object", "array").invert()
+            ActionTargetSelector.SchemaType("object").invert()
     ))
 
     override fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject {

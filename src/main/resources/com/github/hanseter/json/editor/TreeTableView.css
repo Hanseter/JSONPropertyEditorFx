@@ -64,6 +64,15 @@
     -fx-text-fill: gray;
 }
 
+.type-with-children-status-control {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.type-with-children-label {
+    -fx-text-fill: derive(-fx-control-inner-background, -30%);
+}
+
 /*
  TOGGLE SWITCHES
  */

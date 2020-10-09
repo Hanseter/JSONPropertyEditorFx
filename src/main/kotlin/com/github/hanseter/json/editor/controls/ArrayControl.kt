@@ -33,7 +33,12 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
                 addItemAt(children.lastIndex + 1)
             }))
 
-    override val node = FilterableTreeItem(TreeItemData(schema.title, null, null, editorActionsContainer))
+    private val statusControl = TypeWithChildrenStatusControl("To Empty List") {
+        bound?.setValue(schema, JSONArray())
+        valuesChanged()
+    }
+
+    override val node = FilterableTreeItem(TreeItemData(schema.title, null, statusControl, editorActionsContainer))
 
     private var bound: BindableJsonType? = null
     private val children = mutableListOf<TypeControl>()
@@ -59,8 +64,14 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         valuesChanged()
     }
 
-    private fun createSubArray(parent: BindableJsonType): BindableJsonArray {
-        var arr = parent.getValue(schema) as? JSONArray
+    private fun createSubArray(parent: BindableJsonType): BindableJsonArray? {
+        val rawArr = parent.getValue(schema)
+
+        if (rawArr == JSONObject.NULL) {
+            return null
+        }
+
+        var arr = rawArr as? JSONArray
         if (arr == null) {
             arr = JSONArray()
             parent.setValue(schema, arr)
@@ -101,17 +112,34 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         }
 
         val subArray = subArray
-        var values = bound?.getValue(schema) as? JSONArray
-        if (values == null) {
-            values = JSONArray()
+        val rawValues = bound?.getValue(schema)
+        var values = rawValues as? JSONArray
+        if (rawValues != JSONObject.NULL) {
+            if (values == null) {
+                values = JSONArray()
+            }
+
+            removeAdditionalUiCells(values)
+            addNeededUiCells(values)
+            rebindChildren(subArray, values)
+            bound?.setValue(schema, values)
+            validateChildCount(values)
+        } else {
+            removeAdditionalUiCells(JSONArray())
         }
-        removeAdditionalUiCells(values)
-        addNeededUiCells(values)
-        rebindChildren(subArray, values)
-        bound?.setValue(schema, values)
-        validateChildCount(values)
+
         validateChildUniqueness()
         valid.bind(validInternal.and(createValidityBinding(this.children)))
+
+        updateLabel()
+    }
+
+    private fun updateLabel() {
+        if (bound?.getValue(schema) == JSONObject.NULL) {
+            statusControl.displayNull()
+        } else {
+            statusControl.displayNonNull("[${children.size} Element${if (children.size == 1) "" else "s"}]")
+        }
     }
 
     private fun validateChildCount(children: JSONArray) {
@@ -149,7 +177,13 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
     }
 
     private fun addItemAt(position: Int) {
-        val children = bound?.getValue(schema) as? JSONArray ?: return
+        var children = bound?.getValue(schema) as? JSONArray
+
+        if (children == null) {
+            children = JSONArray()
+            bound?.setValue(schema, children)
+        }
+
         children.put(position, JSONObject.NULL)
         valuesChanged()
     }
