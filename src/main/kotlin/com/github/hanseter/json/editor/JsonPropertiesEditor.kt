@@ -1,6 +1,8 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.actions.ResetToDefaultAction
+import com.github.hanseter.json.editor.actions.ResetToNullAction
 import com.github.hanseter.json.editor.extensions.CustomNodeTreeTableCell
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.TreeItemData
@@ -28,9 +30,8 @@ class JsonPropertiesEditor(
         private val readOnly: Boolean = false,
         private val numberOfInitiallyOpenedObjects: Int = 5,
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
-        private val actions: List<EditorAction>
-) :
-        VBox() {
+        private val actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction)
+) : VBox() {
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
     private val scrollPane = ScrollPane()
     private val filterText = TextField()
@@ -85,7 +86,7 @@ class JsonPropertiesEditor(
         (treeTableView.root as FilterableTreeItem).add(pane.treeItem)
         pane.treeItem.isExpanded = idsToPanes.size <= numberOfInitiallyOpenedObjects
         rebindValidProperty()
-    }               
+    }
 
     private fun parseSchema(schema: JSONObject, resolutionScope: URI?): Schema {
         val slb = SchemaLoader.builder()
@@ -111,7 +112,7 @@ class JsonPropertiesEditor(
     }
 
     fun removeObject(objId: String) {
-        (treeTableView.root as FilterableTreeItem).remove(idsToPanes.remove(objId) as FilterableTreeItem<TreeItemData>)
+        (idsToPanes.remove(objId)?.treeItem)?.also { (treeTableView.root as FilterableTreeItem).remove(it) }
         rebindValidProperty()
     }
 
@@ -138,67 +139,11 @@ class JsonPropertiesEditor(
             }
 
     private fun initTreeTableView() {
-        val keyColumn = TreeTableColumn<TreeItemData, String>().apply {
-            text = "Key"
-            cellValueFactory = Callback { SimpleStringProperty(it.value.value.key) }
-            cellFactory = Callback { _ ->
-                object : TreeTableCell<TreeItemData, String>() {
-                    override fun updateItem(item: String?, empty: Boolean) {
-                        if (item === getItem()) return
-                        super.updateItem(item, empty)
-                        treeTableRow?.treeItem?.value?.description?.also {
-                            tooltip = Tooltip(it)
-                        }
-                        super.setText(item)
-                    }
-                }
-            }
-            minWidth = 150.0
-            isSortable = false
-        }
-        val controlColumn = TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Value"
-            cellValueFactory = Callback { it.value.valueProperty() }
-            cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.control } }
-            minWidth = 150.0
-            styleClass.add("control-cell")
-            isSortable = false
-        }
-        val actionColumn = TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Action"
-            cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.action } }
-            cellValueFactory = Callback { it.value.valueProperty() }
-            minWidth = 100.0
-            prefWidth = 100.0
-            styleClass.add("action-cell")
-            style = "-fx-alignment: CENTER"
-            isSortable = false
-        }
+        val keyColumn = createKeyColumn()
+        val controlColumn = createControlColumn()
+        val actionColumn = createActionColumn()
 
-        treeTableView.rowFactory = Callback {
-            object : TreeTableRow<TreeItemData>() {
-                override fun updateItem(item: TreeItemData?, empty: Boolean) {
-                    super.updateItem(item, empty)
-                    cursor = null
-                    styleClass.remove("isRootRow")
-                    styleClass.remove("isHeadlineRow")
-                    if (item != null && item.isRoot) {
-                        cursor = Cursor.HAND
-                        styleClass.add("isRootRow")
-                        setOnMouseClicked {
-                            if (!disclosureNode.boundsInParent.contains(it.x, it.y)) {
-                                treeItem.isExpanded = !treeItem.isExpanded
-                            }
-                        }
-                    } else if (item != null && item.isHeadline) {
-                        styleClass.add("isHeadlineRow")
-                        onMouseClicked = null
-                    } else {
-                        onMouseClicked = null
-                    }
-                }
-            }
-        }
+        treeTableView.rowFactory = Callback { TreeItemDataRow() }
 
         treeTableView.also {
             it.stylesheets.add(javaClass.getResource("TreeTableView.css").toExternalForm())
@@ -206,16 +151,70 @@ class JsonPropertiesEditor(
             it.isShowRoot = false
             it.columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
         }
+    }
 
+    private fun createKeyColumn(): TreeTableColumn<TreeItemData, String> =
+            TreeTableColumn<TreeItemData, String>().apply {
+                text = "Key"
+                cellValueFactory = Callback { SimpleStringProperty(it.value.value.key) }
+                cellFactory = Callback { _ ->
+                    object : TreeTableCell<TreeItemData, String>() {
+                        override fun updateItem(item: String?, empty: Boolean) {
+                            if (item === getItem()) return
+                            super.updateItem(item, empty)
+                            treeTableRow?.treeItem?.value?.description?.also {
+                                tooltip = Tooltip(it)
+                            }
+                            super.setText(item)
+                        }
+                    }
+                }
+                minWidth = 150.0
+                isSortable = false
+            }
 
-        /*
-        actionColumn.prefWidthProperty().bind(
-                treeTableView.widthProperty()
-                        .subtract(keyColumn.widthProperty())
-                        .subtract(controlColumn.widthProperty())
-                        .subtract(15)
-        )
-        */
+    private fun createControlColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
+            TreeTableColumn<TreeItemData, TreeItemData>().apply {
+                text = "Value"
+                cellValueFactory = Callback { it.value.valueProperty() }
+                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.control } }
+                minWidth = 150.0
+                styleClass.add("control-cell")
+                isSortable = false
+            }
 
+    private fun createActionColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
+            TreeTableColumn<TreeItemData, TreeItemData>().apply {
+                text = "Action"
+                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.action } }
+                cellValueFactory = Callback { it.value.valueProperty() }
+                minWidth = 100.0
+                prefWidth = 100.0
+                styleClass.add("action-cell")
+                style = "-fx-alignment: CENTER"
+                isSortable = false
+            }
+
+    class TreeItemDataRow : TreeTableRow<TreeItemData>() {
+        override fun updateItem(item: TreeItemData?, empty: Boolean) {
+            super.updateItem(item, empty)
+            cursor = null
+            styleClass.remove("isRootRow")
+            styleClass.remove("isHeadlineRow")
+            if (item != null && item.isRoot) {
+                cursor = Cursor.HAND
+                styleClass.add("isRootRow")
+                setOnMouseClicked {
+                    if (!disclosureNode.boundsInParent.contains(it.x, it.y)) {
+                        treeItem.isExpanded = !treeItem.isExpanded
+                    }
+                }
+            } else if (item != null && item.isHeadline) {
+                styleClass.add("isHeadlineRow")
+                onMouseClicked = null
+            } else {
+                onMouseClicked = null
+            }
+        }
     }
 }
