@@ -22,7 +22,7 @@ class JsonPropertiesEditorTestApp : Application() {
         }
 
         val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2,
-                customResolutionScopeProvider, listOf(ResetToDefaultAction(), ResetToNullAction()))
+                customResolutionScopeProvider, listOf(ResetToDefaultAction, ResetToNullAction))
 //        val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")
 //                .put("string list", listOf("A", "B"))
 //                .put("string_list_readonly", listOf("A", "B"))

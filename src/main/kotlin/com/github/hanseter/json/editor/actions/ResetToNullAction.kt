@@ -4,7 +4,7 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ResetToNullAction : EditorAction {
+object ResetToNullAction : EditorAction {
     override val text: String = "Ø"
     override val description: String = "Reset to null"
     override val selector: ActionTargetSelector = ActionTargetSelector.AllOf(listOf(

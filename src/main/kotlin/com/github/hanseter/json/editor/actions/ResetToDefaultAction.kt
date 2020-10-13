@@ -4,7 +4,7 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ResetToDefaultAction : EditorAction {
+object ResetToDefaultAction : EditorAction {
     override val text: String = "↻"
     override val description: String = "Reset to default"
     override val selector: ActionTargetSelector = ActionTargetSelector.Custom {
@@ -23,5 +23,4 @@ class ResetToDefaultAction : EditorAction {
         }
         return currentData
     }
-
 }
