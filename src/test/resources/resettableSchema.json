@@ -198,6 +198,13 @@
         "foo",
         42
       ]
+    },
+    "dataRef": {
+      "type": "string",
+      "format": "data-reference",
+      "pattern": "foo",
+      "idPattern": "C.+",
+      "dataPattern": "/sub/list/.*"
     }
   },
   "required": [

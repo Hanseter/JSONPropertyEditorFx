@@ -5,6 +5,7 @@ import com.github.hanseter.json.editor.extensions.CustomNodeTreeTableCell
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
+import com.github.hanseter.json.editor.schemaExtensions.DataReferenceFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
@@ -85,7 +86,7 @@ class JsonPropertiesEditor(
         (treeTableView.root as FilterableTreeItem).add(pane.treeItem)
         pane.treeItem.isExpanded = idsToPanes.size <= numberOfInitiallyOpenedObjects
         rebindValidProperty()
-    }               
+    }
 
     private fun parseSchema(schema: JSONObject, resolutionScope: URI?): Schema {
         val slb = SchemaLoader.builder()
@@ -93,6 +94,7 @@ class JsonPropertiesEditor(
                 .draftV7Support()
                 .addFormatValidator(ColorFormat.Validator)
                 .addFormatValidator(IdReferenceFormat.Validator)
+                .addFormatValidator(DataReferenceFormat.Validator)
                 .schemaJson(schema)
 
         if (resolutionScope != null) {

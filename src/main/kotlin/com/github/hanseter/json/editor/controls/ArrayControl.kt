@@ -15,10 +15,8 @@ import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.Control
-import org.controlsfx.control.decoration.Decorator
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
-import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.everit.json.schema.ArraySchema
 import org.everit.json.schema.Schema
 import org.json.JSONArray
@@ -256,11 +254,7 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
     }
 
     private fun redecorate() {
-        Decorator.removeAllDecorations(this.node.value.control)
-        val message = itemCountValidationMessage.get() ?: uniqueItemValidationMessage.get()
-        if (message != null) {
-            GraphicValidationDecoration().applyValidationDecoration(message)
-        }
+        redecorate(this.node.value.control, itemCountValidationMessage, uniqueItemValidationMessage)
     }
 
     private class ArrayAction(override val text: String, override val description: String, private val action: () -> Unit) : EditorAction {

@@ -60,7 +60,7 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
             return validator
         }
 
-        private fun createFormatValidation(format: FormatValidator?): Validator<String>? = if (format == null) {
+        fun createFormatValidation(format: FormatValidator?): Validator<String>? = if (format == null) {
             null
         } else {
             Validator { control, value: String? ->
@@ -84,7 +84,7 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
             return validator
         }
 
-        private fun createLengthValidation(minLength: Int?, maxLength: Int?): Validator<String>? = when {
+        fun createLengthValidation(minLength: Int?, maxLength: Int?): Validator<String>? = when {
             minLength != null && maxLength != null -> Validator { control, value: String? ->
                 ValidationResult.fromErrorIf(
                         control,

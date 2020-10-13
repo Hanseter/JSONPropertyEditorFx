@@ -101,11 +101,32 @@ class JsonPropertiesEditorTestApp : Application() {
                         "Foo" to IdReferenceProposalProvider.DataWithSchema(
                                 JSONObject().put("name", "Bar"),
                                 JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                        ),
+                        "Complex" to IdReferenceProposalProvider.DataWithSchema(
+                                JSONObject(mapOf(
+                                        "name" to "Object",
+                                        "nameWithMore" to "Also Object",
+                                        "anInt" to 42,
+                                        "aBool" to true,
+                                        "sub" to mapOf(
+                                                "sub1" to 42.5,
+                                                "sub2" to "subString",
+                                                "list" to listOf(
+                                                        "a",
+                                                        1,
+                                                        mapOf(
+                                                                "deeply" to "nested"
+                                                        )
+                                                )
+                                        ),
+                                        "propWith/Escaped~Values" to false
+                                )),
+                                JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
                         )
                 )
 
         override fun calcCompletionProposals(part: String?): List<String> =
-                possibleProposals.keys.filter { it.startsWith(part?: "") }
+                possibleProposals.keys.filter { it.startsWith(part ?: "") }
 
         override fun getReferenceDescription(reference: String?): String =
                 possibleProposals[reference]?.data?.optString("name") ?: ""

@@ -5,6 +5,7 @@ import com.github.hanseter.json.editor.extensions.CombinedSchemaWrapper
 import com.github.hanseter.json.editor.extensions.ReferredSchemaWrapper
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
+import com.github.hanseter.json.editor.schemaExtensions.DataReferenceFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
@@ -45,6 +46,7 @@ object ControlFactory {
             when (schema.schema.formatValidator) {
                 ColorFormat.Validator -> ColorControl(schema, context)
                 IdReferenceFormat.Validator -> IdReferenceControl(schema, context)
+                DataReferenceFormat.Validator -> DataReferenceControl(schema, context)
                 else -> StringControl(schema, context)
             }
 

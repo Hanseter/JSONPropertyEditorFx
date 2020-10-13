@@ -54,20 +54,19 @@ class TypeWithChildrenStatusControl(createLabel: String, onCreate: () -> Unit) :
 
 
     init {
-        children.add(label)
-        button?.let { children.add(it) }
+        children.addAll(label, button)
 
         styleClass += "type-with-children-status-control"
     }
 
     fun displayNull() {
         label.text = TypeControl.NULL_PROMPT
-        button?.isVisible = true
+        button.isVisible = true
     }
 
     fun displayNonNull(text: String) {
         label.text = text
-        button?.isVisible = false
+        button.isVisible = false
     }
 
 }
