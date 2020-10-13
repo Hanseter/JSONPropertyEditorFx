@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.util
 
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONPointer
 
 fun getAllJsonPointerStrings(obj: JSONObject, prefix: String): List<String> {
     val pointers = mutableListOf<String>()
@@ -86,6 +87,18 @@ fun isValidJsonPointer(obj: JSONObject, pointer: String): Boolean {
     }
 
     return true
+}
+
+/**
+ * Resolves a JSON Pointer against an object.
+ *
+ * @throws IllegalArgumentException if `pointer` is not a valid JSON Pointer
+ * @throws org.json.JSONPointerException if evaluation fails
+ */
+fun resolveJsonPointer(obj: JSONObject, pointer: String): Any? {
+    val jsonPointer = JSONPointer(pointer)
+
+    return jsonPointer.queryFrom(obj)
 }
 
 fun escapeJsonPointerElement(element: String): String {

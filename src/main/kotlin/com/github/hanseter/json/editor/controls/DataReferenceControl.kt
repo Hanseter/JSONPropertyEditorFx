@@ -10,15 +10,19 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ChangeListener
 import javafx.scene.control.Label
+import javafx.scene.control.Spinner
 import javafx.scene.control.TextField
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
+import org.controlsfx.control.ToggleSwitch
 import org.controlsfx.control.textfield.TextFields
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationResult
 import org.controlsfx.validation.Validator
 import org.everit.json.schema.StringSchema
+import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONPointerException
 import java.util.regex.Pattern
 
 class DataReferenceControl(override val schema: SchemaWrapper<StringSchema>, private val context: EditorContext) : TypeControl {
@@ -148,9 +152,78 @@ class DataReferenceControl(override val schema: SchemaWrapper<StringSchema>, pri
 
         runValidation()
 
-        val newDesc = context.refProvider.getReferenceDescription(getBoundId()) ?: ""
+        val boundId = getBoundId()
+        val boundPointer = getBoundDataPointer()
+
+        val newDesc = context.refProvider.getReferenceDescription(boundId) ?: ""
         idField.label = if (newDesc.isNotEmpty()) " ($newDesc)" else ""
-        
+
+        displayDataPreview(boundId, boundPointer)
+    }
+
+    private fun displayDataPreview(boundId: String?, boundPointer: String?) {
+        node.clear()
+        if (!boundId.isNullOrBlank() && !boundPointer.isNullOrBlank()) {
+            val dataAndSchema = context.refProvider.getDataAndSchema(boundId)
+
+            if (dataAndSchema != null) {
+                try {
+                    val result = resolveJsonPointer(dataAndSchema.data, boundPointer)
+
+                    if (result != null) {
+                        displayDataPreview(result, null, node)
+                    }
+                } catch (ex: IllegalArgumentException) {
+                    // nothing to do, error should already be reported by validator
+                } catch (ex: JSONPointerException) {
+                    // nothing to do, error should already be reported by validator
+                }
+            }
+        }
+    }
+
+    private fun displayDataPreview(data: Any?, key: String?, parent: FilterableTreeItem<TreeItemData>) {
+        val isRoot = key == null
+        val realKey = key ?: "Data Preview"
+        when (data) {
+            null -> parent.add(FilterableTreeItem(TreeItemData(realKey, null, Label("Null"), null)))
+            is Boolean -> parent.add(FilterableTreeItem(TreeItemData(realKey, null, ToggleSwitch().apply {
+                isSelected = data
+                isDisable = true
+            }, null)))
+            is String -> parent.add(FilterableTreeItem(TreeItemData(realKey, null, TextField(data).apply {
+                isDisable = true
+            }, null)))
+            is Int -> parent.add(FilterableTreeItem(TreeItemData(realKey, null, Spinner<Int>(data, data, data).apply {
+                isDisable = true
+            }, null)))
+            is Number -> parent.add(FilterableTreeItem(TreeItemData(realKey, null, Spinner<Double>(data.toDouble(), data.toDouble(), data.toDouble()).apply {
+                isDisable = true
+            }, null)))
+            is JSONArray -> {
+                val arrayParent = if (isRoot) parent else {
+                    val p = FilterableTreeItem(TreeItemData(realKey, null, null, null))
+                    parent.add(p)
+                    p
+                }
+
+                for ((index, item) in data.withIndex()) {
+                    displayDataPreview(item, index.toString(), arrayParent)
+                }
+            }
+            is JSONObject -> {
+                val objParent = if (isRoot) parent else {
+                    val p = FilterableTreeItem(TreeItemData(realKey, null, null, null))
+                    parent.add(p)
+                    p
+                }
+
+                for (objKey in data.keySet().sorted()) {
+                    displayDataPreview(data.opt(objKey), objKey, objParent)
+                }
+            }
+            else -> parent.add(FilterableTreeItem(TreeItemData(realKey, null, Label(data.toString()), null)))
+        }
     }
 
     private fun runValidation() {

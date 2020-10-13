@@ -6,6 +6,8 @@ import javafx.beans.property.StringProperty
 import javafx.scene.control.Label
 import javafx.scene.control.Skin
 import javafx.scene.control.TextField
+import javafx.scene.text.Text
+import kotlin.math.min
 
 
 class LabelledTextField(text: String) : TextField(text) {
@@ -37,8 +39,19 @@ class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFiel
         styleClass += "text-field-label"
     }
 
+    private val textNode: Text?
+
     init {
         children.add(label)
+
+        textNode = try {
+            val field = TextFieldSkin::class.java.getDeclaredField("textNode")
+            field.isAccessible = true
+            field.get(this) as? Text
+        } catch (ex: Exception) {
+            // this is just for the visuals, no need to react here
+            null
+        }
     }
 
 
@@ -46,15 +59,17 @@ class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFiel
 
         val fullHeight = h + snappedTopInset() + snappedBottomInset()
 
-        val leftWidth = 0.0
         val rightWidth = snapSize(label.prefWidth(fullHeight))
 
-        val textFieldStartX = snapPosition(x) + snapSize(leftWidth)
-        val textFieldWidth = w - snapSize(leftWidth) - snapSize(rightWidth)
+        val textFieldStartX = snapPosition(x)
+        val textFieldWidth = w - snapSize(rightWidth)
 
         super.layoutChildren(textFieldStartX, 0.0, textFieldWidth, fullHeight)
 
-        val rightStartX = w - rightWidth + snappedLeftInset()
-        label.resizeRelocate(rightStartX, 0.0, rightWidth, fullHeight)
+        val fallbackRightStart = w - rightWidth + snappedLeftInset()
+
+        val realRightStart = if (textNode != null) min(textNode.prefWidth(h) + 10.0, fallbackRightStart) else fallbackRightStart
+
+        label.resizeRelocate(realRightStart, 0.0, rightWidth, fullHeight)
     }
 }

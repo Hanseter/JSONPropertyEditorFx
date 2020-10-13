@@ -204,7 +204,7 @@
       "format": "data-reference",
       "pattern": "foo",
       "idPattern": "C.+",
-      "dataPattern": "/sub/list/.*"
+      "dataPattern": ".*"
     }
   },
   "required": [
