@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.event.EventHandler
 import javafx.scene.control.Button
+import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.layout.HBox
 import org.everit.json.schema.Schema
@@ -58,6 +59,8 @@ class TypeWithChildrenStatusControl(createLabel: String, onCreate: () -> Unit) :
 
         styleClass += "type-with-children-status-control"
     }
+
+    fun getDecorationsAnchor(): Control = label
 
     fun displayNull() {
         label.text = TypeControl.NULL_PROMPT

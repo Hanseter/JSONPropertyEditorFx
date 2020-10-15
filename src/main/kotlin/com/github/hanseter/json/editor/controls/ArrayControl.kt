@@ -144,12 +144,12 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         itemCountValidationMessage.set(
                 when {
                     hasTooManyItems(children.length()) -> SimpleValidationMessage(
-                            this.node.value.control as Control,
+                            statusControl.getDecorationsAnchor(),
                             "Must have at most " + schema.schema.maxItems + " items",
                             Severity.ERROR
                     )
                     hasTooFewItems(children.length()) -> SimpleValidationMessage(
-                            this.node.value.control as Control,
+                            statusControl.getDecorationsAnchor(),
                             "Must have at least " + schema.schema.minItems + " items",
                             Severity.ERROR
                     )
