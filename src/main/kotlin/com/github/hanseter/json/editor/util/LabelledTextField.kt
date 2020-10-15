@@ -35,6 +35,9 @@ class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFiel
 
     private val label = Label().apply {
         textProperty().bind(textField.labelProperty())
+
+        // if this is managed, the text field keeps growing when it receives focus
+        // and it
         isManaged = false
         styleClass += "text-field-label"
     }

@@ -17,17 +17,13 @@ fun redecorate(node: Node?, vararg messages: Property<ValidationMessage?>) {
 fun redecorate(node: Node?, results: List<ValidationResult?>) {
     Decorator.removeAllDecorations(node)
 
-    for (result in results.filterNotNull()) {
-        if (result.errors.isNotEmpty()) {
-            GraphicValidationDecoration().applyValidationDecoration(result.errors.first())
-            return
-        }
+    results.filterNotNull().firstOrNull() { it.errors.isNotEmpty() }?.let {
+        GraphicValidationDecoration().applyValidationDecoration(it.errors.first())
+        return
     }
 
-    for (result in results.filterNotNull()) {
-        if (result.warnings.isNotEmpty()) {
-            GraphicValidationDecoration().applyValidationDecoration(result.warnings.first())
-            return
-        }
+    results.filterNotNull().firstOrNull() { it.warnings.isNotEmpty() }?.let {
+        GraphicValidationDecoration().applyValidationDecoration(it.warnings.first())
+        return
     }
 }

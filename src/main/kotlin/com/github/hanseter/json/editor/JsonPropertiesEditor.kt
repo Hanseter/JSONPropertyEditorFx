@@ -7,7 +7,6 @@ import com.github.hanseter.json.editor.extensions.CustomNodeTreeTableCell
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
-import com.github.hanseter.json.editor.schemaExtensions.DataReferenceFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
@@ -95,7 +94,6 @@ class JsonPropertiesEditor(
                 .draftV7Support()
                 .addFormatValidator(ColorFormat.Validator)
                 .addFormatValidator(IdReferenceFormat.Validator)
-                .addFormatValidator(DataReferenceFormat.Validator)
                 .schemaJson(schema)
 
         if (resolutionScope != null) {
