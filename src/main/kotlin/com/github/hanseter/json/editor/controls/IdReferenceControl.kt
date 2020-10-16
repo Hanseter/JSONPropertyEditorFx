@@ -39,10 +39,10 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
     override val node: FilterableTreeItem<TreeItemData> = delegate.node
     override val valid: ObservableBooleanValue = SimpleBooleanProperty(true)
     private val validation = ValidationSupport()
-    private val formatValidator: Validator<String>?
-    private val lengthValidator: Validator<String>?
-    private val patternValidator: Validator<String>?
-    private val referenceValidator: Validator<String>
+    private val formatValidator: Validator<String?>?
+    private val lengthValidator: Validator<String?>?
+    private val patternValidator: Validator<String?>?
+    private val referenceValidator: Validator<String?>
 
     private var popOver: PopOver? = null
 
@@ -118,7 +118,7 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
         else " ($desc)"
     }
 
-    private fun addReferenceValidation(): Validator<String> {
+    private fun addReferenceValidation(): Validator<String?> {
         val validator = createReferenceValidation()
         validation.registerValidator(control, false, validator)
         return validator
@@ -128,7 +128,7 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
         editorActionsContainer.updateDisablement()
     }
 
-    private fun createReferenceValidation(): Validator<String> =
+    private fun createReferenceValidation(): Validator<String?> =
             Validator { control, _ ->
                 val invalid = !context.refProvider.isValidReference(value.value)
                 referenceValidationFinished()

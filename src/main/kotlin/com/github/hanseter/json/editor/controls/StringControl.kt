@@ -29,14 +29,13 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
     override val valid = SimpleBooleanProperty(true)
 
     private val validation = ValidationSupport()
-    private val formatValidator: Validator<String>?
-    private val lengthValidator: Validator<String>?
-    private val patternValidator: Validator<String>?
+    private val formatValidator: Validator<String?>?
+    private val lengthValidator: Validator<String?>?
+    private val patternValidator: Validator<String?>?
 
     init {
         formatValidator = addFormatValidation(validation, control, schema.schema.formatValidator)
-        lengthValidator =
-                addLengthValidation(validation, control, schema.schema.minLength, schema.schema.maxLength)
+        lengthValidator = addLengthValidation(validation, control, schema.schema.minLength, schema.schema.maxLength)
         patternValidator = addPatternValidation(validation, control, schema.schema.pattern)
         valid.bind(validation.invalidProperty().not())
     }
@@ -54,16 +53,16 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
                 validation: ValidationSupport,
                 textField: TextField,
                 formatValidator: FormatValidator?
-        ): Validator<String>? {
+        ): Validator<String?>? {
             val validator = createFormatValidation(formatValidator) ?: return null
             validation.registerValidator(textField, false, validator)
             return validator
         }
 
-        fun createFormatValidation(format: FormatValidator?): Validator<String>? = if (format == null) {
+        fun createFormatValidation(format: FormatValidator?): Validator<String?>? = if (format == null) {
             null
         } else {
-            Validator { control, value: String? ->
+            Validator { control, value ->
                 val validationResult = format.validate(value).orElse(null)
                 ValidationResult.fromErrorIf(
                         control,
@@ -78,28 +77,28 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
                 textField: TextField,
                 minLength: Int?,
                 maxLength: Int?
-        ): Validator<String>? {
+        ): Validator<String?>? {
             val validator = createLengthValidation(minLength, maxLength) ?: return null
             validation.registerValidator(textField, false, validator)
             return validator
         }
 
-        fun createLengthValidation(minLength: Int?, maxLength: Int?): Validator<String>? = when {
-            minLength != null && maxLength != null -> Validator { control, value: String? ->
+        fun createLengthValidation(minLength: Int?, maxLength: Int?): Validator<String?>? = when {
+            minLength != null && maxLength != null -> Validator { control, value ->
                 ValidationResult.fromErrorIf(
                         control,
                         "Has to be $minLength to $maxLength characters",
                         value?.length ?: 0 < minLength || value?.length ?: 0 > maxLength
                 )
             }
-            minLength != null -> Validator { control, value: String? ->
+            minLength != null -> Validator { control, value ->
                 ValidationResult.fromErrorIf(
                         control,
                         "Has to be at max $minLength characters",
                         value?.length ?: 0 < minLength
                 )
             }
-            maxLength != null -> Validator { control, value: String? ->
+            maxLength != null -> Validator { control, value ->
                 ValidationResult.fromErrorIf(
                         control,
                         "Has to be at least $maxLength characters",
@@ -113,7 +112,7 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
                 validation: ValidationSupport,
                 textField: TextField,
                 pattern: Pattern?
-        ): Validator<String>? {
+        ): Validator<String?>? {
             if (pattern == null) return null
             val validator = Validator.createRegexValidator("Has to match pattern $pattern", pattern, Severity.ERROR)
             validation.registerValidator(textField, false, validator)

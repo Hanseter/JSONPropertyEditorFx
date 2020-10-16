@@ -54,21 +54,18 @@ class DataReferenceControl(override val schema: SchemaWrapper<StringSchema>, pri
     private var bound: BindableJsonType? = null
     override val valid = SimpleBooleanProperty(true)
 
-    private val formatValidator: Validator<String>?
-    private val lengthValidator: Validator<String>?
-    private val fullPatternValidator: Validator<String>?
-    private val idPatternValidator: Validator<String>?
-    private val dataPatternValidator: Validator<String>?
+    private val formatValidator: Validator<String?>? = StringControl.createFormatValidation(schema.schema.formatValidator)
+    private val lengthValidator: Validator<String?>? = StringControl.createLengthValidation(schema.schema.minLength, schema.schema.maxLength)
+    private val fullPatternValidator: Validator<String?>? = schema.schema.pattern?.let {
+        Validator.createRegexValidator("Has to match pattern $it", it, Severity.ERROR)
+    }
+    private val idPatternValidator: Validator<String?>?
+    private val dataPatternValidator: Validator<String?>?
 
-    private val validIdValidator: Validator<String>?
-    private val validDataPointerValidator: Validator<String>?
+    private val validIdValidator: Validator<String?>?
+    private val validDataPointerValidator: Validator<String?>?
 
     init {
-        formatValidator = StringControl.createFormatValidation(schema.schema.formatValidator)
-        lengthValidator = StringControl.createLengthValidation(schema.schema.minLength, schema.schema.maxLength)
-        fullPatternValidator = schema.schema.pattern?.let {
-            Validator.createRegexValidator("Has to match pattern $it", it, Severity.ERROR)
-        }
 
         val idPattern = (schema.schema.unprocessedProperties["idPattern"] as? String)?.let { Pattern.compile(it) }
 
@@ -112,7 +109,8 @@ class DataReferenceControl(override val schema: SchemaWrapper<StringSchema>, pri
 
         validDataPointerValidator = Validator { control, currentValue ->
             val valid = getBoundId()?.let { context.refProvider.getDataAndSchema(it)?.data }?.let {
-                isValidJsonPointer(it, currentValue)
+                if (currentValue == null) true
+                else isValidJsonPointer(it, currentValue)
             } ?: true
 
             ValidationResult.fromErrorIf(control, "Has to be a pointer to valid data", !valid)
@@ -126,9 +124,8 @@ class DataReferenceControl(override val schema: SchemaWrapper<StringSchema>, pri
 
     override fun bindTo(type: BindableJsonType) {
         bound = null
-        val rawVal = type.getValue(schema)
 
-        val toAssign = when (rawVal) {
+        val toAssign = when (val rawVal = type.getValue(schema)) {
             JSONObject.NULL -> null
             null -> schema.schema.defaultValue as? String
             else -> rawVal as? String

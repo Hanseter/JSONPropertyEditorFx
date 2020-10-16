@@ -9,6 +9,6 @@ object DataReferenceFormat {
 
         override fun formatName() = formatName
 
-        override fun validate(p0: String?): Optional<String> = Optional.empty()
+        override fun validate(subject: String?): Optional<String> = Optional.empty()
     }
 }
