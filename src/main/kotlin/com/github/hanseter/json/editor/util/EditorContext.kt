@@ -12,8 +12,7 @@ class EditorContext(val refProvider: IdReferenceProposalProvider,
                     val actions: List<EditorAction>,
                     private val executeActionCallback: (EditorAction, TypeControl) -> Unit) {
 
-    fun createActionContainer(control: TypeControl, schema: SchemaWrapper<*> = control.schema, additionalActions: List<EditorAction> = emptyList()): ActionsContainer =
-            ActionsContainer(control, additionalActions + actions, schema, executeActionCallback)
-
+    fun createActionContainer(control: TypeControl): ActionsContainer =
+            ActionsContainer(control, actions, executeActionCallback)
 }
 

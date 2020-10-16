@@ -9,7 +9,7 @@ object IdReferenceFormat {
 
 		override fun formatName() = formatName
 
-		override fun validate(subject: String): Optional<String> =
+		override fun validate(subject: String?): Optional<String> =
 			Optional.empty()
 	}
 }

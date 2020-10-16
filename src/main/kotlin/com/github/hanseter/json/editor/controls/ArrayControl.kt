@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.extensions.ArraySchemaWrapper
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
@@ -26,9 +27,9 @@ import org.json.JSONObject
 class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val contentSchema: Schema, private val context: EditorContext)
     : TypeControl {
 
-    private val editorActionsContainer = context.createActionContainer(this,
+    private val editorActionsContainer = ActionsContainer(context.createActionContainer(this),
             // \uD83D\uDFA3 = 🞣
-            additionalActions = listOf(ArrayAction("\uD83D\uDFA3", "Inserts a new empty item at the end of the list") {
+            listOf(ArrayAction("\uD83D\uDFA3", "Inserts a new empty item at the end of the list") {
                 addItemAt(children.lastIndex + 1)
             }))
 
@@ -244,8 +245,8 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         init {
             val origNode = wrapped.node
             val origItemData = origNode.value
-            val actions = context.createActionContainer(this, additionalActions = (origItemData.action?.actions
-                    ?: listOf()) + arrayActions)
+            val actions = ActionsContainer(origItemData.action
+                    ?: context.createActionContainer(this), arrayActions)
 
             this.node = FilterableTreeItem(TreeItemData(origItemData.key, origItemData.description, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
             Bindings.bindContent(node.list, origNode.list)
@@ -259,7 +260,7 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
 
     private class ArrayAction(override val text: String, override val description: String, private val action: () -> Unit) : EditorAction {
         override val selector: ActionTargetSelector = ActionTargetSelector.Always()
-        override fun apply(currentValue: JSONObject, schema: SchemaWrapper<*>): JSONObject? {
+        override fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject? {
             action()
             return null
         }

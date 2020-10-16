@@ -10,15 +10,13 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
+import com.github.hanseter.json.editor.util.LabelledTextField
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.control.ScrollPane
-import javafx.scene.control.TextField
-import javafx.scene.control.TextFormatter
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
@@ -30,12 +28,12 @@ import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 
 class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, private val context: EditorContext) : TypeControl, ControlProvider<String> {
-    override val control = TextField()
-    override val value: Property<String?> = SimpleStringProperty(null)
+    override val control = LabelledTextField()
+    override val value: Property<String?> = control.textProperty()
     override val defaultValue: String?
         get() = schema.schema.defaultValue as? String
-    override val editorActionsContainer: ActionsContainer =
-            context.createActionContainer(this, additionalActions = listOf(PreviewAction(context.refProvider)))
+    override val editorActionsContainer: ActionsContainer = ActionsContainer(
+            context.createActionContainer(this), listOf(PreviewAction(context.refProvider)))
     private val delegate = RowBasedControl(this)
 
     override val node: FilterableTreeItem<TreeItemData> = delegate.node
@@ -47,9 +45,6 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
     private val referenceValidator: Validator<String>
 
     private var popOver: PopOver? = null
-
-    private var description = ""
-    private val textFormatter = TextFormatter<String>(this::filterChange)
 
     init {
         formatValidator = StringControl.addFormatValidation(validation, control, schema.schema.formatValidator)
@@ -67,7 +62,6 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
                 proposals
             }
         }
-        control.textFormatterProperty().set(textFormatter)
         value.addListener { _, _, new -> idChanged(new) }
     }
 
@@ -112,54 +106,16 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
                 refPane
             }
 
-    private fun filterChange(change: TextFormatter.Change): TextFormatter.Change? {
-        if (change.controlNewText.isEmpty()) {
-            description = ""
-            return change
-        }
-        if (!change.isContentChange) {
-            return change
-        }
-        if (!change.controlNewText.endsWith(description)) {
-            if (change.isAdded || change.isReplaced) {
-                val start = (value.value?.length ?: 0).coerceAtMost(change.rangeStart)
-                value.value = change.controlNewText.take(start) + change.text
-                return makeNopChange(change)
-            } else if (change.isDeleted) {
-                val start = ((value.value?.length?.dec())
-                        ?: 0).coerceAtMost(change.rangeStart)
-                value.value = change.controlNewText.take(start)
-                return makeNopChange(change)
-            }
-        }
-        value.value = change.controlNewText.dropLast(description.length)
-        updateTextField()
-        return makeNopChange(change)
-    }
-
-    private fun makeNopChange(change: TextFormatter.Change): TextFormatter.Change {
-        change.text = ""
-        change.setRange(0, 0)
-        return change
-    }
-
 
     private fun idChanged(id: String?) {
+        control.text = (value.value ?: "")
         if (id == null) {
-            description = ""
-            updateTextField()
+            control.label = ""
             return
         }
         val desc = context.refProvider.getReferenceDescription(id)
-        description = if (desc.isEmpty()) ""
+        control.label = if (desc.isBlank()) ""
         else " ($desc)"
-        updateTextField()
-    }
-
-    private fun updateTextField() {
-        control.textFormatterProperty().set(null)
-        control.text = (value.value ?: "") + description
-        control.textFormatterProperty().set(textFormatter)
     }
 
     private fun addReferenceValidation(): Validator<String> {
