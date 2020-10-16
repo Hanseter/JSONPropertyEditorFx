@@ -160,11 +160,11 @@ class JsonPropertiesEditor(
                 cellFactory = Callback { _ ->
                     object : TreeTableCell<TreeItemData, String>() {
                         override fun updateItem(item: String?, empty: Boolean) {
+                            tooltip = treeTableRow?.treeItem?.value?.description?.let { Tooltip(it) }
+
                             if (item === getItem()) return
                             super.updateItem(item, empty)
-                            treeTableRow?.treeItem?.value?.description?.also {
-                                tooltip = Tooltip(it)
-                            }
+
                             super.setText(item)
                         }
                     }
