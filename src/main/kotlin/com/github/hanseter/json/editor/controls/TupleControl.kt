@@ -3,7 +3,6 @@ package com.github.hanseter.json.editor.controls
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
-import com.github.hanseter.json.editor.util.BindableJsonArray
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.value.ObservableBooleanValue
@@ -27,7 +26,7 @@ class TupleControl(override val schema: SchemaWrapper<ArraySchema>, contentSchem
     }
 
     override fun bindTo(type: BindableJsonType) {
-        val subType = createSubArray(type)
+        val subType = createSubArray(type, schema)
         if (subType != null) {
             if (node.isLeaf) {
                 node.addAll(children.map { it.node })
@@ -46,20 +45,5 @@ class TupleControl(override val schema: SchemaWrapper<ArraySchema>, contentSchem
         } else {
             statusControl.displayNonNull("[${children.size} Element${if (children.size == 1) "" else "s"}]")
         }
-    }
-
-    private fun createSubArray(parent: BindableJsonType): BindableJsonArray? {
-        val rawArr = parent.getValue(schema)
-
-        if (rawArr == JSONObject.NULL) {
-            return null
-        }
-
-        var arr = rawArr as? JSONArray
-        if (arr == null) {
-            arr = JSONArray()
-            parent.setValue(schema, arr)
-        }
-        return BindableJsonArray(parent, arr)
     }
 }

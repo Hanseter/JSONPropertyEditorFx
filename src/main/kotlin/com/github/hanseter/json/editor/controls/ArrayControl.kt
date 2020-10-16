@@ -27,11 +27,15 @@ import org.json.JSONObject
 class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val contentSchema: Schema, private val context: EditorContext)
     : TypeControl {
 
-    private val editorActionsContainer = ActionsContainer(context.createActionContainer(this),
-            // \uD83D\uDFA3 = 🞣
-            listOf(ArrayAction("\uD83D\uDFA3", "Inserts a new empty item at the end of the list") {
-                addItemAt(children.lastIndex + 1)
-            }))
+    private val editorActionsContainer = context.createActionContainer(this).let {
+        if (!schema.readOnly) {
+            ActionsContainer(it,
+                    // \uD83D\uDFA3 = 🞣
+                    listOf(ArrayAction("\uD83D\uDFA3", "Inserts a new empty item at the end of the list") {
+                        addItemAt(children.lastIndex + 1)
+                    }))
+        } else it
+    }
 
     private val statusControl = TypeWithChildrenStatusControl("To Empty List") {
         bound?.setValue(schema, JSONArray())
@@ -60,23 +64,8 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
 
     override fun bindTo(type: BindableJsonType) {
         bound = type
-        subArray = createSubArray(type)
+        subArray = createSubArray(type, schema)
         valuesChanged()
-    }
-
-    private fun createSubArray(parent: BindableJsonType): BindableJsonArray? {
-        val rawArr = parent.getValue(schema)
-
-        if (rawArr == JSONObject.NULL) {
-            return null
-        }
-
-        var arr = rawArr as? JSONArray
-        if (arr == null) {
-            arr = JSONArray()
-            parent.setValue(schema, arr)
-        }
-        return BindableJsonArray(parent, arr)
     }
 
     private fun valuesChanged() {
@@ -265,4 +254,19 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
             return null
         }
     }
+}
+
+fun createSubArray(parent: BindableJsonType, schema: SchemaWrapper<ArraySchema>): BindableJsonArray? {
+    val rawArr = parent.getValue(schema)
+
+    if (rawArr == JSONObject.NULL) {
+        return null
+    }
+
+    var arr = rawArr as? JSONArray
+    if (arr == null) {
+        arr = JSONArray()
+        parent.setValue(schema, arr)
+    }
+    return BindableJsonArray(parent, arr)
 }
