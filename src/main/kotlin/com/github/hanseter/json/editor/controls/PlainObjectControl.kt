@@ -19,7 +19,7 @@ class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, conte
         bound?.setValue(schema, JSONObject())
     }
 
-    override val node = FilterableTreeItem(TreeItemData(schema.title, null, statusControl, editorActionsContainer))
+    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, statusControl, editorActionsContainer))
 
     private var bound: BindableJsonType? = null
 

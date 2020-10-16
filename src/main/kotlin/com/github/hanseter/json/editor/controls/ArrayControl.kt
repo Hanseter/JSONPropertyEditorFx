@@ -36,7 +36,7 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         valuesChanged()
     }
 
-    override val node = FilterableTreeItem(TreeItemData(schema.title, null, statusControl, editorActionsContainer))
+    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, statusControl, editorActionsContainer))
 
     private var bound: BindableJsonType? = null
     private val children = mutableListOf<TypeControl>()

@@ -17,7 +17,7 @@ class TupleControl(override val schema: SchemaWrapper<ArraySchema>, contentSchem
 
     private val editorActionsContainer = context.createActionContainer(this)
     private val statusControl = TypeWithChildrenStatusControl("Create") { bound?.setValue(schema, JSONArray()) }
-    override val node = FilterableTreeItem(TreeItemData(schema.title, null, statusControl, editorActionsContainer))
+    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, statusControl, editorActionsContainer))
     private var bound: BindableJsonType? = null
     private val children: List<TypeControl> = createTypeControlsFromSchemas(schema, contentSchemas, context)
     override val valid: ObservableBooleanValue = createValidityBinding(children)

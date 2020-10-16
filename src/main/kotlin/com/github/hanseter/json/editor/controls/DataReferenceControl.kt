@@ -49,7 +49,7 @@ class DataReferenceControl(override val schema: SchemaWrapper<StringSchema>, pri
     }
 
     private val editorActionsContainer: ActionsContainer = context.createActionContainer(this)
-    override val node = FilterableTreeItem(TreeItemData(schema.title, null, control, editorActionsContainer))
+    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, control, editorActionsContainer))
 
     private var bound: BindableJsonType? = null
     override val valid = SimpleBooleanProperty(true)
