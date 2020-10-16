@@ -7,7 +7,7 @@ import javafx.scene.control.Button
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
 
-class ActionsContainer(private val control: TypeControl, actions: List<EditorAction>,
+class ActionsContainer(private val control: TypeControl, val actions: List<EditorAction>,
                        schema: SchemaWrapper<*> = control.schema, executeActionCallback: (EditorAction, TypeControl) -> Unit) : HBox() {
 
     private val actionButtons: List<Pair<EditorAction, Button>>

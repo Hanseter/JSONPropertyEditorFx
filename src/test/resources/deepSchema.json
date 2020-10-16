@@ -8,12 +8,24 @@
         "type": "string"
       }
     },
+    "listOfLists": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
     "firstList": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
           "a": {
+            "type": "string"
+          },
+          "b": {
             "type": "string"
           }
         }

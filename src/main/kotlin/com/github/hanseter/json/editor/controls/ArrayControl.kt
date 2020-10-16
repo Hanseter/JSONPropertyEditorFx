@@ -12,6 +12,7 @@ import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.InvalidationListener
+import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.Control
@@ -242,13 +243,12 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
 
         init {
             val origNode = wrapped.node
-            val children = origNode.list.toList()
-            origNode.clear()
             val origItemData = origNode.value
-            val actions = context.createActionContainer(this, additionalActions = arrayActions)
+            val actions = context.createActionContainer(this, additionalActions = (origItemData.action?.actions
+                    ?: listOf()) + arrayActions)
 
             this.node = FilterableTreeItem(TreeItemData(origItemData.key, origItemData.description, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
-            node.addAll(children)
+            Bindings.bindContent(node.list, origNode.list)
         }
 
     }
