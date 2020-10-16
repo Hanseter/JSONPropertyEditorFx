@@ -12,13 +12,12 @@ import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.InvalidationListener
+import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.Control
-import org.controlsfx.control.decoration.Decorator
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
-import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.everit.json.schema.ArraySchema
 import org.everit.json.schema.Schema
 import org.json.JSONArray
@@ -33,7 +32,12 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
                 addItemAt(children.lastIndex + 1)
             }))
 
-    override val node = FilterableTreeItem(TreeItemData(schema.title, null, null, editorActionsContainer))
+    private val statusControl = TypeWithChildrenStatusControl("To Empty List") {
+        bound?.setValue(schema, JSONArray())
+        valuesChanged()
+    }
+
+    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, statusControl, editorActionsContainer))
 
     private var bound: BindableJsonType? = null
     private val children = mutableListOf<TypeControl>()
@@ -59,8 +63,14 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         valuesChanged()
     }
 
-    private fun createSubArray(parent: BindableJsonType): BindableJsonArray {
-        var arr = parent.getValue(schema) as? JSONArray
+    private fun createSubArray(parent: BindableJsonType): BindableJsonArray? {
+        val rawArr = parent.getValue(schema)
+
+        if (rawArr == JSONObject.NULL) {
+            return null
+        }
+
+        var arr = rawArr as? JSONArray
         if (arr == null) {
             arr = JSONArray()
             parent.setValue(schema, arr)
@@ -101,29 +111,46 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         }
 
         val subArray = subArray
-        var values = bound?.getValue(schema) as? JSONArray
-        if (values == null) {
-            values = JSONArray()
+        val rawValues = bound?.getValue(schema)
+        var values = rawValues as? JSONArray
+        if (rawValues != JSONObject.NULL) {
+            if (values == null) {
+                values = JSONArray()
+            }
+
+            removeAdditionalUiCells(values)
+            addNeededUiCells(values)
+            rebindChildren(subArray, values)
+            bound?.setValue(schema, values)
+            validateChildCount(values)
+        } else {
+            removeAdditionalUiCells(JSONArray())
         }
-        removeAdditionalUiCells(values)
-        addNeededUiCells(values)
-        rebindChildren(subArray, values)
-        bound?.setValue(schema, values)
-        validateChildCount(values)
+
         validateChildUniqueness()
         valid.bind(validInternal.and(createValidityBinding(this.children)))
+
+        updateLabel()
+    }
+
+    private fun updateLabel() {
+        if (bound?.getValue(schema) == JSONObject.NULL) {
+            statusControl.displayNull()
+        } else {
+            statusControl.displayNonNull("[${children.size} Element${if (children.size == 1) "" else "s"}]")
+        }
     }
 
     private fun validateChildCount(children: JSONArray) {
         itemCountValidationMessage.set(
                 when {
                     hasTooManyItems(children.length()) -> SimpleValidationMessage(
-                            this.node.value.control as Control,
+                            statusControl.getDecorationsAnchor(),
                             "Must have at most " + schema.schema.maxItems + " items",
                             Severity.ERROR
                     )
                     hasTooFewItems(children.length()) -> SimpleValidationMessage(
-                            this.node.value.control as Control,
+                            statusControl.getDecorationsAnchor(),
                             "Must have at least " + schema.schema.minItems + " items",
                             Severity.ERROR
                     )
@@ -149,7 +176,13 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
     }
 
     private fun addItemAt(position: Int) {
-        val children = bound?.getValue(schema) as? JSONArray ?: return
+        var children = bound?.getValue(schema) as? JSONArray
+
+        if (children == null) {
+            children = JSONArray()
+            bound?.setValue(schema, children)
+        }
+
         children.put(position, JSONObject.NULL)
         valuesChanged()
     }
@@ -210,23 +243,18 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
 
         init {
             val origNode = wrapped.node
-            val children = origNode.list.toList()
-            origNode.clear()
             val origItemData = origNode.value
-            val actions = context.createActionContainer(this, additionalActions = arrayActions)
+            val actions = context.createActionContainer(this, additionalActions = (origItemData.action?.actions
+                    ?: listOf()) + arrayActions)
 
             this.node = FilterableTreeItem(TreeItemData(origItemData.key, origItemData.description, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
-            node.addAll(children)
+            Bindings.bindContent(node.list, origNode.list)
         }
 
     }
 
     private fun redecorate() {
-        Decorator.removeAllDecorations(this.node.value.control)
-        val message = itemCountValidationMessage.get() ?: uniqueItemValidationMessage.get()
-        if (message != null) {
-            GraphicValidationDecoration().applyValidationDecoration(message)
-        }
+        redecorate(this.node.value.control, itemCountValidationMessage, uniqueItemValidationMessage)
     }
 
     private class ArrayAction(override val text: String, override val description: String, private val action: () -> Unit) : EditorAction {

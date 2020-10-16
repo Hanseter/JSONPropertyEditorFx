@@ -64,6 +64,19 @@
     -fx-text-fill: gray;
 }
 
+.type-with-children-status-control {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.type-with-children-label {
+    -fx-text-fill: derive(-fx-control-inner-background, -30%);
+}
+
+.text-field-label {
+    -fx-text-fill: gray;
+}
+
 /*
  TOGGLE SWITCHES
  */
@@ -103,4 +116,12 @@
     -fx-pref-width: 25px;
     -fx-max-width: 25px;
     -fx-text-fill: gray;
+}
+
+/**
+ DATA REFERENCE FIELDS
+ */
+.data-reference-container {
+    -fx-spacing: 10px;
+    -fx-alignment: center-left;
 }

@@ -60,7 +60,8 @@ class JsonPropertiesEditorTestApp : Application() {
 
         val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
 //                "nestedCompositeSchema.json"
-                "resettableSchema.json"
+//                "resettableSchema.json"
+                "deepSchema.json"
         )))
 //		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
@@ -100,6 +101,27 @@ class JsonPropertiesEditorTestApp : Application() {
                         ),
                         "Foo" to IdReferenceProposalProvider.DataWithSchema(
                                 JSONObject().put("name", "Bar"),
+                                JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                        ),
+                        "Complex" to IdReferenceProposalProvider.DataWithSchema(
+                                JSONObject(mapOf(
+                                        "name" to "Object",
+                                        "nameWithMore" to "Also Object",
+                                        "anInt" to 42,
+                                        "aBool" to true,
+                                        "sub" to mapOf(
+                                                "sub1" to 42.5,
+                                                "sub2" to "subString",
+                                                "list" to listOf(
+                                                        "a",
+                                                        1,
+                                                        mapOf(
+                                                                "deeply" to "nested"
+                                                        )
+                                                )
+                                        ),
+                                        "propWith/Escaped~Values" to false
+                                )),
                                 JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
                         )
                 )

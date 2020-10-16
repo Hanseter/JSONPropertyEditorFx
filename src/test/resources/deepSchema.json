@@ -1,0 +1,67 @@
+{
+  "title": "deep",
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "properties": {
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "listOfLists": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "firstList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "firstLevel": {
+      "type": "object",
+      "properties": {
+        "anotherObj": {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string"
+            },
+            "yetAnotherObject": {
+              "type": "object",
+              "properties": {
+                "a": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "list": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "a": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
