@@ -28,10 +28,14 @@ class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, conte
     override val valid: ObservableBooleanValue
 
     init {
+//        val validation = ValidationSupport()
         val childSchemas = schema.schema.propertySchemas.toMutableMap()
         requiredChildren = createTypeControlsFromSchemas(schema, schema.schema.requiredProperties.mapNotNull {
             childSchemas.remove(it)
         }, context)
+//        requiredChildren.forEach {
+//            addNonNullValidation(validation, )
+//        }
         optionalChildren = createTypeControlsFromSchemas(schema, childSchemas.values, context)
         valid = createValidityBinding(requiredChildren + optionalChildren)
 
@@ -81,4 +85,21 @@ class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, conte
         }
         return BindableJsonObject(parent, obj)
     }
+
+//    fun addNonNullValidation(validationSupport: ValidationSupport, child: TypeControl) {
+//        val validationResult = child.node.value.control
+//        valida
+//        val validator = createNonNullValidator(va)
+//    }
+//
+//    fun createNonNullValidator(child: TypeControl): org.controlsfx.validation.Validator<Any?> {
+//        Validator { control, value ->
+//
+//            ValidationResult.fromErrorIf(
+//                    control,
+//                    validationResult,
+//                    validationResult != null
+//            )
+//        }
+//    }
 }

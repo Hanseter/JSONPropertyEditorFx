@@ -28,15 +28,11 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
     override val node: FilterableTreeItem<TreeItemData> = delegate.node
     override val valid = SimpleBooleanProperty(true)
 
-    private val validation = ValidationSupport()
-    private val formatValidator: Validator<String?>?
-    private val lengthValidator: Validator<String?>?
-    private val patternValidator: Validator<String?>?
-
     init {
-        formatValidator = addFormatValidation(validation, control, schema.schema.formatValidator)
-        lengthValidator = addLengthValidation(validation, control, schema.schema.minLength, schema.schema.maxLength)
-        patternValidator = addPatternValidation(validation, control, schema.schema.pattern)
+        val validation = ValidationSupport()
+        addFormatValidation(validation, control, schema.schema.formatValidator)
+        addLengthValidation(validation, control, schema.schema.minLength, schema.schema.maxLength)
+        addPatternValidation(validation, control, schema.schema.pattern)
         valid.bind(validation.invalidProperty().not())
     }
 

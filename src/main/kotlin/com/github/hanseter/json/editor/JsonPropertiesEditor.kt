@@ -33,9 +33,9 @@ class JsonPropertiesEditor(
         private val actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction)
 ) : VBox() {
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
-    private val scrollPane = ScrollPane()
-    private val filterText = TextField()
-    private val treeTableView = TreeTableView<TreeItemData>()
+    private val scrollPane = ScrollPane().apply { id = "contentArea" }
+    private val filterText = TextField().apply { id = "searchField" }
+    private val treeTableView = TreeTableView<TreeItemData>().apply { id = "itemTable" }
     private val _valid = SimpleBooleanProperty(true)
     val valid: ReadOnlyBooleanProperty
         get() = _valid

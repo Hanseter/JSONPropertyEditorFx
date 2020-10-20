@@ -9,7 +9,7 @@ interface SchemaWrapper<T : Schema> {
     val schema: T
     val title: String
     val readOnly: Boolean
-        get() = (parent?.readOnly ?: false) || (schema.isReadOnly ?: false)
+        get() = (schema.isReadOnly ?: parent?.readOnly ?: false)
     val pointer: List<String>
         get() = parent?.pointer?.let { it + getPropertyName() } ?: emptyList()
 

@@ -8,7 +8,7 @@ object ResetToDefaultAction : EditorAction {
     override val text: String = "↻"
     override val description: String = "Reset to default"
     override val selector: ActionTargetSelector = ActionTargetSelector.Custom {
-        it.schema.defaultValue != null
+        it.schema.defaultValue != null && !it.readOnly
     }
 
     override fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject? {

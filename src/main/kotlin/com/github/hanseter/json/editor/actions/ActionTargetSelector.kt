@@ -61,6 +61,11 @@ interface ActionTargetSelector {
 
     }
 
+    class ReadOnly : ActionTargetSelector {
+        override fun matches(schema: SchemaWrapper<*>) =
+                schema.readOnly
+    }
+
     class SchemaType(private vararg val types: String) : ActionTargetSelector {
 
         private fun matches(schema: Schema): Boolean {
