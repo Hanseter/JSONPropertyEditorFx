@@ -82,11 +82,9 @@ class JsonPropertiesEditorTestApp : Application() {
 //		propEdit.display("test2", "test2", testData, schema) { it }
 //		propEdit.display("test3", "test3", testData, schema) { it }
 
-        val d = JSONObject("""{"type":"object","properties":{"bar":{"type":"array",
-            "readOnly":true,
-            "items":{"type":"object", properties:{"a":{"type":"number"},"b":{"type":"boolean", "readOnly":false}}}
-            }}}""")
-        propEdit.display("1", "1", JSONObject("""{"bar":[{"a":42,"b":true},{"a":32,"b":true}]}"""), d) { it }
+        val d = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
+        val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
+        propEdit.display("1", "1", data, d) { println(it.toString(1));it }
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(propEdit, 800.0, 800.0)
         primaryStage.show()

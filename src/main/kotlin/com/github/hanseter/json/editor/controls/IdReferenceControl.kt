@@ -12,7 +12,6 @@ import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.LabelledTextField
 import javafx.beans.property.Property
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.geometry.Pos
 import javafx.scene.control.Button
@@ -37,8 +36,8 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
     private val delegate = RowBasedControl(this)
 
     override val node: FilterableTreeItem<TreeItemData> = delegate.node
-    override val valid: ObservableBooleanValue = SimpleBooleanProperty(true)
     private val validation = ValidationSupport()
+    override val valid: ObservableBooleanValue = validation.invalidProperty().not()
     private val formatValidator: Validator<String?>?
     private val lengthValidator: Validator<String?>?
     private val patternValidator: Validator<String?>?

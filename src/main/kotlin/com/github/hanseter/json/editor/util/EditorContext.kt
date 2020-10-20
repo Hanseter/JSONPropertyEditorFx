@@ -5,7 +5,6 @@ import com.github.hanseter.json.editor.ResolutionScopeProvider
 import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.TypeControl
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
 
 class EditorContext(val refProvider: IdReferenceProposalProvider,
                     val resolutionScopeProvider: ResolutionScopeProvider,

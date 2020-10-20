@@ -1,10 +1,7 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.extensions.TreeItemData
-import javafx.scene.control.Button
-import javafx.scene.control.ScrollPane
-import javafx.scene.control.TreeItem
-import javafx.scene.control.TreeTableView
+import javafx.scene.control.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.json.JSONObject
@@ -23,11 +20,25 @@ class JsonPropertiesEditorTest {
         editor.display("1", "1", JSONObject(), schema) { it }
         editor.display("2", "2", JSONObject(), schema) { it }
         editor.display("3", "3", JSONObject(), schema) { it }
-        val itemTable = getItemTable(editor)
+        val itemTable = editor.getItemTable()
         assertThat(itemTable.root.children.size, `is`(3))
         assertThat(itemTable.root.children[0].isExpanded, `is`(true))
         assertThat(itemTable.root.children[1].isExpanded, `is`(false))
         assertThat(itemTable.root.children[2].isExpanded, `is`(false))
+    }
+
+    @Test
+    fun displaysSimpleObject() {
+        val editor = JsonPropertiesEditor()
+        val schema = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
+        val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
+        editor.display("1", "1", data, schema) { it }
+        val itemTable = editor.getItemTable()
+        val objTable = itemTable.root.children.first()
+        assertThat((objTable.findChildWithKey("str")!!.value.control as TextField).text, `is`("Hello"))
+        val numberControl = (objTable.findChildWithKey("num")!!.value.control as Spinner<Number>)
+        val converted = numberControl.valueFactory.converter.toString(42.5)
+        assertThat(numberControl.editor.text, `is`(converted))
     }
 
     @Test
@@ -38,8 +49,8 @@ class JsonPropertiesEditorTest {
             "items":{"type":"string"}
             }}}""")
         editor.display("1", "1", JSONObject(), schema) { it }
-        val itemTable = getItemTable(editor)
-        val arrayEntry = findChildWithKey(itemTable.root.children[0], "bar")!!
+        val itemTable = editor.getItemTable()
+        val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         assertThat(arrayEntry.value.action!!.children, `is`(empty()))
     }
 
@@ -51,8 +62,8 @@ class JsonPropertiesEditorTest {
             "items":{"type":"object", properties:{"a":{"type":"number"},"b":{"type":"boolean", "readOnly":false}}}
             }}}""")
         editor.display("1", "1", JSONObject("""{"bar":[{"a":42,"b":true},{"a":32,"b":true}]}"""), schema) { it }
-        val itemTable = getItemTable(editor)
-        val arrayEntry = findChildWithKey(itemTable.root.children[0], "bar")!!
+        val itemTable = editor.getItemTable()
+        val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val firstObjEntry = arrayEntry.children.first()
         assertThat(firstObjEntry.children[1].value.control!!.isDisabled, `is`(true))
         assertThat(firstObjEntry.children[2].value.control!!.isDisabled, `is`(false))
@@ -65,8 +76,8 @@ class JsonPropertiesEditorTest {
             "items":{"type":"string"}
             }}}""")
         editor.display("1", "1", JSONObject(), schema) { it }
-        val itemTable = getItemTable(editor)
-        val arrayEntry = findChildWithKey(itemTable.root.children[0], "bar")!!
+        val itemTable = editor.getItemTable()
+        val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         assertThat(arrayEntry.value.action!!.children.size, `is`(2))
         assertThat((arrayEntry.value.action!!.children[0] as Button).text, `is`("Ø"))
         assertThat((arrayEntry.value.action!!.children[1] as Button).text, `is`("\uD83D\uDFA3"))
@@ -80,8 +91,8 @@ class JsonPropertiesEditorTest {
             }}}""")
         val data = JSONObject()
         editor.display("1", "1", data, schema) { it }
-        val itemTable = getItemTable(editor)
-        val arrayEntry = findChildWithKey(itemTable.root.children[0], "bar")!!
+        val itemTable = editor.getItemTable()
+        val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val addButton = arrayEntry.value.action!!.children[1] as Button
         addButton.fire()
         addButton.fire()
@@ -97,8 +108,8 @@ class JsonPropertiesEditorTest {
             }}}""")
         val data = JSONObject()
         editor.display("1", "1", data, schema) { it }
-        val itemTable = getItemTable(editor)
-        val arrayEntry = findChildWithKey(itemTable.root.children[0], "bar")!!
+        val itemTable = editor.getItemTable()
+        val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val addButton = arrayEntry.value.action!!.children[1] as Button
         addButton.fire()
         addButton.fire()
@@ -106,9 +117,10 @@ class JsonPropertiesEditorTest {
         assertThat(data.getJSONArray("bar").toList(), contains(null, null))
     }
 
-    private fun getItemTable(editor: JsonPropertiesEditor): TreeTableView<TreeItemData> =
-            (editor.lookup("#contentArea") as ScrollPane).content as TreeTableView<TreeItemData>
-
-    private fun findChildWithKey(parent: TreeItem<TreeItemData>, key: String) =
-            parent.children.firstOrNull { it.value.key == key }
 }
+
+fun JsonPropertiesEditor.getItemTable(): TreeTableView<TreeItemData> =
+        (lookup("#contentArea") as ScrollPane).content as TreeTableView<TreeItemData>
+
+fun TreeItem<TreeItemData>.findChildWithKey(key: String) =
+        children.firstOrNull { it.value.key == key }
