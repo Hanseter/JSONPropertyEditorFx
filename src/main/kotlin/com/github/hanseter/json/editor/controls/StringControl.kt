@@ -90,14 +90,14 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
             minLength != null -> Validator { control, value ->
                 ValidationResult.fromErrorIf(
                         control,
-                        "Has to be at max $minLength characters",
+                        "Has to be at least $minLength characters",
                         value?.length ?: 0 < minLength
                 )
             }
             maxLength != null -> Validator { control, value ->
                 ValidationResult.fromErrorIf(
                         control,
-                        "Has to be at least $maxLength characters",
+                        "Has to be at most $maxLength characters",
                         value?.length ?: 0 > maxLength
                 )
             }
