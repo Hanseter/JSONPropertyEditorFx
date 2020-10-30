@@ -57,6 +57,22 @@ class JsonPropertiesEditorTestApp : Application() {
             }
         """)
 
+        val completeValidationInvalidData = JSONObject("""
+{
+  "strings": {
+    "maxLength": "abcdefghi",
+    "minLength": "a"
+  },
+  "lists": {
+    "minItems": ["foo"],
+    "uniqueItems": ["d", "d"]
+  },
+  "id-references": {
+    "pattern": "H"
+  }
+}
+        """)
+
         val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
 //                "nestedCompositeSchema.json"
 //                "resettableSchema.json"
@@ -84,8 +100,13 @@ class JsonPropertiesEditorTestApp : Application() {
 //		propEdit.display("test3", "test3", testData, schema) { it }
 
         val d = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
+/*
         val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
-        propEdit.display("1", "1", data, schema) { println(it.toString(1));it }
+
+ */
+
+
+        propEdit.display("1", "1", completeValidationInvalidData, schema) { println(it.toString(1));it }
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(propEdit, 800.0, 800.0)
         primaryStage.show()

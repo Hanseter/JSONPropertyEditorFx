@@ -30,9 +30,14 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
 
     init {
         val validation = ValidationSupport()
-        addFormatValidation(validation, control, schema.schema.formatValidator)
-        addLengthValidation(validation, control, schema.schema.minLength, schema.schema.maxLength)
-        addPatternValidation(validation, control, schema.schema.pattern)
+        validation.initInitialDecoration()
+
+        validation.registerValidator(control, false, combineValidators(
+                createFormatValidation(schema.schema.formatValidator),
+                createLengthValidation(schema.schema.minLength, schema.schema.maxLength),
+                createPatternValidation(schema.schema.pattern)
+        ))
+
         valid.bind(validation.invalidProperty().not())
     }
 
@@ -116,6 +121,13 @@ class StringControl(override val schema: SchemaWrapper<StringSchema>, context: E
             }, "Has to match pattern $pattern", Severity.ERROR)
             validation.registerValidator(textField, false, validator)
             return validator
+        }
+
+        fun createPatternValidation(pattern: Pattern?): Validator<String?>? = when (pattern) {
+            null -> null
+            else -> Validator.createPredicateValidator({ it: String? ->
+                it == null || pattern.matcher(it).matches()
+            }, "Has to match pattern $pattern", Severity.ERROR)
         }
     }
 }

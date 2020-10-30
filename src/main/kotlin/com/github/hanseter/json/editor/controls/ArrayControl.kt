@@ -60,6 +60,8 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
     init {
         itemCountValidationMessage.addListener(onValidationStateChanged)
         uniqueItemValidationMessage.addListener(onValidationStateChanged)
+
+        runAfterSkinLoads(statusControl.getDecorationsAnchor()) { redecorate() }
     }
 
     override fun bindTo(type: BindableJsonType) {
@@ -112,11 +114,11 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
             addNeededUiCells(values)
             rebindChildren(subArray, values)
             bound?.setValue(schema, values)
-            validateChildCount(values)
         } else {
             removeAdditionalUiCells(JSONArray())
         }
 
+        validateChildCount()
         validateChildUniqueness()
         valid.bind(validInternal.and(createValidityBinding(this.children)))
 
@@ -131,9 +133,12 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         }
     }
 
-    private fun validateChildCount(children: JSONArray) {
+    private fun validateChildCount() {
+        val children = bound?.getValue(schema) as? JSONArray
+
         itemCountValidationMessage.set(
                 when {
+                    children == null -> null
                     hasTooManyItems(children.length()) -> SimpleValidationMessage(
                             statusControl.getDecorationsAnchor(),
                             "Must have at most " + schema.schema.maxItems + " items",
@@ -210,7 +215,7 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
                 if (areSame(children.get(i), children.get(j))) {
                     uniqueItemValidationMessage.set(
                             SimpleValidationMessage(
-                                    this.node.value.control as Control,
+                                    this.statusControl.getDecorationsAnchor(),
                                     "Items $i and $j are identical",
                                     Severity.ERROR
                             )
@@ -244,7 +249,7 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
     }
 
     private fun redecorate() {
-        redecorate(this.node.value.control, itemCountValidationMessage, uniqueItemValidationMessage)
+        redecorate(statusControl.getDecorationsAnchor(), itemCountValidationMessage, uniqueItemValidationMessage)
     }
 
     private class ArrayAction(override val text: String, override val description: String, private val action: () -> Unit) : EditorAction {
