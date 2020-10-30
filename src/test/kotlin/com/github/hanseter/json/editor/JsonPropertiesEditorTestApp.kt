@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.actions.ResetToDefaultAction
 import com.github.hanseter.json.editor.actions.ResetToNullAction
 import javafx.application.Application
+import javafx.application.Platform
 import javafx.scene.Scene
 import javafx.stage.Stage
 import org.json.JSONObject
@@ -59,8 +60,8 @@ class JsonPropertiesEditorTestApp : Application() {
 
         val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
 //                "nestedCompositeSchema.json"
-                "resettableSchema.json"
-//                "deepSchema.json"
+//                "resettableSchema.json"
+                "deepSchema.json"
         )))
 //		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
@@ -72,13 +73,13 @@ class JsonPropertiesEditorTestApp : Application() {
 //		propEdit.display("test5", "test5", testData, schema) { it }
 //		propEdit.display("test6", "test6", testData, schema) { it }
 
-//        propEdit.display("test", "isRoot 1 2 3 4 5 long text", resettableTestData, schema) {
-//            println(it.toString(1))
-//            Platform.runLater {
-//                propEdit.updateObject("test", it)
-//            }
-//            it
-//        }
+        propEdit.display("test", "isRoot 1 2 3 4 5 long text", resettableTestData, schema) {
+            println(it.toString(1))
+            Platform.runLater {
+                propEdit.updateObject("test", it)
+            }
+            it
+        }
 //		propEdit.display("test2", "test2", testData, schema) { it }
 //		propEdit.display("test3", "test3", testData, schema) { it }
 

@@ -42,6 +42,28 @@ class JsonPropertiesEditorTest {
     }
 
     @Test
+    fun modifySimpleObject() {
+        val editor = JsonPropertiesEditor()
+        val schema = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
+        val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
+        var updateCount = 0
+        editor.display("1", "1", data, schema) {
+            updateCount++
+            it
+        }
+        val itemTable = editor.getItemTable()
+        val objTable = itemTable.root.children.first()
+        val stringControl = (objTable.findChildWithKey("str")!!.value.control as TextField)
+        stringControl.text = "foobar"
+        assertThat(data.similar(JSONObject("""{"num":42.5,"str":"foobar"}""")), `is`(true))
+        assertThat(updateCount, `is`(1))
+        val numberControl = (objTable.findChildWithKey("num")!!.value.control as Spinner<Number>)
+        numberControl.editor.text = "1573"
+        assertThat(data.similar(JSONObject().put("str", "foobar").put("num", 1573.0)), `is`(true))
+        assertThat(updateCount, `is`(2))
+    }
+
+    @Test
     fun readOnlyArrays() {
         val editor = JsonPropertiesEditor()
         val schema = JSONObject("""{"type":"object","properties":{"bar":{"type":"array",
