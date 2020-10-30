@@ -6,6 +6,8 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.scene.Node
+import javafx.scene.control.Label
+import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
 import java.util.function.Predicate
 
@@ -97,5 +99,10 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
  * By default it's not treated as a root item.
  *
  */
-class TreeItemData(val key: String, val description: String?, val control: Node?,
-                   val action: ActionsContainer?, val isRoot: Boolean = false, val isHeadline: Boolean = false)
+class TreeItemData(val label: Label, val control: Node?,
+                   val action: ActionsContainer?, val isRoot: Boolean, val isHeadline: Boolean) {
+    constructor(key: String, description: String?, control: Node?, action: ActionsContainer?, isRoot: Boolean = false, isHeadline: Boolean = false) :
+            this(Label(key).apply {
+                tooltip = description?.let { Tooltip(it) }
+            }, control, action, isRoot, isHeadline)
+}

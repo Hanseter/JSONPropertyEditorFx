@@ -11,7 +11,6 @@ import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.Cursor
 import javafx.scene.control.*
@@ -51,7 +50,7 @@ class JsonPropertiesEditor(
                     if (newValue.isEmpty()) {
                         Predicate { true }
                     } else {
-                        Predicate { it.key.contains(newValue) }
+                        Predicate { it.label.text.contains(newValue) }
                     })
         }
 
@@ -153,22 +152,11 @@ class JsonPropertiesEditor(
         }
     }
 
-    private fun createKeyColumn(): TreeTableColumn<TreeItemData, String> =
-            TreeTableColumn<TreeItemData, String>().apply {
+    private fun createKeyColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
+            TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Key"
-                cellValueFactory = Callback { SimpleStringProperty(it.value.value.key) }
-                cellFactory = Callback { _ ->
-                    object : TreeTableCell<TreeItemData, String>() {
-                        override fun updateItem(item: String?, empty: Boolean) {
-                            tooltip = treeTableRow?.treeItem?.value?.description?.let { Tooltip(it) }
-
-                            if (item === getItem()) return
-                            super.updateItem(item, empty)
-
-                            super.setText(item)
-                        }
-                    }
-                }
+                cellValueFactory = Callback { it.value.valueProperty() }
+                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.label } }
                 minWidth = 150.0
                 isSortable = false
             }
@@ -186,8 +174,8 @@ class JsonPropertiesEditor(
     private fun createActionColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Action"
-                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.action } }
                 cellValueFactory = Callback { it.value.valueProperty() }
+                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.action } }
                 minWidth = 100.0
                 prefWidth = 100.0
                 styleClass.add("action-cell")
