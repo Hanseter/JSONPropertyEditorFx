@@ -36,22 +36,31 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
     private val delegate = RowBasedControl(this)
 
     override val node: FilterableTreeItem<TreeItemData> = delegate.node
-    private val validation = ValidationSupport()
+    private val validation = ValidationSupport().also {
+        it.initInitialDecoration()
+    }
     override val valid: ObservableBooleanValue = validation.invalidProperty().not()
-    private val formatValidator: Validator<String?>?
-    private val lengthValidator: Validator<String?>?
-    private val patternValidator: Validator<String?>?
-    private val referenceValidator: Validator<String?>
 
     private var popOver: PopOver? = null
 
     init {
+        val regex = schema.schema.pattern
+
+        validation.registerValidator(control, false, combineValidators(
+                StringControl.createFormatValidation(schema.schema.formatValidator),
+                StringControl.createLengthValidation(schema.schema.minLength, schema.schema.maxLength),
+                StringControl.createPatternValidation(regex),
+                createReferenceValidation()
+        ))
+
+        /*
         formatValidator = StringControl.addFormatValidation(validation, control, schema.schema.formatValidator)
         lengthValidator = StringControl.addLengthValidation(
                 validation, control, schema.schema.minLength, schema.schema.maxLength)
-        val regex = schema.schema.pattern
+        
         patternValidator = StringControl.addPatternValidation(validation, control, regex)
         referenceValidator = addReferenceValidation()
+        */
 
         TextFields.bindAutoCompletion(control) { request ->
             val proposals = context.refProvider.calcCompletionProposals(request.userText)
@@ -107,14 +116,13 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
 
 
     private fun idChanged(id: String?) {
-        control.text = (value.value ?: "")
+        control.text = value.value
         if (id == null) {
             control.label = ""
             return
         }
         val desc = context.refProvider.getReferenceDescription(id)
-        control.label = if (desc.isBlank()) ""
-        else " ($desc)"
+        control.label = if (desc.isBlank()) "" else " ($desc)"
     }
 
     private fun addReferenceValidation(): Validator<String?> {
@@ -129,7 +137,8 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
 
     private fun createReferenceValidation(): Validator<String?> =
             Validator { control, _ ->
-                val invalid = !context.refProvider.isValidReference(value.value)
+                val invalid = value.value?.let { !context.refProvider.isValidReference(it) }
+                        ?: false
                 referenceValidationFinished()
                 ValidationResult.fromErrorIf(control, "Has to be a valid reference", invalid)
             }
