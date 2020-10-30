@@ -37,7 +37,7 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
 
     init {
         control.minWidth = 150.0
-        control.valueFactory = NewNullSafeDoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE)
+        control.valueFactory = DoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE)
         control.isEditable = true
         control.focusedProperty().addListener { _, _, new ->
             if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
@@ -102,8 +102,7 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
         else control.valueFactory.converter.toString(value.toDouble())
     }
 
-    private class NewNullSafeDoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory<Double>() {
-
+    private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory<Double>() {
         val inner = DoubleSpinnerValueFactory(min, max)
 
         init {

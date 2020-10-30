@@ -53,15 +53,6 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
                 createReferenceValidation()
         ))
 
-        /*
-        formatValidator = StringControl.addFormatValidation(validation, control, schema.schema.formatValidator)
-        lengthValidator = StringControl.addLengthValidation(
-                validation, control, schema.schema.minLength, schema.schema.maxLength)
-        
-        patternValidator = StringControl.addPatternValidation(validation, control, regex)
-        referenceValidator = addReferenceValidation()
-        */
-
         TextFields.bindAutoCompletion(control) { request ->
             val proposals = context.refProvider.calcCompletionProposals(request.userText)
             if (regex != null) {
@@ -125,20 +116,13 @@ class IdReferenceControl(override val schema: SchemaWrapper<StringSchema>, priva
         control.label = if (desc.isBlank()) "" else " ($desc)"
     }
 
-    private fun addReferenceValidation(): Validator<String?> {
-        val validator = createReferenceValidation()
-        validation.registerValidator(control, false, validator)
-        return validator
-    }
-
     private fun referenceValidationFinished() {
         editorActionsContainer.updateDisablement()
     }
 
     private fun createReferenceValidation(): Validator<String?> =
             Validator { control, _ ->
-                val invalid = value.value?.let { !context.refProvider.isValidReference(it) }
-                        ?: false
+                val invalid = context.refProvider.isValidReference(value.value)
                 referenceValidationFinished()
                 ValidationResult.fromErrorIf(control, "Has to be a valid reference", invalid)
             }
