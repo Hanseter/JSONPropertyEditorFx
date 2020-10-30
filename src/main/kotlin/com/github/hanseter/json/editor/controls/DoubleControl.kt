@@ -37,9 +37,8 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
 
     init {
         control.minWidth = 150.0
-        control.valueFactory = DoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE)
+        control.valueFactory = NewNullSafeDoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE)
         control.isEditable = true
-        control.valueFactory.converter = CONVERTER
         control.focusedProperty().addListener { _, _, new ->
             if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
                 control.editor.text = control.valueFactory.converter.toString(value.value?.toDouble())
@@ -103,16 +102,29 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
         else control.valueFactory.converter.toString(value.toDouble())
     }
 
-    private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory.DoubleSpinnerValueFactory(min, max) {
+    private class NewNullSafeDoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory<Double>() {
 
-        override fun increment(steps: Int) {
-            if (value != null) super.increment(steps)
+        val inner = DoubleSpinnerValueFactory(min, max)
+
+        init {
+            converter = CONVERTER
         }
 
         override fun decrement(steps: Int) {
-            if (value != null) super.decrement(steps)
+            if (value != null) {
+                inner.value = value
+                inner.decrement(steps)
+                value = inner.value
+            }
         }
 
+        override fun increment(steps: Int) {
+            if (value != null) {
+                inner.value = value
+                inner.increment(steps)
+                value = inner.value
+            }
+        }
     }
 
     companion object {
