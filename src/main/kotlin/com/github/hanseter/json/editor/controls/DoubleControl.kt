@@ -1,14 +1,9 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.actions.ActionsContainer
-import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
-import com.github.hanseter.json.editor.extensions.TreeItemData
-import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.util.EditorContext
-import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ObservableBooleanValue
+import javafx.beans.value.ChangeListener
+import javafx.beans.value.ObservableValue
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
 import javafx.scene.control.TextFormatter
@@ -17,22 +12,14 @@ import org.everit.json.schema.NumberSchema
 import java.text.DecimalFormat
 import java.text.ParsePosition
 
-class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: EditorContext) : TypeControl, ControlProvider<Double> {
-    override val control = Spinner<Double>()
-    override val value = SimpleObjectProperty<Double?>(null)
-    override val defaultValue: Double?
-        get() = schema.schema.defaultValue as? Double
-    override val editorActionsContainer: ActionsContainer = context.createActionContainer(this)
+class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?>, ChangeListener<Double?> {
+    override val control = Spinner<Double?>()
+    override val property: Property<Double?> = SimpleObjectProperty<Double?>(null)
 
-    private val delegate = RowBasedControl(this)
-
-    override val node: FilterableTreeItem<TreeItemData> = delegate.node
-    override val valid: ObservableBooleanValue = SimpleBooleanProperty(true)
-
-    private val minInclusive = schema.schema.minimum?.toDouble()
-    private val minExclusive = schema.schema.exclusiveMinimumLimit?.toDouble()
-    private val maxInclusive = schema.schema.maximum?.toDouble()
-    private val maxExclusive = schema.schema.exclusiveMaximumLimit?.toDouble()
+    private val minInclusive = schema.minimum?.toDouble()
+    private val minExclusive = schema.exclusiveMinimumLimit?.toDouble()
+    private val maxInclusive = schema.maximum?.toDouble()
+    private val maxExclusive = schema.exclusiveMaximumLimit?.toDouble()
     private val textFormatter = TextFormatter<String>(this::filterChange)
 
     init {
@@ -41,11 +28,12 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
         control.isEditable = true
         control.focusedProperty().addListener { _, _, new ->
             if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
-                control.editor.text = control.valueFactory.converter.toString(value.value?.toDouble())
+                control.editor.text = control.valueFactory.converter.toString(property.value?.toDouble())
             }
         }
-        control.editor.text = control.valueFactory.converter.toString(value.value?.toDouble())
+        control.editor.text = control.valueFactory.converter.toString(property.value?.toDouble())
         control.editor.textFormatterProperty().set(textFormatter)
+        property.addListener(this)
     }
 
     private fun filterChange(change: TextFormatter.Change): TextFormatter.Change? {
@@ -60,7 +48,7 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
 
         return when {
             number == null -> {
-                if (delegate.isRequired) updateValueAndText(0.0, "0") else updateValueAndText(null, ""); null
+                updateValueAndText(null, ""); null
             }
             maxInclusive != null && number > maxInclusive -> {
                 updateValueAndText(maxInclusive); null
@@ -75,7 +63,7 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
                 updateValueAndText(minExclusive + 1); null
             }
             else -> {
-                value.value = number; change
+                property.value = number; change
             }
         }
     }
@@ -83,26 +71,24 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
     private fun updateValueAndText(newValue: Double?, newText: String = DECIMAL_FORMAT.format(newValue)) {
         control.editor.textFormatterProperty().set(null)
         control.editor.text = newText
-        value.value = newValue
+        property.removeListener(this)
+        property.value = newValue
+        property.addListener(this)
         control.editor.selectAll()
         control.editor.textFormatterProperty().set(textFormatter)
     }
 
+    override fun previewNull(b: Boolean) {
+        control.editor.promptText = if (b) TypeControl.NULL_PROMPT else ""
 
-    override fun bindTo(type: BindableJsonType) {
-        if (delegate.bindTo(type, DOUBLE_CONVERTER)) {
-            valueNewlyBound()
-        }
-        control.editor.promptText = if (delegate.isBoundToNull()) TypeControl.NULL_PROMPT else ""
     }
 
-    private fun valueNewlyBound() {
-        val value = value.value
-        control.editor.text = if (value == null) ""
-        else control.valueFactory.converter.toString(value.toDouble())
+    override fun changed(observable: ObservableValue<out Double?>?, oldValue: Double?, newValue: Double?) {
+        control.editor.text = if (newValue == null) null
+        else control.valueFactory.converter.toString(newValue.toDouble())
     }
 
-    private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory<Double>() {
+    private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory<Double?>() {
         val inner = DoubleSpinnerValueFactory(min, max)
 
         init {
@@ -128,7 +114,6 @@ class DoubleControl(override val schema: SchemaWrapper<NumberSchema>, context: E
 
     companion object {
         private val DECIMAL_FORMAT = DecimalFormat("#0.################")
-        val DOUBLE_CONVERTER: (Any?) -> Double? = { (it as? Number)?.toDouble() }
 
         private val CONVERTER = object : StringConverter<Double?>() {
             override fun toString(`object`: Double?): String? =

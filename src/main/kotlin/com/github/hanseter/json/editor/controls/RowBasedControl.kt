@@ -2,96 +2,56 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
+import com.github.hanseter.json.editor.types.ModelControlSynchronizer
+import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonType
-import javafx.beans.property.Property
-import javafx.beans.value.ChangeListener
-import javafx.beans.value.ObservableValue
-import javafx.scene.control.Control
-import org.everit.json.schema.ObjectSchema
+import com.github.hanseter.json.editor.util.EditorContext
+import javafx.beans.property.SimpleBooleanProperty
 import org.json.JSONObject
 
-interface ControlProvider<T> {
-    val schema: SchemaWrapper<*>
-    val control: Control
-    val value: Property<out T?>
-    val defaultValue: T?
-    val editorActionsContainer: ActionsContainer
-}
+class RowBasedControl<T>(
+        private val controlWithProperty: ControlWithProperty<T>,
+        override val model: TypeModel<T?>,
+        context: EditorContext) : TypeControl {
 
-class RowBasedControl<T>(private val provider: ControlProvider<T>) : ChangeListener<Any?> {
-    val node = FilterableTreeItem(TreeItemData(provider.schema.title, provider.schema.schema.description, provider.control, provider.editorActionsContainer))
-    private var bound: BindableJsonType? = null
+    private val editorActionsContainer: ActionsContainer = context.createActionContainer(this)
+    override val node: FilterableTreeItem<TreeItemData> =
+            FilterableTreeItem(TreeItemData(model.schema.title, model.schema.schema.description, controlWithProperty.control, editorActionsContainer))
+    override val valid = SimpleBooleanProperty(model.validationErrors.isEmpty())
+    private val synchronizer = ModelControlSynchronizer(controlWithProperty.property, model)
 
-    val isRequired = (provider.schema.parent?.schema as? ObjectSchema)?.let {
-        provider.schema.getPropertyName() in it.requiredProperties
-    } ?: true
-
-    init {
-        provider.control.isDisable = provider.schema.readOnly
-        provider.value.value = provider.defaultValue
-        provider.value.addListener(this)
-    }
-
-    override fun changed(observable: ObservableValue<out Any?>, oldValue: Any?, newValue: Any?) {
-        bound?.setValue(provider.schema, newValue)
-    }
-
-    /**
-     * Returns whether the value actually changed
-     */
-    fun bindTo(type: BindableJsonType, converter: (Any) -> T?): Boolean {
-        bound = null
-        val rawVal = type.getValue(provider.schema)
-
-        val toAssign = when (rawVal) {
-            null -> provider.defaultValue
-            JSONObject.NULL -> null
-            else -> {
-                val converted = converter(rawVal)
-                if (converted == null) {
-                    //TODO This should not happen with correct data and should be logged
-                }
-                converted
-            }
-        }
-
-        val changed = toAssign != provider.value.value
-        if (changed) {
-            provider.value.value = toAssign
-        }
-
-        bound = type
-
+    override fun bindTo(type: BindableJsonType) {
+        model.bound = type
+        valid.set(model.validationErrors.isEmpty())
+        val rawVal = type.getValue(model.schema)
+        controlWithProperty.previewNull(isBoundToNull(rawVal))
+        synchronizer.modelChanged()
         updateStyleClasses(rawVal)
-        provider.editorActionsContainer.updateDisablement()
-        return changed
+        editorActionsContainer.updateDisablement()
     }
 
     private fun updateStyleClasses(rawVal: Any?) {
-        provider.control.styleClass.removeAll("has-null-value", "has-default-value")
+        controlWithProperty.control.styleClass.removeAll("has-null-value", "has-default-value")
 
         if (rawVal == JSONObject.NULL) {
-            if ("has-null-value" !in provider.control.styleClass) {
-                provider.control.styleClass += "has-null-value"
+            if ("has-null-value" !in controlWithProperty.control.styleClass) {
+                controlWithProperty.control.styleClass += "has-null-value"
             }
         } else if (rawVal == null) {
-            if (provider.defaultValue != null) {
-                if ("has-default-value" !in provider.control.styleClass) {
-                    provider.control.styleClass += "has-default-value"
+            if (model.defaultValue != null) {
+                if ("has-default-value" !in controlWithProperty.control.styleClass) {
+                    controlWithProperty.control.styleClass += "has-default-value"
                 }
             } else {
-                if ("has-null-value" !in provider.control.styleClass) {
-                    provider.control.styleClass += "has-null-value"
+                if ("has-null-value" !in controlWithProperty.control.styleClass) {
+                    controlWithProperty.control.styleClass += "has-null-value"
                 }
             }
         }
     }
 
-    fun getBoundValue(): Any? = bound?.getValue(provider.schema)
+    private fun isBoundToNull(rawVal: Any?): Boolean = !isBoundToDefault(rawVal) && JSONObject.NULL == rawVal
 
-    fun isBoundToNull(): Boolean = !isBoundToDefault() && JSONObject.NULL == getBoundValue()
-
-    fun isBoundToDefault(): Boolean = provider.defaultValue != null && null == getBoundValue()
+    private fun isBoundToDefault(rawVal: Any?): Boolean = model.defaultValue != null && null == rawVal
 }

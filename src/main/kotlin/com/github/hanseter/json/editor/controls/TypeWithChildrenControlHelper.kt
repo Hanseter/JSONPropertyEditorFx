@@ -17,21 +17,21 @@ import org.everit.json.schema.Schema
 fun createTypeControlsFromSchemas(schema: SchemaWrapper<*>, contentSchemas: Collection<Schema>, context: EditorContext): List<TypeControl> {
     val controls = contentSchemas.map {
         ControlFactory.convert(RegularSchemaWrapper(schema, it), context)
-    }.sortedBy { it.schema.parent?.getPropertyOrder()?.indexOf(it.schema.getPropertyName()) }
+    }.sortedBy { it.model.schema.parent?.getPropertyOrder()?.indexOf(it.model.schema.getPropertyName()) }
     var orderedControls: List<TypeControl> = emptyList()
     val unorderedControls: List<TypeControl>
     val orderedPropertiesCount = controls.count {
-        schema.getPropertyOrder().contains(it.schema.getPropertyName())
+        schema.getPropertyOrder().contains(it.model.schema.getPropertyName())
     }
 
     when {
         orderedPropertiesCount > 0 -> {
             orderedControls = controls.takeLast(orderedPropertiesCount)
             unorderedControls = controls.take(controls.size - orderedPropertiesCount).sortedBy {
-                it.schema.getPropertyName().toLowerCase()
+                it.model.schema.getPropertyName().toLowerCase()
             }
         }
-        else -> unorderedControls = controls.sortedBy { it.schema.getPropertyName().toLowerCase() }
+        else -> unorderedControls = controls.sortedBy { it.model.schema.getPropertyName().toLowerCase() }
     }
 
     return orderedControls + unorderedControls

@@ -1,6 +1,6 @@
 package com.github.hanseter.json.editor.actions
 
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.types.TypeModel
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -11,9 +11,9 @@ object ResetToDefaultAction : EditorAction {
         it.schema.defaultValue != null && !it.readOnly
     }
 
-    override fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject? {
-        val key = schema.getPropertyName()
-        when (val parentContainer = schema.parent?.extractProperty(currentData)
+    override fun apply(currentData: JSONObject, model: TypeModel<*>): JSONObject? {
+        val key = model.schema.getPropertyName()
+        when (val parentContainer = model.schema.parent?.extractProperty(currentData)
                 ?: currentData) {
             null -> {
             }

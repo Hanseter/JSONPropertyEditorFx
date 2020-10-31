@@ -6,8 +6,10 @@ import com.github.hanseter.json.editor.extensions.ReferredSchemaWrapper
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
+
 
 object ControlFactory {
 
@@ -22,49 +24,51 @@ object ControlFactory {
                 is ReferenceSchema -> convert(ReferredSchemaWrapper(schema as SchemaWrapper<ReferenceSchema>, actualSchema.referredSchema), context)
                 is EnumSchema -> createEnumControl(schema, actualSchema, context)
                 is CombinedSchema -> createCombinedControl(schema as SchemaWrapper<CombinedSchema>, context)
-                else -> UnsupportedTypeControl(schema)
+                else -> UnsupportedTypeControl(UnsupportedTypeModel(schema))
             }
 
     private fun createObjectControl(schema: SchemaWrapper<ObjectSchema>, context: EditorContext) =
-            PlainObjectControl(schema, context)
+            PlainObjectControl(PlainObjectModel(schema), context)
 
     private fun createArrayControl(schema: SchemaWrapper<ArraySchema>, context: EditorContext) =
             when {
                 schema.schema.allItemSchema != null -> ArrayControl(
-                        schema,
-                        schema.schema.allItemSchema,
+                        ArrayModel(schema, schema.schema.allItemSchema),
                         context
                 )
-                schema.schema.itemSchemas != null -> TupleControl(schema, schema.schema.itemSchemas, context)
+                schema.schema.itemSchemas != null -> TupleControl(TupleModel(schema, schema.schema.itemSchemas), context)
                 else -> throw IllegalArgumentException("Only lists which contain the same type or tuples are supported. Check schema ${schema.schema.schemaLocation}")
             }
 
-    private fun createBooleanControl(schema: SchemaWrapper<BooleanSchema>, context: EditorContext) = BooleanControl(schema, context)
+    private fun createBooleanControl(schema: SchemaWrapper<BooleanSchema>, context: EditorContext) =
+            RowBasedControl(BooleanControl(), BooleanModel(schema), context)
 
     private fun createStringControl(schema: SchemaWrapper<StringSchema>, context: EditorContext): TypeControl =
             when (schema.schema.formatValidator) {
-                ColorFormat.Validator -> ColorControl(schema, context)
-                IdReferenceFormat.Validator -> IdReferenceControl(schema, context)
-                else -> StringControl(schema, context)
+                ColorFormat.Validator -> RowBasedControl(ColorControl(), ColorModel(schema), context)
+                IdReferenceFormat.Validator -> RowBasedControl(IdReferenceControl(schema, context), IdReferenceModel(schema), context)
+                else -> RowBasedControl(StringControl(), StringModel(schema), context)
             }
 
     private fun createNumberControl(schema: SchemaWrapper<NumberSchema>, context: EditorContext): TypeControl =
             if (schema.schema.requiresInteger()) {
-                IntegerControl(schema, context)
+                RowBasedControl(IntegerControl(schema.schema), IntegerModel(schema), context)
             } else {
-                DoubleControl(schema, context)
+                RowBasedControl(DoubleControl(schema.schema), DoubleModel(schema), context)
             }
 
     @Suppress("UNCHECKED_CAST")
-    private fun createEnumControl(schema: SchemaWrapper<out Schema>, enumSchema: EnumSchema, context: EditorContext) =
-            EnumControl(schema as SchemaWrapper<Schema>, enumSchema, context)
+    private fun createEnumControl(schema: SchemaWrapper<out Schema>, enumSchema: EnumSchema, context: EditorContext): TypeControl {
+        val enumModel = EnumModel(schema as SchemaWrapper<Schema>, enumSchema)
+        return RowBasedControl(EnumControl(enumModel), enumModel, context)
+    }
 
     private fun createCombinedControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
         if (schema.schema.criterion == CombinedSchema.ALL_CRITERION) {
             return createAllOfControl(schema, context)
         }
 
-        return UnsupportedTypeControl(schema)
+        return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
 
     private fun createAllOfControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
@@ -75,9 +79,9 @@ object ControlFactory {
         val subSchemas = schema.schema.subschemas.map { CombinedSchemaWrapper(schema, it) }
         val controls = subSchemas.map { convert(it, context) }
         if (controls.any { it !is ObjectControl }) {
-            return UnsupportedTypeControl(schema)
+            return UnsupportedTypeControl(UnsupportedTypeModel(schema))
         }
-        return CombinedObjectControl(schema, controls as List<ObjectControl>, context)
+        return CombinedObjectControl(CombinedObjectModel(schema), controls as List<ObjectControl>, context)
     }
 
     private fun createControlFromSyntheticAllOf(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
@@ -85,6 +89,8 @@ object ControlFactory {
         if (enumSchema != null) {
             return createEnumControl(schema, enumSchema, context)
         }
-        return UnsupportedTypeControl(schema)
+        return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
 }
+
+

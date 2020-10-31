@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.actions
 
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.types.TypeModel
 import org.json.JSONObject
 
 /**
@@ -16,8 +17,8 @@ interface EditorAction {
 
     fun matches(schema: SchemaWrapper<*>) = selector.matches(schema)
 
-    fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject?
+    fun apply(currentData: JSONObject, model: TypeModel<*>): JSONObject?
 
-    fun shouldBeDisabled(schema: SchemaWrapper<*>): Boolean =
-            schema.readOnly
+    fun shouldBeDisabled(model: TypeModel<*>): Boolean =
+            model.schema.readOnly
 }

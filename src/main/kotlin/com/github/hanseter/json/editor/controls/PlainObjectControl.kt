@@ -1,27 +1,24 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
+import com.github.hanseter.json.editor.types.PlainObjectModel
 import com.github.hanseter.json.editor.util.BindableJsonObject
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import javafx.beans.value.ObservableBooleanValue
-import org.everit.json.schema.ObjectSchema
 import org.json.JSONObject
 
-class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, context: EditorContext)
+class PlainObjectControl(override val model: PlainObjectModel, context: EditorContext)
     : ObjectControl {
 
     private val editorActionsContainer = context.createActionContainer(this)
 
     private val statusControl = TypeWithChildrenStatusControl("Create") {
-        bound?.setValue(schema, JSONObject())
+        model.value = JSONObject()
     }
 
-    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, statusControl, editorActionsContainer))
-
-    private var bound: BindableJsonType? = null
+    override val node = FilterableTreeItem(TreeItemData(model.schema.title, model.schema.schema.description, statusControl, editorActionsContainer))
 
     override val requiredChildren: List<TypeControl>
     override val optionalChildren: List<TypeControl>
@@ -29,14 +26,14 @@ class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, conte
 
     init {
 //        val validation = ValidationSupport()
-        val childSchemas = schema.schema.propertySchemas.toMutableMap()
-        requiredChildren = createTypeControlsFromSchemas(schema, schema.schema.requiredProperties.mapNotNull {
+        val childSchemas = model.schema.schema.propertySchemas.toMutableMap()
+        requiredChildren = createTypeControlsFromSchemas(model.schema, model.schema.schema.requiredProperties.mapNotNull {
             childSchemas.remove(it)
         }, context)
 //        requiredChildren.forEach {
 //            addNonNullValidation(validation, )
 //        }
-        optionalChildren = createTypeControlsFromSchemas(schema, childSchemas.values, context)
+        optionalChildren = createTypeControlsFromSchemas(model.schema, childSchemas.values, context)
         valid = createValidityBinding(requiredChildren + optionalChildren)
 
         addRequiredAndOptionalChildren(node, requiredChildren, optionalChildren)
@@ -49,6 +46,7 @@ class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, conte
     }
 
     override fun bindTo(type: BindableJsonType) {
+        model.bound = type
         val subType = createSubType(type)
 
         if (subType != null) {
@@ -60,12 +58,11 @@ class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, conte
         } else {
             node.clear()
         }
-        bound = type
         valueChanged()
     }
 
     private fun valueChanged() {
-        if (bound?.getValue(schema) == JSONObject.NULL) {
+        if (model.rawValue == JSONObject.NULL) {
             statusControl.displayNull()
         } else {
             val size = requiredChildren.size + optionalChildren.size
@@ -74,14 +71,14 @@ class PlainObjectControl(override val schema: SchemaWrapper<ObjectSchema>, conte
     }
 
     private fun createSubType(parent: BindableJsonType): BindableJsonObject? {
-        val rawObj = parent.getValue(schema)
+        val rawObj = parent.getValue(model.schema)
         if (rawObj == JSONObject.NULL) {
             return null
         }
         var obj = rawObj as? JSONObject
         if (obj == null) {
             obj = JSONObject()
-            parent.setValue(schema, obj)
+            parent.setValue(model.schema, obj)
         }
         return BindableJsonObject(parent, obj)
     }

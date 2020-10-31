@@ -17,7 +17,7 @@ class ActionsContainer(private val control: TypeControl, private val actions: Li
     private val actionButtons: List<Pair<EditorAction, Button>>
 
     init {
-        actionButtons = actions.filter { it.matches(control.schema) }.map {
+        actionButtons = actions.filter { it.matches(control.model.schema) }.map {
             it to createButton(it, executeActionCallback)
         }
         children.addAll(actionButtons.map { it.second })
@@ -35,7 +35,7 @@ class ActionsContainer(private val control: TypeControl, private val actions: Li
 
     fun updateDisablement() {
         actionButtons.forEach { (action, button) ->
-            button.isDisable = action.shouldBeDisabled(control.schema)
+            button.isDisable = action.shouldBeDisabled(control.model)
         }
     }
 }

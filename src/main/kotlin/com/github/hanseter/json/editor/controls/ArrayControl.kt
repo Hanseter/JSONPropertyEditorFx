@@ -8,65 +8,48 @@ import com.github.hanseter.json.editor.extensions.ArraySchemaWrapper
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.extensions.TreeItemData
+import com.github.hanseter.json.editor.types.ArrayModel
+import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonArray
 import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
-import javafx.beans.InvalidationListener
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.Control
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
 import org.everit.json.schema.ArraySchema
-import org.everit.json.schema.Schema
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val contentSchema: Schema, private val context: EditorContext)
-    : TypeControl {
+class ArrayControl(override val model: ArrayModel, private val context: EditorContext) : TypeControl {
 
     private val editorActionsContainer = context.createActionContainer(this).let {
-        if (!schema.readOnly) {
+        if (!model.schema.readOnly) {
             ActionsContainer(it,
                     // \uD83D\uDFA3 = 🞣
                     listOf(ArrayAction("\uD83D\uDFA3", "Inserts a new empty item at the end of the list") {
-                        addItemAt(children.lastIndex + 1)
+                        model.addItemAt(children.lastIndex + 1)
                     }))
         } else it
     }
 
     private val statusControl = TypeWithChildrenStatusControl("To Empty List") {
-        bound?.setValue(schema, JSONArray())
+        model.value = JSONArray()
         valuesChanged()
     }
 
-    override val node = FilterableTreeItem(TreeItemData(schema.title, schema.schema.description, statusControl, editorActionsContainer))
+    override val node = FilterableTreeItem(TreeItemData(model.schema.title, model.schema.schema.description, statusControl, editorActionsContainer))
 
-    private var bound: BindableJsonType? = null
     private val children = mutableListOf<TypeControl>()
     private var subArray: BindableJsonArray? = null
-    private val itemCountValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
-    private val uniqueItemValidationMessage = SimpleObjectProperty<ValidationMessage?>(null)
     private val validInternal = SimpleBooleanProperty(true)
     override val valid = SimpleBooleanProperty(true)
-    private val onValidationStateChanged = InvalidationListener {
-        redecorate()
-        validInternal.set(itemCountValidationMessage.get() == null && uniqueItemValidationMessage.get() == null)
-    }
-
-
-    init {
-        itemCountValidationMessage.addListener(onValidationStateChanged)
-        uniqueItemValidationMessage.addListener(onValidationStateChanged)
-
-        runAfterSkinLoads(statusControl.getDecorationsAnchor()) { redecorate() }
-    }
 
     override fun bindTo(type: BindableJsonType) {
-        bound = type
-        subArray = createSubArray(type, schema)
+        model.bound = type
+        subArray = createSubArray(type, model.schema)
         valuesChanged()
     }
 
@@ -83,11 +66,11 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         fun addNeededUiCells(values: JSONArray) {
             while (children.size < values.length()) {
                 val currentChildIndex = children.size
-                val childSchema = ArraySchemaWrapper(schema, contentSchema, currentChildIndex)
-                val arrayActions = if (schema.readOnly) emptyList()
-                else listOf(ArrayAction("-", "Remove this item") { removeItem(currentChildIndex) },
-                        ArrayAction("↑", "Move this item one row up") { moveItemUp(currentChildIndex) },
-                        ArrayAction("↓", "Move this item one row down") { moveItemDown(currentChildIndex) })
+                val childSchema = ArraySchemaWrapper(model.schema, model.contentSchema, currentChildIndex)
+                val arrayActions = if (model.schema.readOnly) emptyList()
+                else listOf(ArrayAction("-", "Remove this item") { model.removeItem(currentChildIndex) },
+                        ArrayAction("↑", "Move this item one row up") { model.moveItemUp(currentChildIndex) },
+                        ArrayAction("↓", "Move this item one row down") { model.moveItemDown(currentChildIndex) })
                 val control = ControlFactory.convert(childSchema, context)
 
                 val new = ArrayChildWrapper(control, arrayActions)
@@ -103,7 +86,7 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         }
 
         val subArray = subArray
-        val rawValues = bound?.getValue(schema)
+        val rawValues = model.rawValue
         var values = rawValues as? JSONArray
         if (rawValues != JSONObject.NULL) {
             if (values == null) {
@@ -113,52 +96,24 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
             removeAdditionalUiCells(values)
             addNeededUiCells(values)
             rebindChildren(subArray, values)
-            bound?.setValue(schema, values)
+            model.value = values
         } else {
             removeAdditionalUiCells(JSONArray())
         }
 
-        validateChildCount()
-        validateChildUniqueness()
+        validInternal.set(model.validationErrors.isEmpty())
         valid.bind(validInternal.and(createValidityBinding(this.children)))
 
         updateLabel()
     }
 
     private fun updateLabel() {
-        if (bound?.getValue(schema) == JSONObject.NULL) {
+        if (model.rawValue == JSONObject.NULL) {
             statusControl.displayNull()
         } else {
             statusControl.displayNonNull("[${children.size} Element${if (children.size == 1) "" else "s"}]")
         }
     }
-
-    private fun validateChildCount() {
-        val children = bound?.getValue(schema) as? JSONArray
-
-        itemCountValidationMessage.set(
-                when {
-                    children == null -> null
-                    hasTooManyItems(children.length()) -> SimpleValidationMessage(
-                            statusControl.getDecorationsAnchor(),
-                            "Must have at most " + schema.schema.maxItems + " items",
-                            Severity.ERROR
-                    )
-                    hasTooFewItems(children.length()) -> SimpleValidationMessage(
-                            statusControl.getDecorationsAnchor(),
-                            "Must have at least " + schema.schema.minItems + " items",
-                            Severity.ERROR
-                    )
-                    else -> null
-                }
-        )
-    }
-
-    private fun hasTooManyItems(childCount: Int) =
-            schema.schema.maxItems != null && childCount > schema.schema.maxItems
-
-    private fun hasTooFewItems(childCount: Int) =
-            schema.schema.minItems != null && childCount < schema.schema.minItems
 
     class SimpleValidationMessage(
             private val target: Control,
@@ -170,69 +125,6 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
         override fun getSeverity(): Severity = severity
     }
 
-    private fun addItemAt(position: Int) {
-        var children = bound?.getValue(schema) as? JSONArray
-
-        if (children == null) {
-            children = JSONArray()
-            bound?.setValue(schema, children)
-        }
-
-        children.put(position, JSONObject.NULL)
-        valuesChanged()
-    }
-
-    private fun removeItem(index: Int) {
-        val children = bound?.getValue(schema) as? JSONArray ?: return
-        children.remove(index)
-        valuesChanged()
-    }
-
-    private fun moveItemUp(index: Int) {
-        val children = bound?.getValue(schema) as? JSONArray ?: return
-        if (index == 0) return
-        val tmp = children.get(index - 1)
-        children.put(index - 1, children.get(index))
-        children.put(index, tmp)
-        valuesChanged()
-    }
-
-    private fun moveItemDown(index: Int) {
-        val children = bound?.getValue(schema) as? JSONArray ?: return
-        if (index >= children.length() - 1) return
-        val tmp = children.get(index + 1)
-        children.put(index + 1, children.get(index))
-        children.put(index, tmp)
-        valuesChanged()
-    }
-
-    private fun validateChildUniqueness() {
-        if (!schema.schema.needsUniqueItems()) return
-        val children = bound?.getValue(schema) as? JSONArray ?: return
-
-        for (i in 0 until children.length()) {
-            for (j in i + 1 until children.length()) {
-                if (areSame(children.get(i), children.get(j))) {
-                    uniqueItemValidationMessage.set(
-                            SimpleValidationMessage(
-                                    this.statusControl.getDecorationsAnchor(),
-                                    "Items $i and $j are identical",
-                                    Severity.ERROR
-                            )
-                    )
-                    return
-                }
-            }
-        }
-        uniqueItemValidationMessage.set(null)
-    }
-
-    private fun areSame(a: Any?, b: Any?) = when (a) {
-        is JSONObject -> a.similar(b)
-        is JSONArray -> a.similar(b)
-        else -> a == b
-    }
-
     private inner class ArrayChildWrapper(wrapped: TypeControl, arrayActions: List<ArrayAction>) : TypeControl by wrapped {
         override val node: FilterableTreeItem<TreeItemData>
 
@@ -242,19 +134,15 @@ class ArrayControl(override val schema: SchemaWrapper<ArraySchema>, private val 
             val actions = ActionsContainer(origItemData.action
                     ?: context.createActionContainer(this), arrayActions)
 
-            this.node = FilterableTreeItem(TreeItemData(origItemData.key, origItemData.description, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
+            this.node = FilterableTreeItem(TreeItemData(origItemData.label, origItemData.control, actions, origItemData.isRoot, origItemData.isHeadline))
             Bindings.bindContent(node.list, origNode.list)
         }
 
     }
 
-    private fun redecorate() {
-        redecorate(statusControl.getDecorationsAnchor(), itemCountValidationMessage, uniqueItemValidationMessage)
-    }
-
     private class ArrayAction(override val text: String, override val description: String, private val action: () -> Unit) : EditorAction {
         override val selector: ActionTargetSelector = ActionTargetSelector.Always()
-        override fun apply(currentData: JSONObject, schema: SchemaWrapper<*>): JSONObject? {
+        override fun apply(currentData: JSONObject, model: TypeModel<*>): JSONObject? {
             action()
             return null
         }

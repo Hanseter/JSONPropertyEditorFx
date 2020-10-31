@@ -145,4 +145,4 @@ fun JsonPropertiesEditor.getItemTable(): TreeTableView<TreeItemData> =
         (lookup("#contentArea") as ScrollPane).content as TreeTableView<TreeItemData>
 
 fun TreeItem<TreeItemData>.findChildWithKey(key: String) =
-        children.firstOrNull { it.value.key == key }
+        children.firstOrNull { it.value.label.text == key }
