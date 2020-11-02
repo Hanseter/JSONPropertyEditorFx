@@ -1,34 +1,32 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.actions.ActionsContainer
-import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.types.ModelControlSynchronizer
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.util.EditorContext
-import javafx.beans.property.SimpleBooleanProperty
+import javafx.scene.control.Control
 import org.json.JSONObject
 
 class RowBasedControl<T>(
-        private val controlWithProperty: ControlWithProperty<T>,
-        override val model: TypeModel<T?>,
-        context: EditorContext) : TypeControl {
+        private val controlWithProperty: ControlWithProperty<T?>,
+        override val model: TypeModel<T?, *>) : TypeControl {
 
-    private val editorActionsContainer: ActionsContainer = context.createActionContainer(this)
-    override val node: FilterableTreeItem<TreeItemData> =
-            FilterableTreeItem(TreeItemData(model.schema.title, model.schema.schema.description, controlWithProperty.control, editorActionsContainer))
-    override val valid = SimpleBooleanProperty(model.validationErrors.isEmpty())
+    override val control: Control?
+        get() = controlWithProperty.control
+    override val childControls: List<TypeControl>
+        get() = emptyList()
+
     private val synchronizer = ModelControlSynchronizer(controlWithProperty.property, model)
+
+    init {
+        controlWithProperty.control.isDisable = model.schema.readOnly
+    }
 
     override fun bindTo(type: BindableJsonType) {
         model.bound = type
-        valid.set(model.validationErrors.isEmpty())
         val rawVal = type.getValue(model.schema)
         controlWithProperty.previewNull(isBoundToNull(rawVal))
         synchronizer.modelChanged()
         updateStyleClasses(rawVal)
-        editorActionsContainer.updateDisablement()
     }
 
     private fun updateStyleClasses(rawVal: Any?) {

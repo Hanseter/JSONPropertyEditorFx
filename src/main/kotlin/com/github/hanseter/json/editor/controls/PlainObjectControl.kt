@@ -1,42 +1,32 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.types.PlainObjectModel
 import com.github.hanseter.json.editor.util.BindableJsonObject
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
-import javafx.beans.value.ObservableBooleanValue
 import org.json.JSONObject
 
 class PlainObjectControl(override val model: PlainObjectModel, context: EditorContext)
     : ObjectControl {
 
-    private val editorActionsContainer = context.createActionContainer(this)
-
-    private val statusControl = TypeWithChildrenStatusControl("Create") {
+    override val control = TypeWithChildrenStatusControl("Create") {
         model.value = JSONObject()
     }
 
-    override val node = FilterableTreeItem(TreeItemData(model.schema.title, model.schema.schema.description, statusControl, editorActionsContainer))
+    private val requiredChildrenNotNull: List<TypeControl>
+    private val optionalChildrenNotNull: List<TypeControl>
 
-    override val requiredChildren: List<TypeControl>
-    override val optionalChildren: List<TypeControl>
-    override val valid: ObservableBooleanValue
+    override var requiredChildren: List<TypeControl> = emptyList()
+    override var optionalChildren: List<TypeControl> = emptyList()
 
     init {
-//        val validation = ValidationSupport()
         val childSchemas = model.schema.schema.propertySchemas.toMutableMap()
-        requiredChildren = createTypeControlsFromSchemas(model.schema, model.schema.schema.requiredProperties.mapNotNull {
+        requiredChildrenNotNull = createTypeControlsFromSchemas(model.schema, model.schema.schema.requiredProperties.mapNotNull {
             childSchemas.remove(it)
         }, context)
-//        requiredChildren.forEach {
-//            addNonNullValidation(validation, )
-//        }
-        optionalChildren = createTypeControlsFromSchemas(model.schema, childSchemas.values, context)
-        valid = createValidityBinding(requiredChildren + optionalChildren)
-
-        addRequiredAndOptionalChildren(node, requiredChildren, optionalChildren)
+        optionalChildrenNotNull = createTypeControlsFromSchemas(model.schema, childSchemas.values, context)
+        requiredChildren = requiredChildrenNotNull
+        optionalChildren = optionalChildrenNotNull
     }
 
 
@@ -50,23 +40,25 @@ class PlainObjectControl(override val model: PlainObjectModel, context: EditorCo
         val subType = createSubType(type)
 
         if (subType != null) {
-            if (node.isLeaf) {
-                addRequiredAndOptionalChildren(node, requiredChildren, optionalChildren)
+            if (requiredChildren.isEmpty() && optionalChildren.isEmpty()) {
+                requiredChildren = requiredChildrenNotNull
+                optionalChildren = optionalChildrenNotNull
             }
 
             bindChildrenToObject(subType)
         } else {
-            node.clear()
+            requiredChildren = emptyList()
+            optionalChildren = emptyList()
         }
         valueChanged()
     }
 
     private fun valueChanged() {
         if (model.rawValue == JSONObject.NULL) {
-            statusControl.displayNull()
+            control.displayNull()
         } else {
             val size = requiredChildren.size + optionalChildren.size
-            statusControl.displayNonNull("[${size} Propert${if (size == 1) "y" else "ies"}]")
+            control.displayNonNull("[${size} Propert${if (size == 1) "y" else "ies"}]")
         }
     }
 
@@ -82,21 +74,4 @@ class PlainObjectControl(override val model: PlainObjectModel, context: EditorCo
         }
         return BindableJsonObject(parent, obj)
     }
-
-//    fun addNonNullValidation(validationSupport: ValidationSupport, child: TypeControl) {
-//        val validationResult = child.node.value.control
-//        valida
-//        val validator = createNonNullValidator(va)
-//    }
-//
-//    fun createNonNullValidator(child: TypeControl): org.controlsfx.validation.Validator<Any?> {
-//        Validator { control, value ->
-//
-//            ValidationResult.fromErrorIf(
-//                    control,
-//                    validationResult,
-//                    validationResult != null
-//            )
-//        }
-//    }
 }

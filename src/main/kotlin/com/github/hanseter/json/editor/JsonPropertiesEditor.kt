@@ -1,13 +1,13 @@
 package com.github.hanseter.json.editor
 
-import com.github.hanseter.json.editor.actions.EditorAction
-import com.github.hanseter.json.editor.actions.ResetToDefaultAction
-import com.github.hanseter.json.editor.actions.ResetToNullAction
+import com.github.hanseter.json.editor.actions.*
 import com.github.hanseter.json.editor.extensions.CustomNodeTreeTableCell
 import com.github.hanseter.json.editor.extensions.FilterableTreeItem
+import com.github.hanseter.json.editor.extensions.RootTreeItemData
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import com.github.hanseter.json.editor.validators.*
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
@@ -29,8 +29,10 @@ class JsonPropertiesEditor(
         private val readOnly: Boolean = false,
         private val numberOfInitiallyOpenedObjects: Int = 5,
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
-        private val actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction)
+        actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
+        private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, IdReferenceValidator(referenceProposalProvider), RequiredValidator)
 ) : VBox() {
+    private val actions = actions + PreviewAction(referenceProposalProvider, resolutionScopeProvider) + arrayActions
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
     private val scrollPane = ScrollPane().apply { id = "contentArea" }
     private val filterText = TextField().apply { id = "searchField" }
@@ -44,7 +46,7 @@ class JsonPropertiesEditor(
         initTreeTableView()
         filterText.promptText = "Filter properties"
 
-        val filteredTreeItemRoot = FilterableTreeItem(TreeItemData("root", null, null, null, false))
+        val filteredTreeItemRoot: FilterableTreeItem<TreeItemData> = FilterableTreeItem(RootTreeItemData)
         filterText.textProperty().addListener { _, _, newValue ->
             filteredTreeItemRoot.setPredicate(
                     if (newValue.isEmpty()) {
@@ -133,7 +135,7 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(title: String, data: JSONObject,
                                           schema: Schema, callback: (JSONObject) -> JSONObject): JsonPropertiesPane =
-            JsonPropertiesPane(title, data, schema, referenceProposalProvider, resolutionScopeProvider, actions) { obj, pane ->
+            JsonPropertiesPane(title, data, schema, referenceProposalProvider, resolutionScopeProvider, actions, validators) { obj, pane ->
                 pane.fillData(callback(obj))
             }
 
@@ -175,7 +177,7 @@ class JsonPropertiesEditor(
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Action"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.action } }
+                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.actions } }
                 minWidth = 100.0
                 prefWidth = 100.0
                 styleClass.add("action-cell")

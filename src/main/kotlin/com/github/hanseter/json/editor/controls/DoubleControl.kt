@@ -1,104 +1,70 @@
 package com.github.hanseter.json.editor.controls
 
 import javafx.beans.property.Property
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ChangeListener
-import javafx.beans.value.ObservableValue
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
-import javafx.scene.control.TextFormatter
 import javafx.util.StringConverter
 import org.everit.json.schema.NumberSchema
 import java.text.DecimalFormat
 import java.text.ParsePosition
 
-class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?>, ChangeListener<Double?> {
-    override val control = Spinner<Double?>()
-    override val property: Property<Double?> = SimpleObjectProperty<Double?>(null)
+class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
+    private val minInclusive = schema.minimum?.toDouble() ?: -Double.MAX_VALUE
+    private val minExclusive = schema.exclusiveMinimumLimit?.toDouble() ?: -Double.MAX_VALUE
+    private val maxInclusive = schema.maximum?.toDouble() ?: Double.MAX_VALUE
+    private val maxExclusive = schema.exclusiveMaximumLimit?.toDouble() ?: Double.MAX_VALUE
 
-    private val minInclusive = schema.minimum?.toDouble()
-    private val minExclusive = schema.exclusiveMinimumLimit?.toDouble()
-    private val maxInclusive = schema.maximum?.toDouble()
-    private val maxExclusive = schema.exclusiveMaximumLimit?.toDouble()
-    private val textFormatter = TextFormatter<String>(this::filterChange)
+    private val converter = StringDoubleConverter()
+
+    override val control = Spinner<Double?>().apply {
+        minWidth = 150.0
+        valueFactory = DoubleSpinnerValueFactory()
+        isEditable = true
+    }
+    override val property: Property<Double?> = control.valueFactory.valueProperty()
 
     init {
-        control.minWidth = 150.0
-        control.valueFactory = DoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE)
-        control.isEditable = true
         control.focusedProperty().addListener { _, _, new ->
             if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
                 control.editor.text = control.valueFactory.converter.toString(property.value?.toDouble())
             }
         }
-        control.editor.text = control.valueFactory.converter.toString(property.value?.toDouble())
-        control.editor.textFormatterProperty().set(textFormatter)
-        property.addListener(this)
-    }
-
-    private fun filterChange(change: TextFormatter.Change): TextFormatter.Change? {
-        if (!change.isContentChange || change.controlNewText == "-") {
-            return change
+        control.editor.textProperty().addListener { _, _, new ->
+            println("Text changed to $new")
         }
-        val parsePos = ParsePosition(0)
-        val number = DECIMAL_FORMAT.parse(change.controlNewText, parsePos)?.toDouble()
-        if (parsePos.index < change.controlNewText.length) {
-            return null
-        }
-
-        return when {
-            number == null -> {
-                updateValueAndText(null, ""); null
-            }
-            maxInclusive != null && number > maxInclusive -> {
-                updateValueAndText(maxInclusive); null
-            }
-            maxExclusive != null && number >= maxExclusive -> {
-                updateValueAndText(maxExclusive - 1); null
-            }
-            minInclusive != null && number < minInclusive -> {
-                updateValueAndText(minInclusive); null
-            }
-            minExclusive != null && number <= minExclusive -> {
-                updateValueAndText(minExclusive + 1); null
-            }
-            else -> {
-                property.value = number; change
+        control.editor.textProperty().addListener { _, _, new ->
+            if (new.isEmpty()) {
+                control.increment(0)
+            } else if (new.isNotEmpty() && new != "-") {
+                try {
+                    control.increment(0) // won't change value, but will commit editor
+                } catch (e: NumberFormatException) {
+                    control.editor.text = control.valueFactory.converter.toString(property.value)
+                            ?: "0"
+                } catch (e: TrailingSeparatorException) {
+                    //Nothing to do
+                }
             }
         }
-    }
-
-    private fun updateValueAndText(newValue: Double?, newText: String = DECIMAL_FORMAT.format(newValue)) {
-        control.editor.textFormatterProperty().set(null)
-        control.editor.text = newText
-        property.removeListener(this)
-        property.value = newValue
-        property.addListener(this)
-        control.editor.selectAll()
-        control.editor.textFormatterProperty().set(textFormatter)
     }
 
     override fun previewNull(b: Boolean) {
         control.editor.promptText = if (b) TypeControl.NULL_PROMPT else ""
-
     }
 
-    override fun changed(observable: ObservableValue<out Double?>?, oldValue: Double?, newValue: Double?) {
-        control.editor.text = if (newValue == null) null
-        else control.valueFactory.converter.toString(newValue.toDouble())
-    }
-
-    private class DoubleSpinnerValueFactory(min: Double, max: Double) : SpinnerValueFactory<Double?>() {
-        val inner = DoubleSpinnerValueFactory(min, max)
+    private inner class DoubleSpinnerValueFactory : SpinnerValueFactory<Double?>() {
+        val inner = DoubleSpinnerValueFactory(-Double.MAX_VALUE, Double.MAX_VALUE)
 
         init {
-            converter = CONVERTER
+            this.converter = this@DoubleControl.converter
+            inner.converter = this.converter
         }
 
         override fun decrement(steps: Int) {
             if (value != null) {
                 inner.value = value
                 inner.decrement(steps)
+                coerceValue()
                 value = inner.value
             }
         }
@@ -107,21 +73,57 @@ class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?>, Change
             if (value != null) {
                 inner.value = value
                 inner.increment(steps)
+                coerceValue()
                 value = inner.value
             }
         }
+
+        private fun coerceValue() {
+            if (inner.value > maxInclusive) {
+                inner.value = maxInclusive
+            }
+            if (inner.value >= maxExclusive) {
+                inner.value = maxExclusive - 1
+            }
+            if (inner.value < minInclusive) {
+                inner.value = minInclusive
+            }
+            if (inner.value < minExclusive) {
+                inner.value = minExclusive + 1
+            }
+        }
+
     }
+
+    private inner class StringDoubleConverter : StringConverter<Double?>() {
+        override fun toString(`object`: Double?): String? =
+                if (`object` == null) "" else DECIMAL_FORMAT.format(`object`)
+
+        override fun fromString(string: String?): Double? {
+            if (string.isNullOrBlank()) return null
+            val parsePosition = ParsePosition(0)
+            val number = DECIMAL_FORMAT.parse(string, parsePosition)
+            if (parsePosition.index != string.length) {
+                throw java.lang.NumberFormatException()
+            }
+            if (isTrailingSeparator(string)) {
+                throw TrailingSeparatorException()
+            }
+            return number?.toDouble()
+        }
+
+        private fun isTrailingSeparator(string: String): Boolean {
+            val index = string.indexOf(DECIMAL_FORMAT.decimalFormatSymbols.decimalSeparator)
+            val decimalValues = string.drop(index+1)
+            return decimalValues.isEmpty() || decimalValues.all { it == '0' }
+        }
+
+    }
+
+    class TrailingSeparatorException : Exception()
 
     companion object {
         private val DECIMAL_FORMAT = DecimalFormat("#0.################")
-
-        private val CONVERTER = object : StringConverter<Double?>() {
-            override fun toString(`object`: Double?): String? =
-                    if (`object` == null) "" else DECIMAL_FORMAT.format(`object`)
-
-            override fun fromString(string: String?): Double? =
-                    if (string.isNullOrBlank()) null else DECIMAL_FORMAT.parse(string)?.toDouble()
-        }
     }
 
 }

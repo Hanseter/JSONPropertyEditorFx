@@ -1,32 +1,36 @@
 package com.github.hanseter.json.editor.validators
 
+import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.types.SupportedType
+import com.github.hanseter.json.editor.types.TypeModel
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ArrayValidator(schema: ArraySchema) {
-}
+object ArrayValidator : Validator {
+    override val selector: ActionTargetSelector = ActionTargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType }
 
-private fun createArrayValidators(schema: ArraySchema): List<Validator<JSONArray?>> {
-    val validators = mutableListOf<Validator<JSONArray?>>()
-    if (schema.needsUniqueItems()) {
-        validators.add(Validator { validateChildUniqueness(it) })
+    override fun validate(model: TypeModel<*, *>): List<String> {
+        val schema = model.schema.schema as ArraySchema
+        val value = model.value as? JSONArray ?: return emptyList()
+        val ret = mutableListOf<String>()
+        if (schema.needsUniqueItems()) {
+            validateChildUniqueness(value)?.also { ret.add(it) }
+        }
+        validateChildCount(schema.maxItems, schema.minItems, value)?.also { ret.add(it) }
+        return ret
     }
-    createChildCountValidator(schema)?.also { validators.add(it) }
-    return validators
 }
 
-private fun validateChildUniqueness(value: JSONArray?): List<String> {
-    if (value == null) return emptyList()
-
+private fun validateChildUniqueness(value: JSONArray): String? {
     for (i in 0 until value.length()) {
         for (j in i + 1 until value.length()) {
             if (areSame(value.get(i), value.get(j))) {
-                return listOf("Items $i and $j are identical")
+                return "Items $i and $j are identical"
             }
         }
     }
-    return emptyList()
+    return null
 }
 
 private fun areSame(a: Any?, b: Any?) = when (a) {
@@ -35,28 +39,19 @@ private fun areSame(a: Any?, b: Any?) = when (a) {
     else -> a == b
 }
 
-private fun createChildCountValidator(schema: ArraySchema): Validator<JSONArray?>? =
+private fun validateChildCount(maxItems: Int?, minItems: Int?, value: JSONArray): String? =
         when {
-            schema.maxItems != null && schema.minItems != null -> Validator { value ->
-                when {
-                    value == null -> emptyList()
-                    value.length() > schema.maxItems || value.length() < schema.minItems -> listOf("Has to have between ${schema.minItems} and ${schema.maxItems} items")
-                    else -> emptyList()
-                }
+            maxItems != null && minItems != null -> when {
+                value.length() > maxItems || value.length() < minItems -> "Has to have between $minItems and $maxItems items"
+                else -> null
             }
-            schema.maxItems != null -> Validator { value ->
-                when {
-                    value == null -> emptyList()
-                    value.length() > schema.maxItems -> listOf("Has to have at most ${schema.maxItems} items")
-                    else -> emptyList()
-                }
+            maxItems != null -> when {
+                value.length() > maxItems -> "Has to have at most $maxItems items"
+                else -> null
             }
-            schema.minItems != null -> Validator { value ->
-                when {
-                    value == null -> emptyList()
-                    value.length() > schema.minItems -> listOf("Has to have at least ${schema.minItems} items")
-                    else -> emptyList()
-                }
+            minItems != null -> when {
+                value.length() > minItems -> "Has to have at least $minItems items"
+                else -> null
             }
             else -> null
         }

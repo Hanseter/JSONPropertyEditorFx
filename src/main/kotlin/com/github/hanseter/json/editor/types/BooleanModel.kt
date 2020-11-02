@@ -4,7 +4,9 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.BooleanSchema
 
-class BooleanModel(override val schema: SchemaWrapper<BooleanSchema>) : TypeModel<Boolean?> {
+class BooleanModel(override val schema: SchemaWrapper<BooleanSchema>) : TypeModel<Boolean?, SupportedType.SimpleType.BooleanType> {
+    override val supportedType: SupportedType.SimpleType.BooleanType
+        get() = SupportedType.SimpleType.BooleanType
     override var bound: BindableJsonType? = null
     override val defaultValue: Boolean?
         get() = schema.schema.defaultValue as? Boolean
@@ -14,8 +16,6 @@ class BooleanModel(override val schema: SchemaWrapper<BooleanSchema>) : TypeMode
         set(value) {
             bound?.setValue(schema, value)
         }
-
-    override val validationErrors: List<String> = emptyList()
 
     companion object {
         val CONVERTER: (Any?) -> Boolean? = { it as? Boolean }

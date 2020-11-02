@@ -7,11 +7,11 @@ import org.json.JSONObject
 object ResetToDefaultAction : EditorAction {
     override val text: String = "↻"
     override val description: String = "Reset to default"
-    override val selector: ActionTargetSelector = ActionTargetSelector.Custom {
-        it.schema.defaultValue != null && !it.readOnly
+    override val selector: ActionTargetSelector = ActionTargetSelector {
+        it.schema.schema.defaultValue != null && !it.schema.readOnly
     }
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*>): JSONObject? {
+    override fun apply(currentData: JSONObject, model: TypeModel<*, *>): JSONObject? {
         val key = model.schema.getPropertyName()
         when (val parentContainer = model.schema.parent?.extractProperty(currentData)
                 ?: currentData) {

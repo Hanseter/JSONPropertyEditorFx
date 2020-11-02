@@ -34,7 +34,6 @@ class IntegerControl(schema: NumberSchema) : ControlWithProperty<Int?> {
             if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
                 control.editor.text = control.valueFactory.value?.toString() ?: ""
             }
-
         }
     }
 

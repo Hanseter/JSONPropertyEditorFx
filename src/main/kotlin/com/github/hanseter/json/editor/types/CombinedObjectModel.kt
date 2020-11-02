@@ -5,7 +5,9 @@ import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.CombinedSchema
 import org.json.JSONObject
 
-class CombinedObjectModel(override val schema: SchemaWrapper<CombinedSchema>) : TypeModel<JSONObject?> {
+class CombinedObjectModel(override val schema: SchemaWrapper<CombinedSchema>) : TypeModel<JSONObject?, SupportedType.ComplexType.ObjectType> {
+    override val supportedType: SupportedType.ComplexType.ObjectType
+        get() = SupportedType.ComplexType.ObjectType
     override var bound: BindableJsonType? = null
     override val defaultValue: JSONObject?
         get() = schema.schema.defaultValue as? JSONObject
@@ -15,8 +17,6 @@ class CombinedObjectModel(override val schema: SchemaWrapper<CombinedSchema>) : 
         set(value) {
             bound?.setValue(schema, value)
         }
-
-    override val validationErrors: List<String> = emptyList()
 
     companion object {
         val CONVERTER: (Any?) -> JSONObject? = { it as? JSONObject }

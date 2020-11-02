@@ -4,7 +4,9 @@ import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.NumberSchema
 
-class IntegerModel(override val schema: SchemaWrapper<NumberSchema>) : TypeModel<Int?> {
+class IntegerModel(override val schema: SchemaWrapper<NumberSchema>) : TypeModel<Int?, SupportedType.SimpleType.IntType> {
+    override val supportedType: SupportedType.SimpleType.IntType
+        get() = SupportedType.SimpleType.IntType
     override var bound: BindableJsonType? = null
     override val defaultValue: Int?
         get() = schema.schema.defaultValue as? Int
@@ -14,8 +16,6 @@ class IntegerModel(override val schema: SchemaWrapper<NumberSchema>) : TypeModel
         set(value) {
             bound?.setValue(schema, value)
         }
-
-    override val validationErrors: List<String> = emptyList()
 
     companion object {
         val CONVERTER: (Any?) -> Int? = { (it as? Number)?.toInt() }

@@ -1,16 +1,13 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonType
-import javafx.beans.value.ObservableBooleanValue
+import javafx.scene.Node
 
 interface TypeControl {
-    val node: FilterableTreeItem<TreeItemData>
-    val valid: ObservableBooleanValue
-    val model: TypeModel<*>
-
+    val control: Node?
+    val model: TypeModel<*, *>
+    val childControls: List<TypeControl>
     fun bindTo(type: BindableJsonType)
 
     companion object {

@@ -1,9 +1,6 @@
 package com.github.hanseter.json.editor
 
-import com.github.hanseter.json.editor.actions.ResetToDefaultAction
-import com.github.hanseter.json.editor.actions.ResetToNullAction
 import javafx.application.Application
-import javafx.application.Platform
 import javafx.scene.Scene
 import javafx.stage.Stage
 import org.json.JSONObject
@@ -22,7 +19,7 @@ class JsonPropertiesEditorTestApp : Application() {
         }
 
         val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2,
-                customResolutionScopeProvider, listOf(ResetToDefaultAction, ResetToNullAction))
+                customResolutionScopeProvider)
 //        val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")
 //                .put("string list", listOf("A", "B"))
 //                .put("string_list_readonly", listOf("A", "B"))
@@ -79,6 +76,7 @@ class JsonPropertiesEditorTestApp : Application() {
                 "resettableSchema.json"
 //                "deepSchema.json"
 //                "completeValidationTestSchema.json"
+//                "StringSchema.json"
         )))
 //		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
@@ -92,9 +90,9 @@ class JsonPropertiesEditorTestApp : Application() {
 
         propEdit.display("test", "isRoot 1 2 3 4 5 long text", resettableTestData, schema) {
             println(it.toString(1))
-            Platform.runLater {
-                propEdit.updateObject("test", it)
-            }
+//            Platform.runLater {
+//                propEdit.updateObject("test", it)
+//            }
             it
         }
 //		propEdit.display("test2", "test2", testData, schema) { it }
@@ -107,7 +105,7 @@ class JsonPropertiesEditorTestApp : Application() {
  */
 
 
-        propEdit.display("1", "1", completeValidationInvalidData, schema) { println(it.toString(1));it }
+//        propEdit.display("1", "1", completeValidationInvalidData, schema) { println(it.toString(1));it }
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(propEdit, 800.0, 800.0)
         primaryStage.show()

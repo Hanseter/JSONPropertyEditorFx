@@ -4,9 +4,6 @@ import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.util.EditorContext
-import javafx.beans.binding.Bindings
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.value.ObservableBooleanValue
 import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Control
@@ -31,16 +28,11 @@ fun createTypeControlsFromSchemas(schema: SchemaWrapper<*>, contentSchemas: Coll
                 it.model.schema.getPropertyName().toLowerCase()
             }
         }
-        else -> unorderedControls = controls.sortedBy { it.model.schema.getPropertyName().toLowerCase() }
+        else -> unorderedControls = controls.sortedBy { it.model.schema.title.toLowerCase() }
     }
 
     return orderedControls + unorderedControls
 }
-
-fun createValidityBinding(children: List<TypeControl>) =
-        children.fold(SimpleBooleanProperty(true) as ObservableBooleanValue) { a, b ->
-            Bindings.and(a, b.valid)
-        }
 
 class TypeWithChildrenStatusControl(createLabel: String, onCreate: () -> Unit) : HBox() {
 

@@ -1,17 +1,22 @@
 package com.github.hanseter.json.editor.validators
 
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import org.controlsfx.validation.ValidationResult
+import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.types.SupportedType
+import com.github.hanseter.json.editor.types.TypeModel
 import org.everit.json.schema.StringSchema
 
-class IdReferenceValidator(schema: StringSchema, referenceProposalProvider: IdReferenceProposalProvider) {
-    val validators = listOf(StringValidator(schema), createReferenceValidation(referenceProposalProvider))
+class IdReferenceValidator(private val referenceProposalProvider: IdReferenceProposalProvider) : Validator {
+    override val selector: ActionTargetSelector = ActionTargetSelector { it.supportedType == SupportedType.SimpleType.IdReferenceType }
 
-    fun validate(value: String?): List<String> = validators.flatMap { it.validate(value) }
+    override fun validate(model: TypeModel<*, *>): List<String> =
+            validateString(model.schema.schema as StringSchema, model.value as? String) +
+                    (validateReference(referenceProposalProvider, model.value as? String)?.let { listOf(it) }
+                            ?: emptyList())
+
 }
 
-fun createReferenceValidation(referenceProposalProvider: IdReferenceProposalProvider): Validator<String?> =
-        Validator { value ->
-            if (referenceProposalProvider.isValidReference(value)) listOf()
-            else listOf("Has to be a valid reference")
-        }
+
+fun validateReference(referenceProposalProvider: IdReferenceProposalProvider, value: String?): String? =
+        if (referenceProposalProvider.isValidReference(value)) null
+        else "Has to be a valid reference"

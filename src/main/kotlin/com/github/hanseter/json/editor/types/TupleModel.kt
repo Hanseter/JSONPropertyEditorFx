@@ -6,7 +6,9 @@ import org.everit.json.schema.ArraySchema
 import org.everit.json.schema.Schema
 import org.json.JSONArray
 
-class TupleModel(override val schema: SchemaWrapper<ArraySchema>, val contentSchemas: List<Schema>) : TypeModel<JSONArray?> {
+class TupleModel(override val schema: SchemaWrapper<ArraySchema>, val contentSchemas: List<Schema>) : TypeModel<JSONArray?, SupportedType.ComplexType.TupleType> {
+    override val supportedType: SupportedType.ComplexType.TupleType
+        get() = SupportedType.ComplexType.TupleType
     override var bound: BindableJsonType? = null
     override val defaultValue: JSONArray?
         get() = schema.schema.defaultValue as? JSONArray
@@ -16,8 +18,6 @@ class TupleModel(override val schema: SchemaWrapper<ArraySchema>, val contentSch
         set(value) {
             bound?.setValue(schema, value)
         }
-
-    override val validationErrors: List<String> = emptyList()
 
     companion object {
         val CONVERTER: (Any?) -> JSONArray? = { it as? JSONArray }

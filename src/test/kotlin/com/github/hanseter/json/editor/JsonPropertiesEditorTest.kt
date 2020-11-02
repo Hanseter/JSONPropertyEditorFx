@@ -73,7 +73,7 @@ class JsonPropertiesEditorTest {
         editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        assertThat(arrayEntry.value.action!!.children, `is`(empty()))
+        assertThat(arrayEntry.value.actions!!.children, `is`(empty()))
     }
 
     @Test
@@ -100,9 +100,9 @@ class JsonPropertiesEditorTest {
         editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        assertThat(arrayEntry.value.action!!.children.size, `is`(2))
-        assertThat((arrayEntry.value.action!!.children[0] as Button).text, `is`("Ø"))
-        assertThat((arrayEntry.value.action!!.children[1] as Button).text, `is`("\uD83D\uDFA3"))
+        assertThat(arrayEntry.value.actions!!.children.size, `is`(2))
+        assertThat((arrayEntry.value.actions!!.children[0] as Button).text, `is`("Ø"))
+        assertThat((arrayEntry.value.actions!!.children[1] as Button).text, `is`("\uD83D\uDFA3"))
     }
 
     @Test
@@ -115,7 +115,7 @@ class JsonPropertiesEditorTest {
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        val addButton = arrayEntry.value.action!!.children[1] as Button
+        val addButton = arrayEntry.value.actions!!.children[1] as Button
         addButton.fire()
         addButton.fire()
         addButton.fire()
@@ -132,7 +132,7 @@ class JsonPropertiesEditorTest {
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        val addButton = arrayEntry.value.action!!.children[1] as Button
+        val addButton = arrayEntry.value.actions!!.children[1] as Button
         addButton.fire()
         addButton.fire()
         //is this actually what we want?

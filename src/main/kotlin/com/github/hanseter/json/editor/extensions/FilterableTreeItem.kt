@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.extensions
 
 import com.github.hanseter.json.editor.actions.ActionsContainer
+import com.github.hanseter.json.editor.controls.TypeControl
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -99,10 +100,51 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
  * By default it's not treated as a root item.
  *
  */
-class TreeItemData(val label: Label, val control: Node?,
-                   val action: ActionsContainer?, val isRoot: Boolean, val isHeadline: Boolean) {
-    constructor(key: String, description: String?, control: Node?, action: ActionsContainer?, isRoot: Boolean = false, isHeadline: Boolean = false) :
-            this(Label(key).apply {
-                tooltip = description?.let { Tooltip(it) }
-            }, control, action, isRoot, isHeadline)
+interface TreeItemData {
+    val label: Label
+    val control: Node?
+    val actions: ActionsContainer?
+    val isRoot: Boolean
+        get() = false
+    val isHeadline: Boolean
+        get() = false
+}
+
+class ControlTreeItemData(
+        val typeControl: TypeControl,
+        override val actions: ActionsContainer,
+        val validators: List<com.github.hanseter.json.editor.validators.Validator>) : TreeItemData {
+    override val label = Label(typeControl.model.schema.title).apply {
+        tooltip = typeControl.model.schema.schema.description?.let { Tooltip(it) }
+    }
+    override val control: Node?
+        get() = typeControl.control
+}
+
+object RootTreeItemData : TreeItemData {
+    override val label: Label = Label("root")
+    override val control: Node?
+        get() = null
+    override val actions: ActionsContainer?
+        get() = null
+}
+
+class SectionRootTreeItemData(title: String) : TreeItemData {
+    override val label: Label = Label(title)
+    override val control: Node?
+        get() = null
+    override val actions: ActionsContainer?
+        get() = null
+    override val isRoot: Boolean
+        get() = true
+}
+
+class HeaderTreeItemData(title: String) : TreeItemData {
+    override val label: Label = Label(title)
+    override val control: Node?
+        get() = null
+    override val actions: ActionsContainer?
+        get() = null
+    override val isHeadline: Boolean
+        get() = true
 }
