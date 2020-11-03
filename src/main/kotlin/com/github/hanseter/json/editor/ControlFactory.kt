@@ -44,9 +44,9 @@ object ControlFactory {
             RowBasedControl(BooleanControl(), BooleanModel(schema))
 
     private fun createStringControl(schema: SchemaWrapper<StringSchema>, context: EditorContext): TypeControl =
-            when (schema.schema.formatValidator) {
-                ColorFormat.Validator -> RowBasedControl(ColorControl(), ColorModel(schema))
-                IdReferenceFormat.Validator -> RowBasedControl(IdReferenceControl(schema, context), IdReferenceModel(schema))
+            when (schema.schema.formatValidator.formatName()) {
+                ColorFormat.formatName -> RowBasedControl(ColorControl(), ColorModel(schema))
+                IdReferenceFormat.formatName -> RowBasedControl(IdReferenceControl(schema, context), IdReferenceModel(schema))
                 else -> RowBasedControl(StringControl(), StringModel(schema))
             }
 

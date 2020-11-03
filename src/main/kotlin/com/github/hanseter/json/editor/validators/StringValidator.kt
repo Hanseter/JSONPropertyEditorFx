@@ -1,14 +1,13 @@
 package com.github.hanseter.json.editor.validators
 
-import com.github.hanseter.json.editor.actions.ActionTargetSelector
-import com.github.hanseter.json.editor.types.SupportedType
+import com.github.hanseter.json.editor.actions.TargetSelector
 import com.github.hanseter.json.editor.types.TypeModel
 import org.everit.json.schema.FormatValidator
 import org.everit.json.schema.StringSchema
 import java.util.regex.Pattern
 
 object StringValidator : Validator {
-    override val selector: ActionTargetSelector = ActionTargetSelector { it.supportedType == SupportedType.SimpleType.StringType }
+    override val selector: TargetSelector = TargetSelector { it.schema.schema is StringSchema }
 
     override fun validate(model: TypeModel<*, *>): List<String> =
             validateString(model.schema.schema as StringSchema, model.value as? String)

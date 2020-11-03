@@ -7,7 +7,10 @@ import com.github.hanseter.json.editor.extensions.RootTreeItemData
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
-import com.github.hanseter.json.editor.validators.*
+import com.github.hanseter.json.editor.validators.ArrayValidator
+import com.github.hanseter.json.editor.validators.RequiredValidator
+import com.github.hanseter.json.editor.validators.StringValidator
+import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
@@ -30,7 +33,7 @@ class JsonPropertiesEditor(
         private val numberOfInitiallyOpenedObjects: Int = 5,
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
         actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-        private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, IdReferenceValidator(referenceProposalProvider), RequiredValidator)
+        private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, RequiredValidator)
 ) : VBox() {
     private val actions = actions + PreviewAction(referenceProposalProvider, resolutionScopeProvider) + arrayActions
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -94,7 +97,7 @@ class JsonPropertiesEditor(
                 .useDefaults(true)
                 .draftV7Support()
                 .addFormatValidator(ColorFormat.Validator)
-                .addFormatValidator(IdReferenceFormat.Validator)
+                .addFormatValidator(IdReferenceFormat.Validator(referenceProposalProvider))
                 .schemaJson(schema)
 
         if (resolutionScope != null) {
@@ -135,7 +138,7 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(title: String, data: JSONObject,
                                           schema: Schema, callback: (JSONObject) -> JSONObject): JsonPropertiesPane =
-            JsonPropertiesPane(title, data, schema, referenceProposalProvider, resolutionScopeProvider, actions, validators) { obj, pane ->
+            JsonPropertiesPane(title, data, schema, referenceProposalProvider, actions, validators) { obj, pane ->
                 pane.fillData(callback(obj))
             }
 

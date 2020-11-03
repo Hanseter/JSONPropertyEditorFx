@@ -7,6 +7,7 @@ import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.*
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.RootBindableType
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.Control
@@ -21,7 +22,6 @@ class JsonPropertiesPane(
         data: JSONObject,
         schema: Schema,
         private val refProvider: IdReferenceProposalProvider,
-        private val resolutionScopeProvider: ResolutionScopeProvider,
         private val actions: List<EditorAction>,
         private val validators: List<com.github.hanseter.json.editor.validators.Validator>,
         private val changeListener: (JSONObject, JsonPropertiesPane) -> Unit
@@ -51,8 +51,8 @@ class JsonPropertiesPane(
     }
 
     private fun wrapControlInTreeItem(control: TypeControl): FilterableTreeItem<TreeItemData> {
-        val actions = ActionsContainer(control, actions) { action, control ->
-            val ret = action.apply(contentHandler.data, control.model)
+        val actions = ActionsContainer(control, actions) { e, action, control ->
+            val ret = action.apply(contentHandler.data, control.model, e)
             if (ret != null) {
                 changeListener(ret, this)
                 fillData(ret)
@@ -133,26 +133,28 @@ class JsonPropertiesPane(
     }
 
     private fun updateValidity(item: FilterableTreeItem<TreeItemData>) {
-        val decoration = GraphicValidationDecoration()
-        var hadValidationErrors = false
-        val stack = ArrayList<FilterableTreeItem<TreeItemData>>()
-        stack.add(item)
-        while (stack.isNotEmpty()) {
-            val current = stack.removeLast()
-            current.value.actions?.updateDisablement()
-            stack.addAll(current.list)
-            (current.value as? ControlTreeItemData)?.also {data ->
-                decoration.removeDecorations(data.label)
-                val validationErrors = data.validators.flatMap { it.validate(data.typeControl.model) }
-                if (validationErrors.isNotEmpty()) {
-                    hadValidationErrors = true
-                    validationErrors.forEach {
-                        decoration.applyValidationDecoration(SimpleValidationMessage(data.label, it, Severity.ERROR))
+        Platform.runLater {
+            val decoration = GraphicValidationDecoration()
+            var hadValidationErrors = false
+            val stack = ArrayList<FilterableTreeItem<TreeItemData>>()
+            stack.add(item)
+            while (stack.isNotEmpty()) {
+                val current = stack.removeLast()
+                current.value.actions?.updateDisablement()
+                stack.addAll(current.list)
+                (current.value as? ControlTreeItemData)?.also { data ->
+                    decoration.removeDecorations(data.label)
+                    val validationErrors = data.validators.flatMap { it.validate(data.typeControl.model) }
+                    if (validationErrors.isNotEmpty()) {
+                        hadValidationErrors = true
+                        validationErrors.forEach {
+                            decoration.applyValidationDecoration(SimpleValidationMessage(data.label, it, Severity.ERROR))
+                        }
                     }
                 }
             }
+            valid.set(!hadValidationErrors)
         }
-        valid.set(!hadValidationErrors)
     }
 
     class SimpleValidationMessage(

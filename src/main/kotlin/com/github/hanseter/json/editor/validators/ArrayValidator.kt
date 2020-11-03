@@ -1,6 +1,6 @@
 package com.github.hanseter.json.editor.validators
 
-import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.TargetSelector
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import org.everit.json.schema.ArraySchema
@@ -8,7 +8,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object ArrayValidator : Validator {
-    override val selector: ActionTargetSelector = ActionTargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType }
+    override val selector: TargetSelector = TargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType }
 
     override fun validate(model: TypeModel<*, *>): List<String> {
         val schema = model.schema.schema as ArraySchema

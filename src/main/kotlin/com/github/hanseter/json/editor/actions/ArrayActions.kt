@@ -3,6 +3,8 @@ package com.github.hanseter.json.editor.actions
 import com.github.hanseter.json.editor.extensions.ArraySchemaWrapper
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
+import javafx.event.Event
+import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -11,19 +13,20 @@ val arrayActions = listOf(AddToArrayAction, RemoveFromArrayAction, MoveArrayItem
 object AddToArrayAction : EditorAction {
     override val text: String = "\uD83D\uDFA3"// \uD83D\uDFA3 = 🞣
     override val description: String = "Inserts a new empty item at the end of the list"
-    override val selector: ActionTargetSelector = ActionTargetSelector.AllOf(listOf(
-            ActionTargetSelector.ReadOnly.invert(),
-            ActionTargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType }))
+    override val selector: TargetSelector = TargetSelector.AllOf(listOf(
+            TargetSelector.ReadOnly.invert(),
+            TargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType }))
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>): JSONObject? {
+    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
         val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value
                 ?: JSONArray()
-        children.put(children.length(), JSONObject.NULL)
+        val childDefaultValue = (model.schema.schema as ArraySchema).allItemSchema.defaultValue
+        children.put(children.length(), childDefaultValue ?: JSONObject.NULL)
         return currentData
     }
 }
 
-object ArrayChildSelector : ActionTargetSelector {
+object ArrayChildSelector : TargetSelector {
     override fun matches(model: TypeModel<*, *>): Boolean =
             model.schema.let { it is ArraySchemaWrapper && !it.parent.readOnly }
 }
@@ -31,10 +34,10 @@ object ArrayChildSelector : ActionTargetSelector {
 object RemoveFromArrayAction : EditorAction {
     override val text: String = "-"
     override val description: String = "Remove this item"
-    override val selector: ActionTargetSelector
+    override val selector: TargetSelector
         get() = ArrayChildSelector
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>): JSONObject? {
+    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
         val children = model.schema.parent?.extractProperty(currentData) as? JSONArray
                 ?: return null
         val index = (model.schema as ArraySchemaWrapper).index
@@ -46,10 +49,10 @@ object RemoveFromArrayAction : EditorAction {
 object MoveArrayItemUpAction : EditorAction {
     override val text: String = "↑"
     override val description: String = "Move this item one row up"
-    override val selector: ActionTargetSelector
+    override val selector: TargetSelector
         get() = ArrayChildSelector
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>): JSONObject? {
+    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
         val children = model.schema.parent?.extractProperty(currentData) as? JSONArray
                 ?: return null
         val index = (model.schema as ArraySchemaWrapper).index
@@ -64,10 +67,10 @@ object MoveArrayItemUpAction : EditorAction {
 object MoveArrayItemDownAction : EditorAction {
     override val text: String = "↓"
     override val description: String = "Move this item one row down"
-    override val selector: ActionTargetSelector
+    override val selector: TargetSelector
         get() = ArrayChildSelector
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>): JSONObject? {
+    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
         val children = model.schema.parent?.extractProperty(currentData) as? JSONArray
                 ?: return null
         val index = (model.schema as ArraySchemaWrapper).index
