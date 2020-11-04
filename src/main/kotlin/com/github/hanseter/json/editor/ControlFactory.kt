@@ -9,6 +9,7 @@ import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
+import java.lang.reflect.Method
 
 
 object ControlFactory {
@@ -72,7 +73,7 @@ object ControlFactory {
     }
 
     private fun createAllOfControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
-        if (CombinedSchemaSyntheticChecker.isSynthetic(schema.schema)) {
+        if (isSynthetic(schema.schema)) {
             return createControlFromSyntheticAllOf(schema)
         }
 
@@ -91,6 +92,12 @@ object ControlFactory {
         }
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
+
+
+    private val isSyntheticMethod: Method = CombinedSchema::class.java.getDeclaredMethod("isSynthetic").apply { isAccessible = true }
+    private fun isSynthetic(combinedSchema: CombinedSchema): Boolean =
+            isSyntheticMethod.invoke(combinedSchema) as Boolean
+
 }
 
 

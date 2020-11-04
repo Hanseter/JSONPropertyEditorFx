@@ -73,10 +73,10 @@ class JsonPropertiesEditorTestApp : Application() {
 
         val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
 //                "nestedCompositeSchema.json"
-                "resettableSchema.json"
+//                "resettableSchema.json"
 //                "deepSchema.json"
 //                "completeValidationTestSchema.json"
-//                "StringSchema.json"
+                "StringSchema.json"
         )))
 //		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
 
