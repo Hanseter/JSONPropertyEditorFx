@@ -138,9 +138,7 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(title: String, data: JSONObject,
                                           schema: Schema, callback: (JSONObject) -> JSONObject): JsonPropertiesPane =
-            JsonPropertiesPane(title, data, schema, referenceProposalProvider, actions, validators) { obj, pane ->
-                pane.fillData(callback(obj))
-            }
+            JsonPropertiesPane(title, data, schema, referenceProposalProvider, actions, validators, callback)
 
     private fun initTreeTableView() {
         val keyColumn = createKeyColumn()
