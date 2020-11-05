@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.extensions
 
 import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.controls.TypeControl
+import com.github.hanseter.json.editor.util.DecoratableLabelSkin
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -116,6 +117,7 @@ class ControlTreeItemData(
         val validators: List<com.github.hanseter.json.editor.validators.Validator>) : TreeItemData {
     override val label = Label(typeControl.model.schema.title).apply {
         tooltip = typeControl.model.schema.schema.description?.let { Tooltip(it) }
+        skin = DecoratableLabelSkin(this)
     }
     override val control: Node?
         get() = typeControl.control
