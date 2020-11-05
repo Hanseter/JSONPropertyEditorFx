@@ -2,7 +2,6 @@ package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.extensions.SchemaWrapper
 import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.validators.StringValidator
 import org.everit.json.schema.StringSchema
 
 class StringModel(override val schema: SchemaWrapper<StringSchema>) : TypeModel<String?, SupportedType.SimpleType.StringType> {

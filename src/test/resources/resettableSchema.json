@@ -88,7 +88,7 @@
     "defColor": {
       "type": "string",
       "format": "color",
-      "default": "#FF0000"
+      "default": "#FF0000FF"
     },
     "ref": {
       "type": "string",

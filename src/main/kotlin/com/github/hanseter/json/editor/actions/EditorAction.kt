@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.actions
 
 import com.github.hanseter.json.editor.types.TypeModel
+import javafx.event.Event
 import org.json.JSONObject
 
 /**
@@ -12,11 +13,9 @@ interface EditorAction {
 
     val description: String
 
-    val selector: ActionTargetSelector
+    val selector: TargetSelector
 
-    fun matches(model: TypeModel<*, *>) = selector.matches(model)
-
-    fun apply(currentData: JSONObject, model: TypeModel<*, *>): JSONObject?
+    fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject?
 
     fun shouldBeDisabled(model: TypeModel<*, *>): Boolean =
             model.schema.readOnly

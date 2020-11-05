@@ -1,6 +1,6 @@
 package com.github.hanseter.json.editor.validators
 
-import com.github.hanseter.json.editor.actions.ActionTargetSelector
+import com.github.hanseter.json.editor.actions.TargetSelector
 import com.github.hanseter.json.editor.types.TypeModel
 
 /**
@@ -10,7 +10,7 @@ interface Validator {
     /**
      * A selector which determines whether the validator shall be applied to the current data.
      */
-    val selector: ActionTargetSelector
+    val selector: TargetSelector
 
     /**
      * Returns an error message if validation fails.

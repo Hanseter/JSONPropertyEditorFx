@@ -9,6 +9,7 @@ import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
+import java.lang.reflect.Method
 
 
 object ControlFactory {
@@ -44,9 +45,9 @@ object ControlFactory {
             RowBasedControl(BooleanControl(), BooleanModel(schema))
 
     private fun createStringControl(schema: SchemaWrapper<StringSchema>, context: EditorContext): TypeControl =
-            when (schema.schema.formatValidator) {
-                ColorFormat.Validator -> RowBasedControl(ColorControl(), ColorModel(schema))
-                IdReferenceFormat.Validator -> RowBasedControl(IdReferenceControl(schema, context), IdReferenceModel(schema))
+            when (schema.schema.formatValidator.formatName()) {
+                ColorFormat.formatName -> RowBasedControl(ColorControl(), ColorModel(schema))
+                IdReferenceFormat.formatName -> RowBasedControl(IdReferenceControl(schema, context), IdReferenceModel(schema))
                 else -> RowBasedControl(StringControl(), StringModel(schema))
             }
 
@@ -72,7 +73,7 @@ object ControlFactory {
     }
 
     private fun createAllOfControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
-        if (CombinedSchemaSyntheticChecker.isSynthetic(schema.schema)) {
+        if (isSynthetic(schema.schema)) {
             return createControlFromSyntheticAllOf(schema)
         }
 
@@ -91,6 +92,12 @@ object ControlFactory {
         }
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
+
+
+    private val isSyntheticMethod: Method = CombinedSchema::class.java.getDeclaredMethod("isSynthetic").apply { isAccessible = true }
+    private fun isSynthetic(combinedSchema: CombinedSchema): Boolean =
+            isSyntheticMethod.invoke(combinedSchema) as Boolean
+
 }
 
 
