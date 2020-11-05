@@ -3,6 +3,8 @@ package com.github.hanseter.json.editor.actions
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import org.everit.json.schema.ObjectSchema
+import org.everit.json.schema.ReferenceSchema
+import org.everit.json.schema.Schema
 
 /**
  * A target selector is used to specify whether for example an action or a validator should be applied against a specifier subpart of the schema.
@@ -54,10 +56,13 @@ fun interface TargetSelector {
 
     object Required : TargetSelector {
 
-        override fun matches(model: TypeModel<*, *>) =
-                (model.schema.parent?.schema as? ObjectSchema)?.let {
-                    model.schema.getPropertyName() in it.requiredProperties
-                } ?: true
+        override fun matches(model: TypeModel<*, *>): Boolean {
+            val schema = model.schema.parent?.schema?.let { getReferredSchema(it) }
+
+            return (schema as? ObjectSchema)?.let {
+                model.schema.getPropertyName() in it.requiredProperties
+            } ?: true
+        }
 
     }
 
@@ -81,4 +86,19 @@ fun interface TargetSelector {
 
     }
 
+}
+
+/**
+ * Gets the referred schema of a reference schema.
+ *
+ * @return the referred schema, `schema` if it is not a reference schema, or `null` if `schema` or any referred schema is `null`
+ */
+fun getReferredSchema(schema: Schema): Schema {
+    var currentSchema = schema
+
+    while (currentSchema is ReferenceSchema) {
+        currentSchema = currentSchema.referredSchema
+    }
+
+    return currentSchema
 }

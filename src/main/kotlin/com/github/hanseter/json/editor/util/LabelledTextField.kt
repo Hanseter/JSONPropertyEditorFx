@@ -7,7 +7,7 @@ import javafx.scene.control.Label
 import javafx.scene.control.Skin
 import javafx.scene.control.TextField
 import javafx.scene.text.Text
-import kotlin.math.min
+import java.lang.Double.min
 
 
 class LabelledTextField(text: String) : TextField(text) {
@@ -33,6 +33,10 @@ class LabelledTextField(text: String) : TextField(text) {
 
 class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFieldSkin(textField) {
 
+    companion object {
+        const val LABEL_SEPARATOR_WIDTH = 5.0
+    }
+
     private val label = Label().apply {
         textProperty().bind(textField.labelProperty())
 
@@ -43,36 +47,56 @@ class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFiel
     }
 
     private val textNode: Text?
+    private val promptNode: Text?
 
     init {
         children.add(label)
 
-        textNode = try {
-            val field = TextFieldSkin::class.java.getDeclaredField("textNode")
+        textNode = getParentField("textNode")
+        promptNode = getParentField("promptNode")
+    }
+
+    private inline fun <reified T> getParentField(fieldName: String): T? {
+        return try {
+            val field = TextFieldSkin::class.java.getDeclaredField(fieldName)
             field.isAccessible = true
-            field.get(this) as? Text
+            field.get(this) as? T
         } catch (ex: Exception) {
             // this is just for the visuals, no need to react here
             null
         }
     }
 
-
     override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {
 
         val fullHeight = h + snappedTopInset() + snappedBottomInset()
-
-        val rightWidth = snapSize(label.prefWidth(fullHeight))
-
         val textFieldStartX = snapPosition(x)
-        val textFieldWidth = w - snapSize(rightWidth)
 
-        super.layoutChildren(textFieldStartX, 0.0, textFieldWidth, fullHeight)
+        if (textNode != null) {
 
-        val fallbackRightStart = w - rightWidth + snappedLeftInset()
+            val activeTextNode = if (promptNode?.text?.isBlank() != false) textNode else promptNode
 
-        val realRightStart = if (textNode != null) min(textNode.prefWidth(h) + 10.0, fallbackRightStart) else fallbackRightStart
+            val prefTextWidth = snapSize(activeTextNode.prefWidth(fullHeight)) + LABEL_SEPARATOR_WIDTH
 
-        label.resizeRelocate(realRightStart, 0.0, rightWidth, fullHeight)
+            val realTextWidth = if (label.text.isNullOrBlank()) w else min(prefTextWidth, w)
+
+            val realLabelWidth = w - realTextWidth
+
+            super.layoutChildren(textFieldStartX, 0.0, realTextWidth, fullHeight)
+
+            label.resizeRelocate(textFieldStartX + realTextWidth, 0.0, realLabelWidth, fullHeight)
+
+        } else {
+
+            val prefLabelWidth = snapSize(label.prefWidth(fullHeight))
+
+            val textFieldWidth = w - snapSize(prefLabelWidth)
+
+            val realRightStart = w - prefLabelWidth + snappedLeftInset()
+
+            super.layoutChildren(textFieldStartX, 0.0, textFieldWidth, fullHeight)
+
+            label.resizeRelocate(realRightStart, 0.0, prefLabelWidth, fullHeight)
+        }
     }
 }
