@@ -24,7 +24,7 @@ class JsonPropertiesPane(
         private val refProvider: IdReferenceProposalProvider,
         private val actions: List<EditorAction>,
         private val validators: List<com.github.hanseter.json.editor.validators.Validator>,
-        private val changeListener: (JSONObject, JsonPropertiesPane) -> Unit
+        private val changeListener: (JSONObject) -> JSONObject
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(SectionRootTreeItemData(title))
     private val schema = RegularSchemaWrapper(null, schema, title)
@@ -54,8 +54,8 @@ class JsonPropertiesPane(
         val actions = ActionsContainer(control, actions) { e, action, control ->
             val ret = action.apply(contentHandler.data, control.model, e)
             if (ret != null) {
-                changeListener(ret, this)
-                fillData(ret)
+                val newData = changeListener(ret)
+                fillData(newData)
             }
         }
 
@@ -78,7 +78,8 @@ class JsonPropertiesPane(
         objectControl?.bindTo(type)
         fillTree()
         type.registerListener {
-            changeListener(type.value!!, this)
+            val newData = changeListener(type.value!!)
+            fillData(newData)
         }
     }
 
