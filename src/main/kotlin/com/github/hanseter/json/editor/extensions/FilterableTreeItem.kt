@@ -3,6 +3,8 @@ package com.github.hanseter.json.editor.extensions
 import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.util.DecoratableLabelSkin
+import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.validators.isRequiredSchema
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -103,6 +105,7 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
  */
 interface TreeItemData {
     val label: Label
+    val title: String
     val control: Node?
     val actions: ActionsContainer?
     val isRoot: Boolean
@@ -114,24 +117,34 @@ interface TreeItemData {
 class ControlTreeItemData(
         val typeControl: TypeControl,
         override val actions: ActionsContainer,
-        val validators: List<com.github.hanseter.json.editor.validators.Validator>) : TreeItemData {
-    override val label = Label(typeControl.model.schema.title).apply {
+        val validators: List<com.github.hanseter.json.editor.validators.Validator>,
+        viewOptions: ViewOptions) : TreeItemData {
+
+    override val title = typeControl.model.schema.title
+
+    override val label = Label(
+            title + if (viewOptions.markRequired && isRequiredSchema(typeControl.model.schema)) " *" else ""
+    ).apply {
         tooltip = typeControl.model.schema.schema.description?.let { Tooltip(it) }
         skin = DecoratableLabelSkin(this)
     }
+
     override val control: Node?
         get() = typeControl.control
 }
 
 object RootTreeItemData : TreeItemData {
-    override val label: Label = Label("root")
+    override val title = "root"
+
+    override val label: Label = Label(title)
+
     override val control: Node?
         get() = null
     override val actions: ActionsContainer?
         get() = null
 }
 
-class SectionRootTreeItemData(title: String) : TreeItemData {
+class SectionRootTreeItemData(override val title: String) : TreeItemData {
     override val label: Label = Label(title)
     override val control: Node?
         get() = null
@@ -141,7 +154,7 @@ class SectionRootTreeItemData(title: String) : TreeItemData {
         get() = true
 }
 
-class HeaderTreeItemData(title: String) : TreeItemData {
+class HeaderTreeItemData(override val title: String) : TreeItemData {
     override val label: Label = Label(title)
     override val control: Node?
         get() = null

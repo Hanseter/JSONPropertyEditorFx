@@ -6,7 +6,9 @@ import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.*
 import com.github.hanseter.json.editor.util.EditorContext
+import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.RootBindableType
+import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
@@ -24,6 +26,7 @@ class JsonPropertiesPane(
         private val refProvider: IdReferenceProposalProvider,
         private val actions: List<EditorAction>,
         private val validators: List<com.github.hanseter.json.editor.validators.Validator>,
+        private val viewOptions: ViewOptions,
         private val changeListener: (JSONObject) -> JSONObject
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(SectionRootTreeItemData(title))
@@ -60,9 +63,9 @@ class JsonPropertiesPane(
         }
 
         val item: FilterableTreeItem<TreeItemData> =
-                FilterableTreeItem(ControlTreeItemData(control, actions, validators.filter { it.selector.matches(control.model) }))
+                FilterableTreeItem(ControlTreeItemData(control, actions, validators.filter { it.selector.matches(control.model) }, viewOptions))
         if (control is ObjectControl) {
-            addRequiredAndOptionalChildren(item, control.requiredChildren, control.optionalChildren)
+            addObjectControlChildren(item, control)
         } else {
             item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
         }
@@ -96,7 +99,7 @@ class JsonPropertiesPane(
         if (control is ObjectControl) {
             if (item.isLeaf) {
                 if (control.childControls.isNotEmpty()) {
-                    addRequiredAndOptionalChildren(item, control.requiredChildren, control.optionalChildren)
+                    addObjectControlChildren(item, control)
                 }
             } else {
                 if (control.childControls.isEmpty()) {
@@ -114,6 +117,30 @@ class JsonPropertiesPane(
         }
         item.children.forEach { item ->
             (item.value as? ControlTreeItemData)?.also { updateTree(item as FilterableTreeItem<TreeItemData>, it.typeControl) }
+        }
+    }
+
+    private fun addObjectControlChildren(node: FilterableTreeItem<TreeItemData>, control: ObjectControl) {
+        if (viewOptions.groupBy == PropertyGrouping.REQUIRED) {
+            addRequiredAndOptionalChildren(node, control.requiredChildren, control.optionalChildren)
+        } else {
+            val propOrder = control.model.schema.getPropertyOrder()
+
+            node.addAll(control.childControls.sortedWith { o1, o2 ->
+                val prop1 = o1.model.schema.getPropertyName()
+                val prop2 = o2.model.schema.getPropertyName()
+
+                val index1 = propOrder.indexOf(prop1).let { if (it == -1) Int.MAX_VALUE else it }
+                val index2 = propOrder.indexOf(prop2).let { if (it == -1) Int.MAX_VALUE else it }
+
+                val compareOrdered = index1.compareTo(index2)
+
+                if (compareOrdered != 0) {
+                    compareOrdered
+                } else {
+                    o1.model.schema.title.toLowerCase().compareTo(o2.model.schema.title.toLowerCase())
+                }
+            }.map { wrapControlInTreeItem(it) })
         }
     }
 
