@@ -7,14 +7,16 @@ import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.*
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.RootBindableType
-import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.Control
+import javafx.scene.control.Label
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
 import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.everit.json.schema.Schema
+import org.everit.json.schema.ValidationException
+import org.json.JSONArray
 import org.json.JSONObject
 
 class JsonPropertiesPane(
@@ -76,19 +78,19 @@ class JsonPropertiesPane(
     private fun fillSheet(data: JSONObject) {
         val type = RootBindableType(data)
         objectControl?.bindTo(type)
-        fillTree()
+        fillTree(data)
         type.registerListener {
             val newData = changeListener(type.value!!)
             fillData(newData)
         }
     }
 
-    private fun fillTree() {
+    private fun fillTree(data: JSONObject) {
         controlItem?.also { item ->
             objectControl?.also {
                 updateTree(item, it)
             }
-            updateValidity(item)
+            updateTreeUiElements(item, data)
         }
     }
 
@@ -133,30 +135,64 @@ class JsonPropertiesPane(
         }
     }
 
-    private fun updateValidity(item: FilterableTreeItem<TreeItemData>) {
-        Platform.runLater {
-            val decoration = GraphicValidationDecoration()
-            var hadValidationErrors = false
-            val stack = ArrayList<FilterableTreeItem<TreeItemData>>()
-            stack.add(item)
-            while (stack.isNotEmpty()) {
-                val current = stack.removeLast()
-                current.value.actions?.updateDisablement()
-                stack.addAll(current.list)
-                (current.value as? ControlTreeItemData)?.also { data ->
-                    decoration.removeDecorations(data.label)
-                    val validationErrors = data.validators.flatMap { it.validate(data.typeControl.model) }
-                    if (validationErrors.isNotEmpty()) {
-                        hadValidationErrors = true
-                        validationErrors.forEach {
-                            decoration.applyValidationDecoration(SimpleValidationMessage(data.label, it, Severity.ERROR))
-                        }
-                    }
-                }
+    private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
+        val decorator = GraphicValidationDecoration()
+        val errorMap = validate(data)
+        flatten(root).forEach { item ->
+            item.value?.actions?.updateDisablement()
+            (item.value as? ControlTreeItemData)?.also { data ->
+                decorator.removeDecorations(data.label)
+                createValidationMessage(data.label,
+                        errorMap[listOf("#") + data.typeControl.model.schema.pointer]
+                )?.also(decorator::applyValidationDecoration)
             }
-            valid.set(!hadValidationErrors)
         }
+        decorator.removeDecorations(treeItem.value.label)
+        createValidationMessage(treeItem.value.label, errorMap[listOf("#")])?.also(decorator::applyValidationDecoration)
     }
+
+    private fun validate(data: JSONObject): Map<List<String>, String> {
+        return (try {
+            schema.schema.validate(deepCopyForJson(data))
+            valid.set(true)
+            null
+        } catch (e: ValidationException) {
+            valid.set(false)
+            e
+        })?.let(::mapPointerToError) ?: emptyMap()
+    }
+
+    private fun <T> flatten(item: FilterableTreeItem<T>): Sequence<FilterableTreeItem<T>> =
+            item.list.asSequence().flatMap { flatten(it) } + sequenceOf(item)
+
+    private fun mapPointerToError(ex: ValidationException): Map<List<String>, String> {
+        fun flatten(ex: ValidationException): Sequence<ValidationException> =
+                if (ex.causingExceptions.isEmpty()) sequenceOf(ex)
+                else ex.causingExceptions.asSequence().flatMap { flatten(it) }
+
+        val ret = mutableMapOf<List<String>, String>()
+        fun addError(pointer: List<String>, message: String) {
+            val errorsSoFar = ret[pointer]
+            ret[pointer] = if (errorsSoFar == null) message else errorsSoFar + "\n" + message
+        }
+
+        val parentErrorCount = mutableMapOf<List<String>, Int>()
+
+        flatten(ex).forEach { validationError ->
+            val pointers = validationError.pointerToViolation.split('/').heads()
+            pointers.dropLast(1).forEach { parentPointer ->
+                val count = parentErrorCount[parentPointer] ?: 0
+                parentErrorCount[parentPointer] = count + 1
+            }
+            addError(pointers.last(), validationError.errorMessage)
+        }
+        parentErrorCount.forEach { (k, v) -> addError(k, "$v sub-error" + if (v > 1) "s" else "") }
+
+        return ret
+    }
+
+    private fun createValidationMessage(label: Label, msg: String?): SimpleValidationMessage? =
+            msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
 
     class SimpleValidationMessage(
             private val target: Control,
@@ -190,5 +226,22 @@ class JsonPropertiesPane(
             }
         }
     }
+}
 
+fun <T> List<T>.heads(): List<List<T>> {
+    tailrec fun <T> headsRec(list: List<T>, heads: List<List<T>>): List<List<T>> = when {
+        list.isEmpty() -> heads
+        else -> headsRec(list.dropLast(1), listOf(list) + heads)
+    }
+    return headsRec(this, emptyList())
+}
+
+private fun <T> deepCopyForJson(obj: T): T = when (obj) {
+    is JSONObject -> obj.keySet().fold(JSONObject()) { acc, it ->
+        acc.put(it, deepCopyForJson(obj.get(it)))
+    } as T
+    is JSONArray -> obj.fold(JSONArray()) { acc, it ->
+        acc.put(deepCopyForJson(it))
+    } as T
+    else -> obj
 }

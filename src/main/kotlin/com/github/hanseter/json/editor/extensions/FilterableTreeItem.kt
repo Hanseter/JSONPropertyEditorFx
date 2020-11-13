@@ -132,7 +132,9 @@ object RootTreeItemData : TreeItemData {
 }
 
 class SectionRootTreeItemData(title: String) : TreeItemData {
-    override val label: Label = Label(title)
+    override val label: Label = Label(title).apply {
+        skin = DecoratableLabelSkin(this)
+    }
     override val control: Node?
         get() = null
     override val actions: ActionsContainer?
