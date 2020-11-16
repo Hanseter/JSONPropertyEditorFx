@@ -2,7 +2,7 @@ package com.github.hanseter.json.editor
 
 import java.net.URI
 
-interface ResolutionScopeProvider {
+fun interface ResolutionScopeProvider {
     /**
      * Empty instance which provides an empty URI.
      */

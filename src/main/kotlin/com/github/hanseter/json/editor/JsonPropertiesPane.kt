@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.actions.EditorAction
+import com.github.hanseter.json.editor.controls.ArrayControl
 import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.*
@@ -45,7 +46,7 @@ class JsonPropertiesPane(
     }
 
     private fun initObjectControl() {
-        val objectControl = ControlFactory.convert(schema, EditorContext(refProvider))
+        val objectControl = ControlFactory.convert(schema, EditorContext(refProvider, ::updateTreeAfterChildChange))
         controlItem = wrapControlInTreeItem(objectControl)
         if (controlItem!!.isLeaf) treeItem.add(controlItem!!)
         else Bindings.bindContent(treeItem.list, controlItem!!.list)
@@ -94,30 +95,65 @@ class JsonPropertiesPane(
         }
     }
 
+    private fun updateTreeAfterChildChange(control: TypeControl) {
+        val item = findInTree(treeItem, control) ?: return
+        val iterNewChilds = control.childControls.listIterator()
+        val iterOldChilds = item.list.listIterator()
+        while (iterNewChilds.hasNext() && iterOldChilds.hasNext()) {
+            val newChild = iterNewChilds.next()
+            val oldChild = iterOldChilds.next()
+            if (newChild::class != oldChild::class) {
+                iterOldChilds.set(wrapControlInTreeItem(newChild))
+            }
+        }
+        iterNewChilds.forEachRemaining {
+            iterOldChilds.add(wrapControlInTreeItem(it))
+        }
+        while (iterOldChilds.hasNext()) {
+            iterOldChilds.remove()
+        }
+    }
+
+    private fun findInTree(item: FilterableTreeItem<TreeItemData>, control: TypeControl): FilterableTreeItem<TreeItemData>? =
+            item.list.find { (it.value as? ControlTreeItemData)?.typeControl == control }
+                    ?: item.list.asSequence().mapNotNull { findInTree(it, control) }.firstOrNull()
+
     private fun updateTree(item: FilterableTreeItem<TreeItemData>, control: TypeControl) {
-        if (control is ObjectControl) {
-            if (item.isLeaf) {
-                if (control.childControls.isNotEmpty()) {
-                    addRequiredAndOptionalChildren(item, control.requiredChildren, control.optionalChildren)
-                }
-            } else {
-                if (control.childControls.isEmpty()) {
-                    item.clear()
-                }
-            }
-        } else {
-            while (item.list.size > control.childControls.size) {
-                item.list.removeLast()
-            }
-            item.addAll((item.list.size until control.childControls.size).map { wrapControlInTreeItem(control.childControls[it]) })
-            if (item.list.size != control.childControls.size) {
-                item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
-            }
+        when (control) {
+            is ObjectControl -> updateObjectControlInTree(item, control)
+            is ArrayControl -> updateArrayControlInTree(item, control)
+//            is OneOfControl -> updateOneOfControlInTree(item, control)
         }
         item.children.forEach { item ->
             (item.value as? ControlTreeItemData)?.also { updateTree(item as FilterableTreeItem<TreeItemData>, it.typeControl) }
         }
     }
+
+    private fun updateObjectControlInTree(item: FilterableTreeItem<TreeItemData>, control: ObjectControl) {
+        if (item.isLeaf) {
+            if (control.childControls.isNotEmpty()) {
+                addRequiredAndOptionalChildren(item, control.requiredChildren, control.optionalChildren)
+            }
+        } else {
+            if (control.childControls.isEmpty()) {
+                item.clear()
+            }
+        }
+    }
+
+    private fun updateArrayControlInTree(item: FilterableTreeItem<TreeItemData>, control: TypeControl) {
+        while (item.list.size > control.childControls.size) {
+            item.list.removeLast()
+        }
+        item.addAll((item.list.size until control.childControls.size).map { wrapControlInTreeItem(control.childControls[it]) })
+//        if (item.list.size != control.childControls.size) {
+//            item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
+//        }
+    }
+
+//    private fun updateOneOfControlInTree(item: FilterableTreeItem<TreeItemData>, control: TypeControl) {
+//        if (control.childControls != item.)
+//    }
 
     private fun createRequiredHeader(): FilterableTreeItem<TreeItemData> = FilterableTreeItem(HeaderTreeItemData("Required"))
 

@@ -8,7 +8,7 @@ sealed class SupportedType<T> {
         object ObjectType : ComplexType<JSONObject?>()
         object ArrayType : ComplexType<JSONArray?>()
         object TupleType : ComplexType<JSONArray?>()
-
+        object OneOfType : ComplexType<Any?>()
     }
 
     sealed class SimpleType<T> : SupportedType<T>() {

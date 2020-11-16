@@ -3,7 +3,7 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import javafx.scene.control.*
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.`is`
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

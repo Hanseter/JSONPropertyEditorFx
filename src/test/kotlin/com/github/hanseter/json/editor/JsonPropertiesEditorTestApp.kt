@@ -20,24 +20,6 @@ class JsonPropertiesEditorTestApp : Application() {
 
         val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2,
                 customResolutionScopeProvider)
-//        val testData = JSONObject().put("string", "bla47").put("somethingNotInSchema", "Hello")
-//                .put("string list", listOf("A", "B"))
-//                .put("string_list_readonly", listOf("A", "B"))
-//                .put("referenced_point_schema", listOf(
-//                        JSONObject().put("x", 1.0).put("y", 2.0),
-//                        JSONObject().put("x", 3.0).put("y", 4.0)
-//                ))
-//                .put("enum", "bar")
-//                .put("ref", "Hello")
-
-//        val testData = JSONObject("""{
-// "fromNested": "test",
-// "additional": 9,
-// "name": "waht?",
-// "x": 6,
-// "y": 5,
-// "bool": true
-//}""")
         val resettableTestData = JSONObject("""
 {
   "reqBool": true,
@@ -71,44 +53,42 @@ class JsonPropertiesEditorTestApp : Application() {
 }
         """)
 
-        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(
-//                "nestedCompositeSchema.json"
+//        "nestedCompositeSchema.json"
 //                "resettableSchema.json"
 //                "deepSchema.json"
 //                "completeValidationTestSchema.json"
-                "StringSchema.json"
-        )))
-//		val schema = JSONObject(JSONTokener(this::class.java.getClassLoader().getResourceAsStream("StringSchema.json")))
+//        "StringSchema.json"
 
-//		propEdit.display("test4", "test4", testData, schema) { it }
-//		propEdit.display("test5", "test5", testData, schema) { it }
-//		propEdit.display("test6", "test6", testData, schema) { it }
-//		propEdit.clear()
-//		propEdit.display("test4", "test4", testData, schema) { it }
-//		propEdit.display("test5", "test5", testData, schema) { it }
-//		propEdit.display("test6", "test6", testData, schema) { it }
+        displayElementWithOneOf(propEdit)
 
-        propEdit.display("test", "isRoot 1 2 3 4 5 long text", resettableTestData, schema) {
-            println(it.toString(1))
-//            Platform.runLater {
-//                propEdit.updateObject("test", it)
-//            }
-            it
-        }
-//		propEdit.display("test2", "test2", testData, schema) { it }
-//		propEdit.display("test3", "test3", testData, schema) { it }
-
-        val d = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
-/*
-        val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
-
- */
-
-
-//        propEdit.display("1", "1", completeValidationInvalidData, schema) { println(it.toString(1));it }
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(propEdit, 800.0, 800.0)
         primaryStage.show()
+    }
+
+    private fun display(editor: JsonPropertiesEditor, schemaName: String, data: JSONObject) {
+        editor.display("test", "isRoot 1 2 3 4 5 long text", data, loadSchema(schemaName)) {
+            println(it.toString(1))
+            it
+        }
+    }
+
+    private fun loadSchema(schemaName: String) =
+            JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(schemaName)))
+
+    private fun displayElementWithOneOf(editor: JsonPropertiesEditor) {
+        val schema = JSONObject("""{
+"type":"object",
+"properties":{
+"choice": {
+"oneOf":[
+    {"type":"string"},
+    {"type":"number"}
+]}}}""")
+        editor.display("1", "1", JSONObject().put("choice", JSONObject.NULL), schema) {
+            println(it.toString(1))
+            it
+        }
     }
 
     object ReferenceProvider : IdReferenceProposalProvider {

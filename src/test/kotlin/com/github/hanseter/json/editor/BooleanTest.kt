@@ -4,10 +4,7 @@ import javafx.stage.Stage
 import org.controlsfx.control.ToggleSwitch
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
-import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource

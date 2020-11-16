@@ -1,0 +1,68 @@
+package com.github.hanseter.json.editor.types
+
+import com.github.hanseter.json.editor.ControlFactory
+import com.github.hanseter.json.editor.controls.TypeControl
+import com.github.hanseter.json.editor.extensions.CombinedSchemaWrapper
+import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.util.EditorContext
+import org.everit.json.schema.CombinedSchema
+import org.everit.json.schema.Schema
+import org.everit.json.schema.ValidationException
+
+class OneOfModel(override val schema: SchemaWrapper<CombinedSchema>, val editorContext: EditorContext) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
+    override val supportedType: SupportedType.ComplexType.OneOfType
+        get() = SupportedType.ComplexType.OneOfType
+    override var bound: BindableJsonType? = null
+        set(value) {
+            field = value
+            onBoundChanged(value)
+        }
+
+    //for now no support for default values in oneOfs
+    override val defaultValue: Any?
+        get() = null
+    override var value: Any?
+        get() = bound?.getValue(schema)
+        set(value) {
+            bound?.setValue(schema, value)
+        }
+
+    var actualType: TypeControl? = null
+        private set
+
+    private fun onBoundChanged(new: BindableJsonType?) {
+        if (new == null) {
+            actualType = null
+            return
+        }
+        if (actualType == null || !isValid(actualType!!.model.schema.schema, value)) {
+            val possibleNewType = tryGuessActualType()
+            if (possibleNewType != null) {
+                actualType = possibleNewType
+                possibleNewType.bindTo(new)
+            }
+        }
+    }
+
+    private fun isValid(schema: Schema, data: Any?): Boolean =
+            try {
+                schema.validate(data)
+                true
+            } catch (e: ValidationException) {
+                false
+            }
+
+    private fun tryGuessActualType(): TypeControl? {
+        val data = value
+        return schema.schema.subschemas.find { isValid(it, data) }?.let {
+            ControlFactory.convert(CombinedSchemaWrapper(schema, it), editorContext)
+        }
+    }
+
+    fun selectType(schema: Schema?) {
+        if (schema == null) return
+        actualType = ControlFactory.convert(CombinedSchemaWrapper(this.schema, schema), editorContext)
+        bound?.also { actualType?.bindTo(it) }
+    }
+}

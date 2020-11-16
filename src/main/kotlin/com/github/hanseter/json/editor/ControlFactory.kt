@@ -64,13 +64,12 @@ object ControlFactory {
         return RowBasedControl<String?>(EnumControl(enumModel), enumModel)
     }
 
-    private fun createCombinedControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
-        if (schema.schema.criterion == CombinedSchema.ALL_CRITERION) {
-            return createAllOfControl(schema, context)
-        }
-
-        return UnsupportedTypeControl(UnsupportedTypeModel(schema))
-    }
+    private fun createCombinedControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl =
+            when (schema.schema.criterion) {
+                CombinedSchema.ALL_CRITERION -> createAllOfControl(schema, context)
+                CombinedSchema.ONE_CRITERION -> createOneOfControl(schema, context)
+                else -> UnsupportedTypeControl(UnsupportedTypeModel(schema))
+            }
 
     private fun createAllOfControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
         if (isSynthetic(schema.schema)) {
@@ -91,6 +90,10 @@ object ControlFactory {
             return createEnumControl(schema, enumSchema)
         }
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
+    }
+
+    private fun createOneOfControl(schema: SchemaWrapper<CombinedSchema>, context: EditorContext): TypeControl {
+        return OneOfControl(OneOfModel(schema, context))
     }
 
 
