@@ -9,10 +9,10 @@ import org.everit.json.schema.Schema
  */
 class CombinedSchemaWrapper<T : Schema>(override val parent: SchemaWrapper<CombinedSchema>, override val schema: T) : SchemaWrapper<T> {
     override val title: String
-        get() = ""
+        get() = RegularSchemaWrapper.calcSchemaTitle(schema)
 
     override val pointer: List<String>
         get() = parent.pointer
 
-    override fun getPropertyName(): String = ""
+    override fun getPropertyName(): String = parent.getPropertyName()
 }
