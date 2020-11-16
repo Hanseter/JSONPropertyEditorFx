@@ -20,8 +20,8 @@ class PlainObjectControl(override val model: PlainObjectModel, context: EditorCo
     override var optionalChildren: List<TypeControl> = emptyList()
 
     init {
-        val childSchemas = model.schema.schema.propertySchemas.toMutableMap()
-        requiredChildrenNotNull = createTypeControlsFromSchemas(model.schema, model.schema.schema.requiredProperties.mapNotNull {
+        val childSchemas = model.schema.baseSchema.propertySchemas.toMutableMap()
+        requiredChildrenNotNull = createTypeControlsFromSchemas(model.schema, model.schema.baseSchema.requiredProperties.mapNotNull {
             childSchemas.remove(it)
         }, context)
         optionalChildrenNotNull = createTypeControlsFromSchemas(model.schema, childSchemas.values, context)

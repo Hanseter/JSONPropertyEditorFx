@@ -7,10 +7,10 @@ import org.everit.json.schema.StringSchema
 import java.util.regex.Pattern
 
 object StringValidator : Validator {
-    override val selector: TargetSelector = TargetSelector { it.schema.schema is StringSchema }
+    override val selector: TargetSelector = TargetSelector { it.schema.baseSchema is StringSchema }
 
     override fun validate(model: TypeModel<*, *>): List<String> =
-            validateString(model.schema.schema as StringSchema, model.value as? String)
+            validateString(model.schema.baseSchema as StringSchema, model.value as? String)
 }
 
 fun validateString(schema: StringSchema, value: String?): List<String> {

@@ -11,7 +11,7 @@ object ArrayValidator : Validator {
     override val selector: TargetSelector = TargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType }
 
     override fun validate(model: TypeModel<*, *>): List<String> {
-        val schema = model.schema.schema as ArraySchema
+        val schema = model.schema.baseSchema as ArraySchema
         val value = model.value as? JSONArray ?: return emptyList()
         val ret = mutableListOf<String>()
         if (schema.needsUniqueItems()) {

@@ -8,7 +8,7 @@ import javafx.scene.control.Label
 
 class UnsupportedTypeControl(override val model: TypeModel<Any?, SupportedType.SimpleType.UnsupportedType>) : TypeControl {
     override val control: Node?
-        get() = Label("!!Error: Schema ${model.schema.schema.schemaLocation} with type ${model.schema.schema::class.java.name} cannot be displayed.")
+        get() = Label("!!Error: Schema ${model.schema.baseSchema.schemaLocation} with type ${model.schema.baseSchema::class.java.name} cannot be displayed.")
     override val childControls: List<TypeControl>
         get() = emptyList()
 //    override val node = FilterableTreeItem(TreeItemData("!!Error", "Schema ${model.schema.schema.schemaLocation} with type ${model.schema.schema::class.java.name} cannot be displayed.", null, null))

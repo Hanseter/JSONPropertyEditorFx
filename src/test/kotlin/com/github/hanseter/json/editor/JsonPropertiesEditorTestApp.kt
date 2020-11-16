@@ -59,7 +59,8 @@ class JsonPropertiesEditorTestApp : Application() {
 //                "completeValidationTestSchema.json"
 //        "StringSchema.json"
 
-        displayElementWithOneOf(propEdit)
+        display(propEdit, "StringSchema.json", JSONObject())
+//        displayElementWithOneOf(propEdit)
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(propEdit, 800.0, 800.0)

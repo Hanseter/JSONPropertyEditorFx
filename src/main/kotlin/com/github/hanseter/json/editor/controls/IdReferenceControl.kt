@@ -1,18 +1,18 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.LabelledTextField
 import javafx.beans.property.Property
 import org.controlsfx.control.textfield.TextFields
 import org.everit.json.schema.StringSchema
 
-class IdReferenceControl(schema: SchemaWrapper<StringSchema>, private val context: EditorContext) : ControlWithProperty<String?> {
+class IdReferenceControl(schema: EffectiveSchema<StringSchema>, private val context: EditorContext) : ControlWithProperty<String?> {
     override val control = LabelledTextField()
     override val property: Property<String?> = control.textProperty()
 
     init {
-        val regex = schema.schema.pattern
+        val regex = schema.baseSchema.pattern
         TextFields.bindAutoCompletion(control) { request ->
             val proposals = context.refProvider.calcCompletionProposals(request.userText)
             if (regex != null) {

@@ -1,12 +1,13 @@
 package com.github.hanseter.json.editor.actions
 
-import com.github.hanseter.json.editor.extensions.ArraySchemaWrapper
+import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONPointer
 
 val arrayActions = listOf(AddToArrayAction, RemoveFromArrayAction, MoveArrayItemDownAction, MoveArrayItemUpAction)
 
@@ -20,7 +21,7 @@ object AddToArrayAction : EditorAction {
     override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
         val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value
                 ?: JSONArray()
-        val childDefaultValue = (model.schema.schema as ArraySchema).allItemSchema.defaultValue
+        val childDefaultValue = (model.schema.baseSchema as ArraySchema).allItemSchema.defaultValue
         children.put(children.length(), childDefaultValue ?: JSONObject.NULL)
         return currentData
     }
@@ -28,7 +29,7 @@ object AddToArrayAction : EditorAction {
 
 object ArrayChildSelector : TargetSelector {
     override fun matches(model: TypeModel<*, *>): Boolean =
-            model.schema.let { it is ArraySchemaWrapper && !it.parent.readOnly }
+            model.schema.let { it is EffectiveSchemaInArray && !it.parent.readOnly }
 }
 
 object RemoveFromArrayAction : EditorAction {
@@ -38,9 +39,9 @@ object RemoveFromArrayAction : EditorAction {
         get() = ArrayChildSelector
 
     override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
-        val children = model.schema.parent?.extractProperty(currentData) as? JSONArray
+        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData) as? JSONArray
                 ?: return null
-        val index = (model.schema as ArraySchemaWrapper).index
+        val index = (model.schema as EffectiveSchemaInArray).index
         children.remove(index)
         return currentData
     }
@@ -53,9 +54,9 @@ object MoveArrayItemUpAction : EditorAction {
         get() = ArrayChildSelector
 
     override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
-        val children = model.schema.parent?.extractProperty(currentData) as? JSONArray
+        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData) as? JSONArray
                 ?: return null
-        val index = (model.schema as ArraySchemaWrapper).index
+        val index = (model.schema as EffectiveSchemaInArray).index
         if (index == 0) return null
         val tmp = children.get(index - 1)
         children.put(index - 1, children.get(index))
@@ -71,9 +72,10 @@ object MoveArrayItemDownAction : EditorAction {
         get() = ArrayChildSelector
 
     override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
-        val children = model.schema.parent?.extractProperty(currentData) as? JSONArray
+
+        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData) as? JSONArray
                 ?: return null
-        val index = (model.schema as ArraySchemaWrapper).index
+        val index = (model.schema as EffectiveSchemaInArray).index
         if (index >= children.length() - 1) return null
         val tmp = children.get(index + 1)
         children.put(index + 1, children.get(index))

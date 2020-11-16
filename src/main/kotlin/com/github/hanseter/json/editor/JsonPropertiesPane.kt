@@ -19,6 +19,7 @@ import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONPointer
 
 class JsonPropertiesPane(
         title: String,
@@ -30,7 +31,7 @@ class JsonPropertiesPane(
         private val changeListener: (JSONObject) -> JSONObject
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(SectionRootTreeItemData(title))
-    private val schema = RegularSchemaWrapper(null, schema, title)
+    private val schema = SimpleEffectiveSchema(null, schema, title)
     private var objectControl: TypeControl? = null
     private var controlItem: FilterableTreeItem<TreeItemData>? = null
     private val contentHandler = ContentHandler(data)
@@ -122,7 +123,6 @@ class JsonPropertiesPane(
         when (control) {
             is ObjectControl -> updateObjectControlInTree(item, control)
             is ArrayControl -> updateArrayControlInTree(item, control)
-//            is OneOfControl -> updateOneOfControlInTree(item, control)
         }
         item.children.forEach { item ->
             (item.value as? ControlTreeItemData)?.also { updateTree(item as FilterableTreeItem<TreeItemData>, it.typeControl) }
@@ -146,14 +146,7 @@ class JsonPropertiesPane(
             item.list.removeLast()
         }
         item.addAll((item.list.size until control.childControls.size).map { wrapControlInTreeItem(control.childControls[it]) })
-//        if (item.list.size != control.childControls.size) {
-//            item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
-//        }
     }
-
-//    private fun updateOneOfControlInTree(item: FilterableTreeItem<TreeItemData>, control: TypeControl) {
-//        if (control.childControls != item.)
-//    }
 
     private fun createRequiredHeader(): FilterableTreeItem<TreeItemData> = FilterableTreeItem(HeaderTreeItemData("Required"))
 
@@ -173,7 +166,7 @@ class JsonPropertiesPane(
 
     private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
         val decorator = GraphicValidationDecoration()
-        val errorMap = validate(data)
+        val errorMap = validate(prepareForValidation(root, data))
         flatten(root).forEach { item ->
             item.value?.actions?.updateDisablement()
             (item.value as? ControlTreeItemData)?.also { data ->
@@ -189,13 +182,29 @@ class JsonPropertiesPane(
 
     private fun validate(data: JSONObject): Map<List<String>, String> {
         return (try {
-            schema.schema.validate(deepCopyForJson(data))
+            schema.baseSchema.validate(data)
             valid.set(true)
             null
         } catch (e: ValidationException) {
             valid.set(false)
             e
         })?.let(::mapPointerToError) ?: emptyMap()
+    }
+
+    private fun prepareForValidation(root: FilterableTreeItem<TreeItemData>, data: JSONObject): JSONObject {
+        val copy = deepCopyForJson(data)
+        flatten(root).map { it.value }.filterIsInstance<ControlTreeItemData>().forEach {
+            val schema = it.typeControl.model.schema
+            val defaultValue = schema.defaultValue
+            if (defaultValue != null) {
+                val pointer = schema.pointer
+                val parent = JSONPointer(pointer.dropLast(1)).queryFrom(copy) as? JSONObject
+                if (parent != null && !parent.has(pointer.last())) {
+                    parent.put(pointer.last(), schema.defaultValue)
+                }
+            }
+        }
+        return copy
     }
 
     private fun <T> flatten(item: FilterableTreeItem<T>): Sequence<FilterableTreeItem<T>> =

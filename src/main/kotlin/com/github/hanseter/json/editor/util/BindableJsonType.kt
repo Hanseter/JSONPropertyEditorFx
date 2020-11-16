@@ -1,12 +1,12 @@
 package com.github.hanseter.json.editor.util
 
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import org.json.JSONObject
 
 abstract class BindableJsonType(private val parent: BindableJsonType?) {
     private var listeners = listOf<() -> Unit>()
 
-    fun setValue(schema: SchemaWrapper<*>, value: Any?) {
+    fun setValue(schema: EffectiveSchema<*>, value: Any?) {
         setValueInternal(schema, value)
         onValueChanged()
     }
@@ -21,9 +21,9 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
         }
     }
 
-    protected abstract fun setValueInternal(schema: SchemaWrapper<*>, value: Any?)
+    protected abstract fun setValueInternal(schema: EffectiveSchema<*>, value: Any?)
 
-    abstract fun getValue(schema: SchemaWrapper<*>): Any?
+    abstract fun getValue(schema: EffectiveSchema<*>): Any?
 
 
     fun registerListener(listener: () -> Unit) {
@@ -31,9 +31,9 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
     }
 
     companion object {
-        fun <T> convertValue(value: Any?, schema: SchemaWrapper<*>, converter: (Any) -> T?): T? =
+        fun <T> convertValue(value: Any?, schema: EffectiveSchema<*>, converter: (Any) -> T?): T? =
                 when (value) {
-                    null -> schema.schema.defaultValue?.let(converter)
+                    null -> schema.baseSchema.defaultValue?.let(converter)
                     JSONObject.NULL -> null
                     else -> {
                         val converted = converter(value)

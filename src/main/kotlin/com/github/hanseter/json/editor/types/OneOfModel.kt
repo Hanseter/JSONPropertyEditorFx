@@ -2,15 +2,15 @@ package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.controls.TypeControl
-import com.github.hanseter.json.editor.extensions.CombinedSchemaWrapper
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
+import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.CombinedSchema
 import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
 
-class OneOfModel(override val schema: SchemaWrapper<CombinedSchema>, val editorContext: EditorContext) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
+class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val editorContext: EditorContext) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
     override val supportedType: SupportedType.ComplexType.OneOfType
         get() = SupportedType.ComplexType.OneOfType
     override var bound: BindableJsonType? = null
@@ -36,7 +36,7 @@ class OneOfModel(override val schema: SchemaWrapper<CombinedSchema>, val editorC
             actualType = null
             return
         }
-        if (actualType == null || !isValid(actualType!!.model.schema.schema, value)) {
+        if (actualType == null || !isValid(actualType!!.model.schema.baseSchema, value)) {
             val possibleNewType = tryGuessActualType()
             if (possibleNewType != null) {
                 actualType = possibleNewType
@@ -55,14 +55,14 @@ class OneOfModel(override val schema: SchemaWrapper<CombinedSchema>, val editorC
 
     private fun tryGuessActualType(): TypeControl? {
         val data = value
-        return schema.schema.subschemas.find { isValid(it, data) }?.let {
-            ControlFactory.convert(CombinedSchemaWrapper(schema, it), editorContext)
+        return schema.baseSchema.subschemas.find { isValid(it, data) }?.let {
+            ControlFactory.convert(EffectiveSchemaOfCombination(schema, it), editorContext)
         }
     }
 
     fun selectType(schema: Schema?) {
         if (schema == null) return
-        actualType = ControlFactory.convert(CombinedSchemaWrapper(this.schema, schema), editorContext)
+        actualType = ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
         bound?.also { actualType?.bindTo(it) }
     }
 }

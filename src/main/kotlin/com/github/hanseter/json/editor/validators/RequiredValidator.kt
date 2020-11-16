@@ -6,7 +6,7 @@ import org.everit.json.schema.ObjectSchema
 
 object RequiredValidator : Validator {
     override val selector: TargetSelector = TargetSelector {
-        true == (it.schema.parent?.schema as? ObjectSchema)?.requiredProperties?.contains(it.schema.getPropertyName())
+        true == (it.schema.parent?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(it.schema.getPropertyName())
     }
 
     override fun validate(model: TypeModel<*, *>): List<String> =

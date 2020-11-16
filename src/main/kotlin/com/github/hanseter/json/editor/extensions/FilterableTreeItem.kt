@@ -116,7 +116,7 @@ class ControlTreeItemData(
         override val actions: ActionsContainer,
         val validators: List<com.github.hanseter.json.editor.validators.Validator>) : TreeItemData {
     override val label = Label(typeControl.model.schema.title).apply {
-        tooltip = typeControl.model.schema.schema.description?.let { Tooltip(it) }
+        tooltip = typeControl.model.schema.description?.let { Tooltip(it) }
         skin = DecoratableLabelSkin(this)
     }
     override val control: Node?

@@ -54,7 +54,7 @@ class ArrayTest {
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         assertThat(arrayEntry.value.actions!!.children.size, `is`(2))
-        assertThat((arrayEntry.value.actions!!.children[0] as Button).text, `is`("Ø"))
+        assertThat((arrayEntry.value.actions!!.children[0] as Button).text, `is`("↻"))
         assertThat((arrayEntry.value.actions!!.children[1] as Button).text, `is`("\uD83D\uDFA3"))
     }
 

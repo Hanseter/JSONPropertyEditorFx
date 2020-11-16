@@ -7,9 +7,9 @@ import org.everit.json.schema.Schema
  * This wrapper is used to wrap schemas that come from a combined schema (e.g. allOf[]).
  * These schemas do not need to be included when building a json pointer.
  */
-class CombinedSchemaWrapper<T : Schema>(override val parent: SchemaWrapper<CombinedSchema>, override val schema: T) : SchemaWrapper<T> {
+class EffectiveSchemaOfCombination<T : Schema>(override val parent: EffectiveSchema<CombinedSchema>, override val baseSchema: T) : EffectiveSchema<T> {
     override val title: String
-        get() = RegularSchemaWrapper.calcSchemaTitle(schema)
+        get() = SimpleEffectiveSchema.calcSchemaTitle(baseSchema)
 
     override val pointer: List<String>
         get() = parent.pointer

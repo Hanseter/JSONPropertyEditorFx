@@ -1,19 +1,19 @@
 package com.github.hanseter.json.editor.util
 
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import org.json.JSONArray
 import org.json.JSONObject
 
 class BindableJsonArray(parent: BindableJsonType?, private val arr: JSONArray) : BindableJsonType(parent) {
 
-	override fun setValueInternal(schema: SchemaWrapper<*>, value: Any?) =
+	override fun setValueInternal(schema: EffectiveSchema<*>, value: Any?) =
 		setValueInternal(schema.getPropertyName().toInt(), value)
 
 	fun setValueInternal(index: Int, value: Any?) {
 		arr.put(index, value)
 	}
 
-	override fun getValue(schema: SchemaWrapper<*>): Any? =
+	override fun getValue(schema: EffectiveSchema<*>): Any? =
 		getValue(schema.getPropertyName().toInt())
 
 	fun getValue(index: Int): Any? {

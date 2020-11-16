@@ -1,8 +1,8 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.ControlFactory
-import com.github.hanseter.json.editor.extensions.ArraySchemaWrapper
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
+import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.types.ArrayModel
 import com.github.hanseter.json.editor.util.BindableJsonArray
 import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
@@ -40,7 +40,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
         fun addChildControls(values: JSONArray) {
             while (childControls.size < values.length()) {
                 val currentChildIndex = childControls.size
-                val childSchema = ArraySchemaWrapper(model.schema, model.contentSchema, currentChildIndex)
+                val childSchema = EffectiveSchemaInArray(model.schema, model.contentSchema, currentChildIndex)
 
                 childControls.add(ControlFactory.convert(childSchema, context))
             }
@@ -79,7 +79,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
     }
 }
 
-fun createSubArray(parent: BindableJsonType, schema: SchemaWrapper<ArraySchema>): BindableJsonArray? {
+fun createSubArray(parent: BindableJsonType, schema: EffectiveSchema<ArraySchema>): BindableJsonArray? {
     val rawArr = parent.getValue(schema)
 
     if (rawArr == JSONObject.NULL) {

@@ -48,7 +48,7 @@ fun interface TargetSelector {
         }
 
         override fun matches(model: TypeModel<*, *>): Boolean {
-            val schemaPointer = getFragmentFromJsonPointer(model.schema.schema.schemaLocation)
+            val schemaPointer = getFragmentFromJsonPointer(model.schema.baseSchema.schemaLocation)
 
             return schemaPointer == this.jsonPointerFragment
         }
@@ -57,7 +57,7 @@ fun interface TargetSelector {
     object Required : TargetSelector {
 
         override fun matches(model: TypeModel<*, *>): Boolean {
-            val schema = model.schema.parent?.schema?.let { getReferredSchema(it) }
+            val schema = model.schema.parent?.baseSchema?.let { getReferredSchema(it) }
 
             return (schema as? ObjectSchema)?.let {
                 model.schema.getPropertyName() in it.requiredProperties
@@ -81,8 +81,8 @@ fun interface TargetSelector {
     class HasCustomField(private val fieldName: String, private val value: Any? = null) : TargetSelector {
 
         override fun matches(model: TypeModel<*, *>): Boolean =
-                model.schema.schema.unprocessedProperties.containsKey(fieldName)
-                        && (null == value || model.schema.schema.unprocessedProperties[fieldName] == value)
+                model.schema.baseSchema.unprocessedProperties.containsKey(fieldName)
+                        && (null == value || model.schema.baseSchema.unprocessedProperties[fieldName] == value)
 
     }
 

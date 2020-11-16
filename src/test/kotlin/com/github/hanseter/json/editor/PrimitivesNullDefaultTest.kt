@@ -31,8 +31,14 @@ class PrimitivesNullDefaultTest {
         getJSONObject("properties").put("key", property)
     }
 
+    fun makeNullable(schema: JSONObject): JSONObject {
+        val typeObj = schema.getJSONObject("properties").getJSONObject("key")
+        val type = typeObj.getString("type")
+        typeObj.put("type", listOf(type, "null"))
+        return schema
+    }
 
-    fun getRequiredSchemaSchema(property: JSONObject): JSONObject = getSchema(property).put("required", JSONArray(listOf("key")))
+    fun getRequiredSchema(property: JSONObject): JSONObject = getSchema(property).put("required", JSONArray(listOf("key")))
 
     @Nested
     inner class IsNotInData {
@@ -44,7 +50,7 @@ class PrimitivesNullDefaultTest {
             fun displaysDefaultIfRequired() {
                 testData.forEach {
                     val editor = JsonPropertiesEditor()
-                    editor.display("id", "title", data, getRequiredSchemaSchema(it.propertyWithDefault)) { it }
+                    editor.display("id", "title", data, getRequiredSchema(it.propertyWithDefault)) { it }
                     WaitForAsyncUtils.waitForFxEvents()
                     val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
                     assertThat(it.valueExtractor(control), `is`(it.default))
@@ -68,12 +74,12 @@ class PrimitivesNullDefaultTest {
         }
 
         @Nested
-        inner class HasNoDefault() {
+        inner class HasNoDefault {
             @Test
             fun displaysNullAndErrorIfRequired() {
                 testData.forEach {
                     val editor = JsonPropertiesEditor()
-                    editor.display("id", "title", data, getRequiredSchemaSchema(it.property)) { it }
+                    editor.display("id", "title", data, getRequiredSchema(it.property)) { it }
                     WaitForAsyncUtils.waitForFxEvents()
                     val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
@@ -102,10 +108,10 @@ class PrimitivesNullDefaultTest {
         @Nested
         inner class HasDefault {
             @Test
-            fun displaysNullAndErrorIfRequired() {
-                testData.forEach {
+            fun displaysNullAndError() {
+                testData.flatMap { listOf(getSchema(it.propertyWithDefault), getRequiredSchema(it.propertyWithDefault)) }.forEach { schema ->
                     val editor = JsonPropertiesEditor()
-                    editor.display("id", "title", data, getRequiredSchemaSchema(it.propertyWithDefault)) { it }
+                    editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
                     val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
@@ -114,10 +120,10 @@ class PrimitivesNullDefaultTest {
             }
 
             @Test
-            fun displaysNullIfOptional() {
-                testData.forEach {
+            fun displaysNullIfNullable() {
+                testData.flatMap { listOf(getSchema(it.propertyWithDefault), getRequiredSchema(it.propertyWithDefault)) }.map { makeNullable(it) }.forEach { schema ->
                     val editor = JsonPropertiesEditor()
-                    editor.display("id", "title", data, getSchema(it.propertyWithDefault)) { it }
+                    editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
                     val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
@@ -127,12 +133,12 @@ class PrimitivesNullDefaultTest {
         }
 
         @Nested
-        inner class HasNoDefault() {
+        inner class HasNoDefault {
             @Test
-            fun displaysNullAndErrorIfRequired() {
-                testData.forEach {
+            fun displaysNullAndError() {
+                testData.flatMap { listOf(getSchema(it.property), getRequiredSchema(it.property)) }.forEach { schema ->
                     val editor = JsonPropertiesEditor()
-                    editor.display("id", "title", data, getRequiredSchemaSchema(it.property)) { it }
+                    editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
                     val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
@@ -141,10 +147,10 @@ class PrimitivesNullDefaultTest {
             }
 
             @Test
-            fun displaysNullIfOptional() {
-                testData.forEach {
+            fun displaysNullIfNullable() {
+                testData.flatMap { listOf(getSchema(it.property), getRequiredSchema(it.property)) }.map { makeNullable(it) }.forEach { schema ->
                     val editor = JsonPropertiesEditor()
-                    editor.display("id", "title", data, getSchema(it.property)) { it }
+                    editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
                     val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))

@@ -1,6 +1,6 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
+import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
 import com.github.hanseter.json.editor.types.OneOfModel
 import com.github.hanseter.json.editor.util.BindableJsonType
 import javafx.beans.value.ChangeListener
@@ -14,7 +14,7 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
         model.editorContext.childrenChangedCallback(this)
     }
     override val control: ComboBox<Schema> = ComboBox<Schema>().apply {
-        items.addAll(model.schema.schema.subschemas)
+        items.addAll(model.schema.baseSchema.subschemas)
         converter = SchemaTitleStringConverter
         selectionModel.selectedItemProperty().addListener(selectionListener)
     }
@@ -27,7 +27,7 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
         model.bound = type
         val newChild = model.actualType
         if (newChild !== child) {
-            control.selectionModel.select(newChild?.model?.schema?.schema)
+            control.selectionModel.select(newChild?.model?.schema?.baseSchema)
             model.editorContext.childrenChangedCallback(this)
         }
         control.selectionModel.selectedItemProperty().addListener(selectionListener)
@@ -35,7 +35,7 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
 
     private object SchemaTitleStringConverter : StringConverter<Schema>() {
         override fun toString(obj: Schema?): String? =
-                obj?.let { RegularSchemaWrapper.calcSchemaTitle(it) }
+                obj?.let { SimpleEffectiveSchema.calcSchemaTitle(it) }
 
         override fun fromString(string: String?): Schema? = null
     }

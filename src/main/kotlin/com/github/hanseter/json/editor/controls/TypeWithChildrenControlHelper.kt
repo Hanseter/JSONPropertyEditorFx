@@ -1,8 +1,8 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.ControlFactory
-import com.github.hanseter.json.editor.extensions.RegularSchemaWrapper
-import com.github.hanseter.json.editor.extensions.SchemaWrapper
+import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
 import com.github.hanseter.json.editor.util.EditorContext
 import javafx.event.EventHandler
 import javafx.scene.control.Button
@@ -11,9 +11,9 @@ import javafx.scene.control.Label
 import javafx.scene.layout.HBox
 import org.everit.json.schema.Schema
 
-fun createTypeControlsFromSchemas(schema: SchemaWrapper<*>, contentSchemas: Collection<Schema>, context: EditorContext): List<TypeControl> {
+fun createTypeControlsFromSchemas(schema: EffectiveSchema<*>, contentSchemas: Collection<Schema>, context: EditorContext): List<TypeControl> {
     val controls = contentSchemas.map {
-        ControlFactory.convert(RegularSchemaWrapper(schema, it), context)
+        ControlFactory.convert(SimpleEffectiveSchema(schema, it), context)
     }.sortedBy { it.model.schema.parent?.getPropertyOrder()?.indexOf(it.model.schema.getPropertyName()) }
     var orderedControls: List<TypeControl> = emptyList()
     val unorderedControls: List<TypeControl>
