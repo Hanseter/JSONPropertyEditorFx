@@ -91,7 +91,7 @@ class StringTest {
 
     @Test
     fun patternValidation() {
-        val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","pattern":"b.*"}}}""")
+        val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","pattern":"^b.*"}}}""")
         val data = JSONObject().put("string", "foobar")
         editor.display("1", "1", data, schema) { it }
         WaitForAsyncUtils.waitForFxEvents()
