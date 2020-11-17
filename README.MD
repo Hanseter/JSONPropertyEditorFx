@@ -1,4 +1,8 @@
-TODO:
+#JSON Properties FX
+
+An editor to edit json in a property sheet - created automatically by a json schema. The editor is using JavaFX for the UI and everit-org/json-schema for the schema processing and validation.
+
+### Open points:
 
 Give possibility to display elements without root titledPane
 

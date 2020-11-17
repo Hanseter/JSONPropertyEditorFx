@@ -5,11 +5,11 @@ import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
-import javafx.scene.control.ComboBox
+import org.controlsfx.control.SearchableComboBox
 
 //TODO this control makes every enum a string, even if it is something else. This needs to be improved.
 class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, ChangeListener<String?> {
-    override val control = ComboBox<String?>()
+    override val control = SearchableComboBox<String?>()
     override val property: Property<String?> = SimpleObjectProperty<String?>(null)
 
     init {
