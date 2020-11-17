@@ -2,8 +2,8 @@ package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.controls.TypeControl
-import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.CombinedSchema
@@ -36,6 +36,7 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
             actualType = null
             return
         }
+        val value = value ?: return
         if (actualType == null || !isValid(actualType!!.model.schema.baseSchema, value)) {
             val possibleNewType = tryGuessActualType()
             if (possibleNewType != null) {
@@ -45,7 +46,7 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
         }
     }
 
-    private fun isValid(schema: Schema, data: Any?): Boolean =
+    private fun isValid(schema: Schema, data: Any): Boolean =
             try {
                 schema.validate(data)
                 true
@@ -54,7 +55,7 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
             }
 
     private fun tryGuessActualType(): TypeControl? {
-        val data = value
+        val data = value ?: return null
         return schema.baseSchema.subschemas.find { isValid(it, data) }?.let {
             ControlFactory.convert(EffectiveSchemaOfCombination(schema, it), editorContext)
         }
