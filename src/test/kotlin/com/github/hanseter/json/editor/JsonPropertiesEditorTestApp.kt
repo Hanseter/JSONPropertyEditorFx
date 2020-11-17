@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.util.PropertyGrouping
+import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.stage.Stage
@@ -18,8 +20,13 @@ class JsonPropertiesEditorTestApp : Application() {
                     this::class.java.classLoader.getResource("")?.toURI()
         }
 
+        val viewOptions = ViewOptions(
+                markRequired = true,
+                groupBy = PropertyGrouping.NONE
+        )
+
         val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2,
-                customResolutionScopeProvider)
+                customResolutionScopeProvider, viewOptions)
         val resettableTestData = JSONObject("""
 {
   "reqBool": true,
