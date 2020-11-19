@@ -34,12 +34,15 @@ class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
                 control.increment(0)
             } else if (new.isNotEmpty() && new != "-") {
                 try {
+                    converter.failOnTrailingSeparator = true
                     control.increment(0) // won't change value, but will commit editor
                 } catch (e: NumberFormatException) {
                     control.editor.text = control.valueFactory.converter.toString(property.value)
                             ?: "0"
                 } catch (e: TrailingSeparatorException) {
                     //Nothing to do
+                } finally {
+                    converter.failOnTrailingSeparator = false
                 }
             }
         }
@@ -93,6 +96,7 @@ class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
     }
 
     private inner class StringDoubleConverter : StringConverter<Double?>() {
+        var failOnTrailingSeparator = false
         override fun toString(`object`: Double?): String? =
                 if (`object` == null) "" else DECIMAL_FORMAT.format(`object`)
 
@@ -103,18 +107,14 @@ class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
             if (parsePosition.index != string.length) {
                 throw java.lang.NumberFormatException()
             }
-            if (isTrailingSeparator(string)) {
+            if (failOnTrailingSeparator && isTrailingSeparator(string)) {
                 throw TrailingSeparatorException()
             }
             return number?.toDouble()
         }
 
-        private fun isTrailingSeparator(string: String): Boolean {
-            val index = string.indexOf(DECIMAL_FORMAT.decimalFormatSymbols.decimalSeparator)
-            val decimalValues = string.drop(index+1)
-            return decimalValues.isEmpty() || decimalValues.all { it == '0' }
-        }
-
+        private fun isTrailingSeparator(string: String): Boolean =
+                string.last() == DECIMAL_FORMAT.decimalFormatSymbols.decimalSeparator
     }
 
     class TrailingSeparatorException : Exception()
