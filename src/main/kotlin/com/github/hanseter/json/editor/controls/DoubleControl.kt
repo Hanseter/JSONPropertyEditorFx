@@ -30,9 +30,6 @@ class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
             }
         }
         control.editor.textProperty().addListener { _, _, new ->
-            println("Text changed to $new")
-        }
-        control.editor.textProperty().addListener { _, _, new ->
             if (new.isEmpty()) {
                 control.increment(0)
             } else if (new.isNotEmpty() && new != "-") {
