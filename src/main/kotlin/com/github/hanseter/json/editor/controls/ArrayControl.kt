@@ -1,13 +1,14 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.ControlFactory
-import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.types.ArrayModel
 import com.github.hanseter.json.editor.util.BindableJsonArray
 import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
+import com.github.hanseter.json.editor.validators.isRequiredSchema
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
@@ -54,11 +55,8 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
 
         val subArray = subArray
         val rawValues = model.rawValue
-        var values = rawValues as? JSONArray
-        if (rawValues != JSONObject.NULL) {
-            if (values == null) {
-                values = JSONArray()
-            }
+        val values = rawValues as? JSONArray
+        if (rawValues != JSONObject.NULL && values != null) {
             removeChildControls(values)
             addChildControls(values)
             rebindChildren(subArray, values)
@@ -71,7 +69,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
     }
 
     private fun updateLabel() {
-        if (model.rawValue == JSONObject.NULL) {
+        if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
             control.displayNull()
         } else {
             control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")
@@ -82,7 +80,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
 fun createSubArray(parent: BindableJsonType, schema: EffectiveSchema<ArraySchema>): BindableJsonArray? {
     val rawArr = parent.getValue(schema)
 
-    if (rawArr == JSONObject.NULL) {
+    if (rawArr == JSONObject.NULL || (rawArr == null && !isRequiredSchema(schema))) {
         return null
     }
 

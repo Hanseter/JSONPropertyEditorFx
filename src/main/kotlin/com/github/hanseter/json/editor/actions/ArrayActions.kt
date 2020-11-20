@@ -20,7 +20,9 @@ object AddToArrayAction : EditorAction {
 
     override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
         val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value
-                ?: JSONArray()
+                ?: JSONArray().also {
+                    model.value = it
+                }
         val childDefaultValue = (model.schema.baseSchema as ArraySchema).allItemSchema.defaultValue
         children.put(children.length(), childDefaultValue ?: JSONObject.NULL)
         return currentData
