@@ -4,7 +4,6 @@ import com.github.hanseter.json.editor.types.PlainObjectModel
 import com.github.hanseter.json.editor.util.BindableJsonObject
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
-import com.github.hanseter.json.editor.validators.isRequiredSchema
 import org.json.JSONObject
 
 class PlainObjectControl(override val model: PlainObjectModel, context: EditorContext)
@@ -65,7 +64,7 @@ class PlainObjectControl(override val model: PlainObjectModel, context: EditorCo
 
     private fun createSubType(parent: BindableJsonType): BindableJsonObject? {
         val rawObj = parent.getValue(model.schema)
-        if (rawObj == JSONObject.NULL || (rawObj == null && !isRequiredSchema(model.schema))) {
+        if (rawObj == JSONObject.NULL /*|| (rawObj == null && !isRequiredSchema(model.schema))*/) {
             return null
         }
         var obj = rawObj as? JSONObject
