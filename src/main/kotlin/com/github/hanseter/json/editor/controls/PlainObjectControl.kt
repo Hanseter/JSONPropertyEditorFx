@@ -14,20 +14,20 @@ class PlainObjectControl(override val model: PlainObjectModel, context: EditorCo
         model.value = JSONObject()
     }
 
-    private val requiredChildrenNotNull: List<TypeControl>
-    private val optionalChildrenNotNull: List<TypeControl>
+    override val allRequiredChildren: List<TypeControl>
+    override val allOptionalChildren: List<TypeControl>
 
     override var requiredChildren: List<TypeControl> = emptyList()
     override var optionalChildren: List<TypeControl> = emptyList()
 
     init {
         val childSchemas = model.schema.baseSchema.propertySchemas.toMutableMap()
-        requiredChildrenNotNull = createTypeControlsFromSchemas(model.schema, model.schema.baseSchema.requiredProperties.mapNotNull {
+        allRequiredChildren = createTypeControlsFromSchemas(model.schema, model.schema.baseSchema.requiredProperties.mapNotNull {
             childSchemas.remove(it)
         }, context)
-        optionalChildrenNotNull = createTypeControlsFromSchemas(model.schema, childSchemas.values, context)
-        requiredChildren = requiredChildrenNotNull
-        optionalChildren = optionalChildrenNotNull
+        allOptionalChildren = createTypeControlsFromSchemas(model.schema, childSchemas.values, context)
+        requiredChildren = allRequiredChildren
+        optionalChildren = allOptionalChildren
     }
 
 
@@ -42,8 +42,8 @@ class PlainObjectControl(override val model: PlainObjectModel, context: EditorCo
 
         if (subType != null) {
             if (requiredChildren.isEmpty() && optionalChildren.isEmpty()) {
-                requiredChildren = requiredChildrenNotNull
-                optionalChildren = optionalChildrenNotNull
+                requiredChildren = allRequiredChildren
+                optionalChildren = allOptionalChildren
             }
 
             bindChildrenToObject(subType)

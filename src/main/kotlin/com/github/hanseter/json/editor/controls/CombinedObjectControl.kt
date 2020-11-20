@@ -2,13 +2,14 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.CombinedObjectModel
 import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.validators.isRequiredSchema
 import org.json.JSONObject
 
 class CombinedObjectControl(override val model: CombinedObjectModel, val controls: List<ObjectControl>)
     : ObjectControl {
 
-    private val requiredChildrenNotNull = controls.flatMap { it.requiredChildren }.distinctBy { it.model.schema.title }
-    private val optionalChildrenNotNull = controls.flatMap { it.optionalChildren }.distinctBy { it.model.schema.title }
+    override val allRequiredChildren = controls.flatMap { it.allRequiredChildren }.distinctBy { it.model.schema.title }
+    override val allOptionalChildren = controls.flatMap { it.allOptionalChildren }.distinctBy { it.model.schema.title }
 
     override var requiredChildren: List<TypeControl> = emptyList()
     override var optionalChildren: List<TypeControl> = emptyList()
@@ -21,11 +22,11 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
 
         controls.forEach { it.bindTo(type) }
         model.bound = type
-/*
+
         if (model.rawValue == null && isRequiredSchema(model.schema)) {
             model.value = JSONObject()
         }
-*/
+
         valueChanged()
 
 
@@ -34,8 +35,8 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
     private fun valueChanged() {
         if (model.value != null) {
             if (requiredChildren.isEmpty() && optionalChildren.isEmpty()) {
-                requiredChildren = requiredChildrenNotNull
-                optionalChildren = optionalChildrenNotNull
+                requiredChildren = allRequiredChildren
+                optionalChildren = allOptionalChildren
             }
 
         } else {
