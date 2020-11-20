@@ -40,7 +40,7 @@ class TypeWithChildrenStatusControl(createLabel: String, onCreate: () -> Unit) :
         styleClass += "type-with-children-label"
     }
 
-    private val button = Button(createLabel).apply {
+    val button = Button(createLabel).apply {
         onAction = EventHandler { onCreate() }
         managedProperty().bind(visibleProperty())
     }

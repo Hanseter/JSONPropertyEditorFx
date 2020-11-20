@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.controls.TypeWithChildrenStatusControl
 import javafx.scene.control.Spinner
 import javafx.scene.control.TextField
 import javafx.stage.Stage
@@ -57,6 +58,8 @@ class AllOfTest {
         val data = JSONObject()
         editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first().findChildWithKey("notRoot")!!
+        assertThat(objectEntry.children.size, `is`(0))
+        (objectEntry.value.control as TypeWithChildrenStatusControl).button.fire()
         //3 fields + 1 header
         assertThat(objectEntry.children.size, `is`(4))
         assertThat(objectEntry.findChildWithKey("hello")?.value?.control, `is`(instanceOf(TextField::class.java)))

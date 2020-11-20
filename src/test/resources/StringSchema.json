@@ -3,7 +3,10 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "properties": {
     "string": {
-      "type": ["string","null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "minLength": 3,
       "maxLength": 5,
       "default": "Hello",
@@ -108,6 +111,26 @@
           "type": "number"
         }
       }
+    },
+    "combined object": {
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "b": {
+              "type": "string"
+            }
+          }
+        }
+      ]
     }
   },
   "required": [

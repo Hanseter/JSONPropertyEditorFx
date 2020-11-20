@@ -201,6 +201,62 @@
           "pattern": "G.+"
         }
       }
+    },
+    "allOfs": {
+      "type": "object",
+      "properties": {
+        "optional": {
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "a": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "b": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "required": {
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "a": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "b": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "required"
+      ]
     }
-  }
+  },
+  "required": [
+    "allOfs",
+    "id-references",
+    "lists",
+    "integers",
+    "numbers",
+    "strings"
+  ]
 }

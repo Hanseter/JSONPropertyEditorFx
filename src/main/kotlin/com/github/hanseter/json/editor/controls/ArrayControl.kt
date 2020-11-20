@@ -8,6 +8,7 @@ import com.github.hanseter.json.editor.util.BindableJsonArray
 import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
+import com.github.hanseter.json.editor.validators.isRequiredSchema
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
@@ -79,7 +80,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
 fun createSubArray(parent: BindableJsonType, schema: EffectiveSchema<ArraySchema>): BindableJsonArray? {
     val rawArr = parent.getValue(schema)
 
-    if (rawArr == JSONObject.NULL /*|| (rawArr == null && !isRequiredSchema(schema))*/) {
+    if (rawArr == JSONObject.NULL || (rawArr == null && !isRequiredSchema(schema))) {
         return null
     }
 
