@@ -32,7 +32,10 @@
       "type": "string",
       "enum": [
         "foo",
-        "bar"
+        "bar",
+        "foobar",
+        "baz",
+        "whatever"
       ]
     },
     "string list": {

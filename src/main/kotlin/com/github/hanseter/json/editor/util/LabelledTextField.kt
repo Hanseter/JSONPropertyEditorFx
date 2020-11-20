@@ -74,7 +74,7 @@ class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFiel
 
         if (textNode != null) {
 
-            val activeTextNode = if (promptNode?.text?.isBlank() != false) textNode else promptNode
+            val activeTextNode = if (promptNode?.text?.isBlank() != false || !promptNode.isVisible) textNode else promptNode
 
             val prefTextWidth = snapSize(activeTextNode.prefWidth(fullHeight)) + LABEL_SEPARATOR_WIDTH
 
