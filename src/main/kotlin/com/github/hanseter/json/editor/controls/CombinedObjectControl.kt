@@ -11,8 +11,8 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
     override val allRequiredChildren = controls.flatMap { it.allRequiredChildren }.distinctBy { it.model.schema.title }
     override val allOptionalChildren = controls.flatMap { it.allOptionalChildren }.distinctBy { it.model.schema.title }
 
-    override var requiredChildren: List<TypeControl> = emptyList()
-    override var optionalChildren: List<TypeControl> = emptyList()
+    override var requiredChildren: List<TypeControl> = allRequiredChildren
+    override var optionalChildren: List<TypeControl> = allOptionalChildren
 
     override val control = TypeWithChildrenStatusControl("Create") {
         model.value = JSONObject()
