@@ -249,14 +249,58 @@
       "required": [
         "required"
       ]
+    },
+    "oneOfs": {
+      "type": "object",
+      "properties": {
+        "optional": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "required": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "required": [
+        "required"
+      ]
+    },
+    "booleans": {
+      "type": "object",
+      "properties": {
+        "optional": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "required"
+      ]
     }
   },
   "required": [
     "allOfs",
+    "oneOfs",
     "id-references",
     "lists",
     "integers",
     "numbers",
-    "strings"
+    "strings",
+    "booleans"
   ]
 }

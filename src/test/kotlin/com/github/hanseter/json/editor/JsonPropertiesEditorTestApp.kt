@@ -66,7 +66,7 @@ class JsonPropertiesEditorTestApp : Application() {
 //                "completeValidationTestSchema.json"
 //        "StringSchema.json"
 
-        display(propEdit, "nestedCompositeSchema.json", JSONObject())
+        display(propEdit, "completeValidationTestSchema.json", JSONObject())
 //        displayElementWithOneOf(propEdit)
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
