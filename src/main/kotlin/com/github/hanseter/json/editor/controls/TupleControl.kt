@@ -30,7 +30,7 @@ class TupleControl(override val model: TupleModel, context: EditorContext)
     }
 
     private fun boundValueChanged() {
-        if (model.rawValue == JSONObject.NULL) {
+        if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
             control.displayNull()
         } else {
             control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")

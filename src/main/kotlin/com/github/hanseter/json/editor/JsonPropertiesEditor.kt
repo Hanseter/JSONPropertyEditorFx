@@ -7,6 +7,7 @@ import com.github.hanseter.json.editor.extensions.RootTreeItemData
 import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import com.github.hanseter.json.editor.util.ViewOptions
 import com.github.hanseter.json.editor.validators.ArrayValidator
 import com.github.hanseter.json.editor.validators.RequiredValidator
 import com.github.hanseter.json.editor.validators.StringValidator
@@ -32,8 +33,9 @@ class JsonPropertiesEditor(
         private val readOnly: Boolean = false,
         private val numberOfInitiallyOpenedObjects: Int = 5,
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
+        private var viewOptions: ViewOptions = ViewOptions(),
         actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-        private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, RequiredValidator)
+        private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, RequiredValidator),
 ) : VBox() {
     private val actions = actions + PreviewAction(referenceProposalProvider, resolutionScopeProvider) + arrayActions
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -55,7 +57,7 @@ class JsonPropertiesEditor(
                     if (newValue.isEmpty()) {
                         Predicate { true }
                     } else {
-                        Predicate { it.label.text.contains(newValue) }
+                        Predicate { it.title.contains(newValue) }
                     })
         }
 
@@ -127,6 +129,12 @@ class JsonPropertiesEditor(
         rebindValidProperty()
     }
 
+    fun updateViewOptions(viewOptions: ViewOptions) {
+        this.viewOptions = viewOptions
+
+        idsToPanes.values.forEach { it.updateViewOptions(viewOptions) }
+    }
+
     private fun rebindValidProperty() {
         if (idsToPanes.isEmpty()) {
             _valid.unbind()
@@ -138,7 +146,7 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(title: String, data: JSONObject,
                                           schema: Schema, callback: (JSONObject) -> JSONObject): JsonPropertiesPane =
-            JsonPropertiesPane(title, data, schema, referenceProposalProvider, actions, validators, callback)
+            JsonPropertiesPane(title, data, schema, referenceProposalProvider, actions, validators, viewOptions, callback)
 
     private fun initTreeTableView() {
         val keyColumn = createKeyColumn()
