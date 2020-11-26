@@ -3,7 +3,12 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.application.Application
+import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.CheckBox
+import javafx.scene.control.ComboBox
+import javafx.scene.layout.HBox
+import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -70,7 +75,7 @@ class JsonPropertiesEditorTestApp : Application() {
 //        displayElementWithOneOf(propEdit)
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
-        primaryStage.scene = Scene(propEdit, 800.0, 800.0)
+        primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)
         primaryStage.show()
     }
 
@@ -97,6 +102,35 @@ class JsonPropertiesEditorTestApp : Application() {
             println(it.toString(1))
             it
         }
+    }
+
+    private fun buildUi(propEdit: JsonPropertiesEditor): Parent {
+
+
+        val showStars = CheckBox("Show *")
+
+        val groupBy = ComboBox<PropertyGrouping>().apply {
+            items.addAll(PropertyGrouping.values())
+            selectionModel.select(0)
+        }
+
+        val updateViewOptions = { _: Any? ->
+            val newViewOptions = ViewOptions(showStars.isSelected, groupBy.selectionModel.selectedItem)
+
+            propEdit.updateViewOptions(newViewOptions)
+        }
+
+        showStars.selectedProperty().addListener(updateViewOptions)
+
+        groupBy.selectionModel.selectedItemProperty().addListener(updateViewOptions)
+
+        return VBox(
+                HBox(
+                        showStars,
+                        groupBy
+                ),
+                propEdit
+        )
     }
 
     object ReferenceProvider : IdReferenceProposalProvider {

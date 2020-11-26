@@ -33,7 +33,7 @@ class JsonPropertiesEditor(
         private val readOnly: Boolean = false,
         private val numberOfInitiallyOpenedObjects: Int = 5,
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
-        private val viewOptions: ViewOptions = ViewOptions(),
+        private var viewOptions: ViewOptions = ViewOptions(),
         actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
         private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, RequiredValidator),
 ) : VBox() {
@@ -127,6 +127,12 @@ class JsonPropertiesEditor(
         filterText.clear()
         (treeTableView.root as FilterableTreeItem).clear()
         rebindValidProperty()
+    }
+
+    fun updateViewOptions(viewOptions: ViewOptions) {
+        this.viewOptions = viewOptions
+
+        idsToPanes.values.forEach { it.updateViewOptions(viewOptions) }
     }
 
     private fun rebindValidProperty() {

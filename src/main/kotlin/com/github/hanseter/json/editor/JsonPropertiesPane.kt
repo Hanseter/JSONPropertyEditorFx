@@ -30,7 +30,7 @@ class JsonPropertiesPane(
         private val refProvider: IdReferenceProposalProvider,
         private val actions: List<EditorAction>,
         private val validators: List<com.github.hanseter.json.editor.validators.Validator>,
-        private val viewOptions: ViewOptions,
+        private var viewOptions: ViewOptions,
         private val changeListener: (JSONObject) -> JSONObject
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(SectionRootTreeItemData(title))
@@ -78,6 +78,14 @@ class JsonPropertiesPane(
 
     fun fillData(data: JSONObject) {
         contentHandler.updateData(data)
+    }
+
+    fun updateViewOptions(viewOptions: ViewOptions) {
+        this.viewOptions = viewOptions
+
+        treeItem.clear()
+        initObjectControl()
+        contentHandler.updateData(contentHandler.data)
     }
 
     private fun fillSheet(data: JSONObject) {
