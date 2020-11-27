@@ -117,7 +117,7 @@ class JsonPropertiesEditorTestApp : Application() {
         val updateViewOptions = { _: Any? ->
             val newViewOptions = ViewOptions(showStars.isSelected, groupBy.selectionModel.selectedItem)
 
-            propEdit.updateViewOptions(newViewOptions)
+            propEdit.viewOptions = newViewOptions
         }
 
         showStars.selectedProperty().addListener(updateViewOptions)

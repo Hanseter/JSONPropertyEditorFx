@@ -16,8 +16,10 @@ import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
+import javafx.event.EventHandler
 import javafx.scene.Cursor
 import javafx.scene.control.*
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
@@ -33,7 +35,7 @@ class JsonPropertiesEditor(
         private val readOnly: Boolean = false,
         private val numberOfInitiallyOpenedObjects: Int = 5,
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
-        private var viewOptions: ViewOptions = ViewOptions(),
+        viewOptions: ViewOptions = ViewOptions(),
         actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
         private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, RequiredValidator),
 ) : VBox() {
@@ -41,13 +43,23 @@ class JsonPropertiesEditor(
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
     private val scrollPane = ScrollPane().apply { id = "contentArea" }
     private val filterText = TextField().apply { id = "searchField" }
-    private val treeTableView = TreeTableView<TreeItemData>().apply { id = "itemTable" }
+    private val treeTableView = TreeTableView<TreeItemData>().apply {
+        id = "itemTable"
+    }
     private val _valid = SimpleBooleanProperty(true)
     val valid: ReadOnlyBooleanProperty
         get() = _valid
-
+    var viewOptions: ViewOptions = viewOptions
+        set(value) {
+            field = value
+            idsToPanes.values.forEach { it.viewOptions = value }
+        }
 
     init {
+        treeTableView.onMouseClicked = EventHandler{
+            println("Foo")
+            println(treeTableView.selectionModel.selectedItem)
+        }
         initTreeTableView()
         filterText.promptText = "Filter properties"
 
@@ -129,12 +141,6 @@ class JsonPropertiesEditor(
         rebindValidProperty()
     }
 
-    fun updateViewOptions(viewOptions: ViewOptions) {
-        this.viewOptions = viewOptions
-
-        idsToPanes.values.forEach { it.updateViewOptions(viewOptions) }
-    }
-
     private fun rebindValidProperty() {
         if (idsToPanes.isEmpty()) {
             _valid.unbind()
@@ -176,7 +182,7 @@ class JsonPropertiesEditor(
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Value"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.control } }
+                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.control?.let {c -> HBox(c) } }}
                 minWidth = 150.0
                 styleClass.add("control-cell")
                 isSortable = false

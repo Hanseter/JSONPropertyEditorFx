@@ -19,17 +19,14 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
     }
 
     override fun bindTo(type: BindableJsonType) {
-
-        controls.forEach { it.bindTo(type) }
         model.bound = type
-
         if (model.rawValue == null && isRequiredSchema(model.schema)) {
             model.value = JSONObject()
         }
 
+        controls.forEach { it.bindTo(type) }
+
         valueChanged()
-
-
     }
 
     private fun valueChanged() {

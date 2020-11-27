@@ -11,28 +11,12 @@ import javafx.scene.control.Label
 import javafx.scene.layout.HBox
 import org.everit.json.schema.Schema
 
-fun createTypeControlsFromSchemas(schema: EffectiveSchema<*>, contentSchemas: Collection<Schema>, context: EditorContext): List<TypeControl> {
-    val controls = contentSchemas.map {
-        ControlFactory.convert(SimpleEffectiveSchema(schema, it), context)
-    }.sortedBy { it.model.schema.parent?.getPropertyOrder()?.indexOf(it.model.schema.getPropertyName()) }
-    var orderedControls: List<TypeControl> = emptyList()
-    val unorderedControls: List<TypeControl>
-    val orderedPropertiesCount = controls.count {
-        schema.getPropertyOrder().contains(it.model.schema.getPropertyName())
-    }
-
-    when {
-        orderedPropertiesCount > 0 -> {
-            orderedControls = controls.takeLast(orderedPropertiesCount)
-            unorderedControls = controls.take(controls.size - orderedPropertiesCount).sortedBy {
-                it.model.schema.getPropertyName().toLowerCase()
-            }
+fun createTypeControlsFromSchemas(schema: EffectiveSchema<*>,
+                                  contentSchemas: Collection<Schema>,
+                                  context: EditorContext): List<TypeControl> =
+        contentSchemas.map {
+            ControlFactory.convert(SimpleEffectiveSchema(schema, it), context)
         }
-        else -> unorderedControls = controls.sortedBy { it.model.schema.title.toLowerCase() }
-    }
-
-    return orderedControls + unorderedControls
-}
 
 class TypeWithChildrenStatusControl(createLabel: String, onCreate: () -> Unit) : HBox() {
 

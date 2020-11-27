@@ -30,7 +30,7 @@ class JsonPropertiesPane(
         private val refProvider: IdReferenceProposalProvider,
         private val actions: List<EditorAction>,
         private val validators: List<com.github.hanseter.json.editor.validators.Validator>,
-        private var viewOptions: ViewOptions,
+        viewOptions: ViewOptions,
         private val changeListener: (JSONObject) -> JSONObject
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(SectionRootTreeItemData(title))
@@ -39,6 +39,14 @@ class JsonPropertiesPane(
     private var controlItem: FilterableTreeItem<TreeItemData>? = null
     private val contentHandler = ContentHandler(data)
     val valid = SimpleBooleanProperty(true)
+    var viewOptions: ViewOptions = viewOptions
+        set(value) {
+            field = value
+            createControlTree()
+            controlItem?.also { item ->
+                updateTreeUiElements(item, contentHandler.data)
+            }
+        }
 
     init {
         treeItem.isExpanded = false
@@ -50,11 +58,20 @@ class JsonPropertiesPane(
     }
 
     private fun initObjectControl() {
-        val objectControl = ControlFactory.convert(schema, EditorContext(refProvider, ::updateTreeAfterChildChange))
-        controlItem = wrapControlInTreeItem(objectControl)
-        if (controlItem!!.isLeaf) treeItem.add(controlItem!!)
-        else Bindings.bindContent(treeItem.list, controlItem!!.list)
-        this.objectControl = objectControl
+        if (objectControl != null) return
+        this.objectControl = ControlFactory.convert(schema, EditorContext(refProvider, ::updateTreeAfterChildChange))
+        createControlTree()
+    }
+
+    private fun createControlTree() {
+        val controlItem = objectControl?.let { wrapControlInTreeItem(it) } ?: return
+        this.controlItem?.also {
+            it.list.clear()
+            Bindings.unbindContent(treeItem.list, it.list)
+        }
+        this.controlItem = controlItem
+        if (controlItem.isLeaf) treeItem.add(controlItem)
+        else Bindings.bindContent(treeItem.list, controlItem.list)
     }
 
     private fun wrapControlInTreeItem(control: TypeControl): FilterableTreeItem<TreeItemData> {
@@ -73,19 +90,12 @@ class JsonPropertiesPane(
         } else {
             item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
         }
+        item.isExpanded = item.list.size <= viewOptions.collapseThreshold
         return item
     }
 
     fun fillData(data: JSONObject) {
         contentHandler.updateData(data)
-    }
-
-    fun updateViewOptions(viewOptions: ViewOptions) {
-        this.viewOptions = viewOptions
-
-        treeItem.clear()
-        initObjectControl()
-        contentHandler.updateData(contentHandler.data)
     }
 
     private fun fillSheet(data: JSONObject) {
@@ -135,8 +145,8 @@ class JsonPropertiesPane(
             is ObjectControl -> updateObjectControlInTree(item, control)
             is ArrayControl -> updateArrayControlInTree(item, control)
         }
-        item.children.forEach { item ->
-            (item.value as? ControlTreeItemData)?.also { updateTree(item as FilterableTreeItem<TreeItemData>, it.typeControl) }
+        item.children.forEach { child ->
+            (child.value as? ControlTreeItemData)?.also { updateTree(child as FilterableTreeItem<TreeItemData>, it.typeControl) }
         }
     }
 
@@ -160,27 +170,32 @@ class JsonPropertiesPane(
     }
 
     private fun addObjectControlChildren(node: FilterableTreeItem<TreeItemData>, control: ObjectControl) {
+        val propOrder = control.model.schema.getPropertyOrder()
         if (viewOptions.groupBy == PropertyGrouping.REQUIRED) {
-            addRequiredAndOptionalChildren(node, control.requiredChildren, control.optionalChildren)
+            addRequiredAndOptionalChildren(node,
+                    control.requiredChildren.sortedWith(PropOrderComparator(propOrder)),
+                    control.optionalChildren.sortedWith(PropOrderComparator(propOrder)))
         } else {
-            val propOrder = control.model.schema.getPropertyOrder()
-
-            node.addAll(control.childControls.sortedWith { o1, o2 ->
-                val prop1 = o1.model.schema.getPropertyName()
-                val prop2 = o2.model.schema.getPropertyName()
-
-                val index1 = propOrder.indexOf(prop1).let { if (it == -1) Int.MAX_VALUE else it }
-                val index2 = propOrder.indexOf(prop2).let { if (it == -1) Int.MAX_VALUE else it }
-
-                val compareOrdered = index1.compareTo(index2)
-
-                if (compareOrdered != 0) {
-                    compareOrdered
-                } else {
-                    o1.model.schema.title.toLowerCase().compareTo(o2.model.schema.title.toLowerCase())
-                }
-            }.map { wrapControlInTreeItem(it) })
+            node.addAll(control.childControls
+                    .sortedWith(PropOrderComparator(propOrder))
+                    .map { wrapControlInTreeItem(it) })
         }
+    }
+
+    private class PropOrderComparator(private val wantedOrder: List<String>) : Comparator<TypeControl> {
+        override fun compare(o1: TypeControl, o2: TypeControl): Int {
+            val prop1 = o1.model.schema.getPropertyName()
+            val prop2 = o2.model.schema.getPropertyName()
+
+            val index1 = wantedOrder.indexOf(prop1)
+            val index2 = wantedOrder.indexOf(prop2)
+
+            val compareOrdered = index1.compareTo(index2)
+
+            return if (compareOrdered != 0) compareOrdered
+            else o1.model.schema.title.toLowerCase().compareTo(o2.model.schema.title.toLowerCase())
+        }
+
     }
 
     private fun createRequiredHeader(): FilterableTreeItem<TreeItemData> = FilterableTreeItem(HeaderTreeItemData("Required"))

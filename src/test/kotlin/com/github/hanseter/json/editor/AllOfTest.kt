@@ -1,6 +1,8 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.controls.TypeWithChildrenStatusControl
+import com.github.hanseter.json.editor.util.PropertyGrouping
+import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.scene.control.Spinner
 import javafx.scene.control.TextField
 import javafx.stage.Stage
@@ -20,7 +22,8 @@ class AllOfTest {
 
     @Start
     fun start(stage: Stage) {
-        editor = JsonPropertiesEditor(resolutionScopeProvider = { this::class.java.classLoader.getResource("")?.toURI() })
+        editor = JsonPropertiesEditor(resolutionScopeProvider = { this::class.java.classLoader.getResource("")?.toURI() },
+                viewOptions = ViewOptions(groupBy = PropertyGrouping.NONE))
     }
 
     @Test
@@ -29,8 +32,7 @@ class AllOfTest {
         val data = JSONObject()
         editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first()
-        //5 fields + 1 header
-        assertThat(objectEntry.children.size, `is`(6))
+        assertThat(objectEntry.children.size, `is`(5))
         assertThat(objectEntry.findChildWithKey("fromNested")?.value?.control, `is`(instanceOf(TextField::class.java)))
         assertThat(objectEntry.findChildWithKey("additional")?.value?.control, `is`(instanceOf(Spinner::class.java)))
         assertThat(objectEntry.findChildWithKey("name")?.value?.control, `is`(instanceOf(TextField::class.java)))
@@ -60,8 +62,7 @@ class AllOfTest {
         val objectEntry = editor.getItemTable().root.children.first().findChildWithKey("notRoot")!!
         assertThat(objectEntry.children.size, `is`(0))
         (objectEntry.value.control as TypeWithChildrenStatusControl).button.fire()
-        //3 fields + 1 header
-        assertThat(objectEntry.children.size, `is`(4))
+        assertThat(objectEntry.children.size, `is`(3))
         assertThat(objectEntry.findChildWithKey("hello")?.value?.control, `is`(instanceOf(TextField::class.java)))
         assertThat(objectEntry.findChildWithKey("x")?.value?.control, `is`(instanceOf(Spinner::class.java)))
         assertThat(objectEntry.findChildWithKey("y")?.value?.control, `is`(instanceOf(Spinner::class.java)))
@@ -75,6 +76,16 @@ class AllOfTest {
         assertThat(nestedData.getDouble("x"), `is`(500.0))
     }
 
+    @Test
+    fun allOfWithReuqiredSubType() {
+        val schema = loadSchema("completeValidationTestSchema.json")
+        val data = JSONObject()
+        editor.display("foo", "foo", data, schema) { it }
+        val objectEntry = editor.getItemTable().root.children.first()
+        val control = objectEntry.findChildWithKey("allOfs")!!.findChildWithKey("required")!!.findChildWithKey("a")!!.value.control as TextField
+        control.text = "Hello"
+        assertThat(data.getJSONObject("allOfs").getJSONObject("required").getString("a"), `is`("Hello"))
+    }
 
     private fun loadSchema(schemaName: String) =
             JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(schemaName)))
