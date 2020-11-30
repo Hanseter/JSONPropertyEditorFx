@@ -14,5 +14,6 @@ class EffectiveSchemaOfCombination<T : Schema>(override val parent: EffectiveSch
     override val pointer: List<String>
         get() = parent.pointer
 
-    override fun getPropertyName(): String = parent.getPropertyName()
+    override val propertyName: String
+        get() = parent.propertyName
 }

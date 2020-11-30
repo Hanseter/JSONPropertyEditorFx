@@ -7,7 +7,8 @@ class SimpleEffectiveSchema<T : Schema>(override val parent: EffectiveSchema<*>?
                                         customTitle: String? = null) : EffectiveSchema<T> {
     override val title = customTitle ?: calcSchemaTitle(baseSchema)
 
-    override fun getPropertyName(): String = calcPropertyName(baseSchema)
+    override val propertyName: String
+        get() = calcPropertyName(baseSchema)
 
     companion object {
         fun calcSchemaTitle(schema: Schema) = schema.title ?: calcPropertyName(schema)

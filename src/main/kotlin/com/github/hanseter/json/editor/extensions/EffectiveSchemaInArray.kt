@@ -6,6 +6,7 @@ import org.everit.json.schema.Schema
 class EffectiveSchemaInArray<T : Schema>(override val parent: EffectiveSchema<ArraySchema>, override val baseSchema: T, val index: Int) : EffectiveSchema<T> {
     override val title = index.toString()
 
-    override fun getPropertyName(): String = title
+    override val propertyName: String
+        get() = title
 
 }

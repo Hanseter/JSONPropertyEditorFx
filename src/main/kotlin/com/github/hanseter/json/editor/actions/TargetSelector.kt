@@ -60,7 +60,7 @@ fun interface TargetSelector {
             val schema = model.schema.parent?.baseSchema?.let { getReferredSchema(it) }
 
             return (schema as? ObjectSchema)?.let {
-                model.schema.getPropertyName() in it.requiredProperties
+                model.schema.propertyName in it.requiredProperties
             } ?: true
         }
 

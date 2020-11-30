@@ -170,7 +170,7 @@ class JsonPropertiesPane(
     }
 
     private fun addObjectControlChildren(node: FilterableTreeItem<TreeItemData>, control: ObjectControl) {
-        val propOrder = control.model.schema.getPropertyOrder()
+        val propOrder = control.model.schema.propertyOrder
         if (viewOptions.groupBy == PropertyGrouping.REQUIRED) {
             addRequiredAndOptionalChildren(node,
                     control.requiredChildren.sortedWith(PropOrderComparator(propOrder)),
@@ -184,8 +184,8 @@ class JsonPropertiesPane(
 
     private class PropOrderComparator(private val wantedOrder: List<String>) : Comparator<TypeControl> {
         override fun compare(o1: TypeControl, o2: TypeControl): Int {
-            val prop1 = o1.model.schema.getPropertyName()
-            val prop2 = o2.model.schema.getPropertyName()
+            val prop1 = o1.model.schema.propertyName
+            val prop2 = o2.model.schema.propertyName
 
             val index1 = wantedOrder.indexOf(prop1)
             val index2 = wantedOrder.indexOf(prop2)

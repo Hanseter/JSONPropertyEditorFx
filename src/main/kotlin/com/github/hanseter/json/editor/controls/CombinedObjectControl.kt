@@ -2,7 +2,6 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.CombinedObjectModel
 import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.validators.isRequiredSchema
 import org.json.JSONObject
 
 class CombinedObjectControl(override val model: CombinedObjectModel, val controls: List<ObjectControl>)
@@ -20,7 +19,7 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
 
     override fun bindTo(type: BindableJsonType) {
         model.bound = type
-        if (model.rawValue == null && isRequiredSchema(model.schema)) {
+        if (model.rawValue == null && model.schema.required) {
             model.value = JSONObject()
         }
 

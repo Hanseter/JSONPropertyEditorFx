@@ -18,7 +18,7 @@ object ResetToDefaultAction : EditorAction {
     ))
 
     override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
-        val key = model.schema.getPropertyName()
+        val key = model.schema.propertyName
         when (val parentContainer = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData)) {
             is JSONObject -> parentContainer.remove(key)
             is JSONArray -> parentContainer.put(key.toInt(), model.defaultValue ?: JSONObject.NULL)

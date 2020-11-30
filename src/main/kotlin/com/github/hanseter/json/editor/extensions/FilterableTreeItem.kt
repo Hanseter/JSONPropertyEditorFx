@@ -4,7 +4,6 @@ import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.util.DecoratableLabelSkin
 import com.github.hanseter.json.editor.util.ViewOptions
-import com.github.hanseter.json.editor.validators.isRequiredSchema
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -123,7 +122,7 @@ class ControlTreeItemData(
     override val title = typeControl.model.schema.title
 
     override val label = Label(
-            title + if (viewOptions.markRequired && isRequiredSchema(typeControl.model.schema)) " *" else ""
+            title + if (viewOptions.markRequired && typeControl.model.schema.required) " *" else ""
     ).apply {
         tooltip = typeControl.model.schema.baseSchema.description?.let { Tooltip(it) }
         skin = DecoratableLabelSkin(this)

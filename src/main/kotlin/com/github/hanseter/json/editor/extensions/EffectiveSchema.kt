@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.extensions
 
 import org.everit.json.schema.JSONPointer
+import org.everit.json.schema.ObjectSchema
 import org.everit.json.schema.Schema
 import org.json.JSONObject
 
@@ -19,12 +20,16 @@ interface EffectiveSchema<T : Schema> {
     val readOnly: Boolean
         get() = (baseSchema.isReadOnly ?: parent?.readOnly ?: false)
     val pointer: List<String>
-        get() = parent?.pointer?.let { it + getPropertyName() } ?: emptyList()
+        get() = parent?.pointer?.let { it + propertyName } ?: emptyList()
 
-    fun getPropertyName(): String
+    val required: Boolean
+        get() = true == (parent?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(propertyName)
 
-    fun getPropertyOrder(): List<String> = (baseSchema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()?.toList()?.distinct()
-            ?: emptyList()
+    val propertyName: String
+
+    val propertyOrder: List<String>
+        get() = (baseSchema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()?.toList()?.distinct()
+                ?: emptyList()
 
 
     fun extractProperty(json: JSONObject): Any? =
