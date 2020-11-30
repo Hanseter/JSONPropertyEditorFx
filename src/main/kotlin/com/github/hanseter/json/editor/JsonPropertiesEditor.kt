@@ -8,9 +8,6 @@ import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import com.github.hanseter.json.editor.util.ViewOptions
-import com.github.hanseter.json.editor.validators.ArrayValidator
-import com.github.hanseter.json.editor.validators.RequiredValidator
-import com.github.hanseter.json.editor.validators.StringValidator
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
@@ -37,7 +34,7 @@ class JsonPropertiesEditor(
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
         viewOptions: ViewOptions = ViewOptions(),
         actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-        private val validators: List<Validator> = listOf(StringValidator, ArrayValidator, RequiredValidator),
+        private val validators: List<Validator> = listOf(),
 ) : VBox() {
     private val actions = actions + PreviewAction(referenceProposalProvider, resolutionScopeProvider) + arrayActions
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -173,7 +170,7 @@ class JsonPropertiesEditor(
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Key"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.label } }
+                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.createLabel() } }
                 minWidth = 150.0
                 isSortable = false
             }

@@ -16,4 +16,4 @@ object RequiredValidator : Validator {
 }
 
 fun isRequiredSchema(schema: EffectiveSchema<*>): Boolean =
-        true == (schema.parent?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(schema.getPropertyName())
+        true == (schema.parent?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(schema.propertyName())
