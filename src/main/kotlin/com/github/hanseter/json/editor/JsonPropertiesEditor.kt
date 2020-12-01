@@ -3,7 +3,10 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.actions.*
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
-import com.github.hanseter.json.editor.ui.*
+import com.github.hanseter.json.editor.ui.DecoratableLabelSkin
+import com.github.hanseter.json.editor.ui.FilterableTreeItem
+import com.github.hanseter.json.editor.ui.StyledTreeItemData
+import com.github.hanseter.json.editor.ui.TreeItemData
 import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.util.ViewOptions
 import com.github.hanseter.json.editor.validators.Validator
@@ -217,7 +220,7 @@ class JsonPropertiesEditor(
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Value"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { ValueCell() }//Callback { CustomNodeTreeTableCell { it.control?.let { c -> HBox(c) } } }
+                cellFactory = Callback { ValueCell() }
                 minWidth = 150.0
                 styleClass.add("control-cell")
                 isSortable = false
@@ -251,13 +254,37 @@ class JsonPropertiesEditor(
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Action"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { CustomNodeTreeTableCell { it.actions } }
+                cellFactory = Callback { ActionCell() }
                 minWidth = 100.0
                 prefWidth = 100.0
                 styleClass.add("action-cell")
                 style = "-fx-alignment: CENTER"
                 isSortable = false
             }
+
+    class ActionCell: TreeTableCell<TreeItemData, TreeItemData>() {
+        private var changeListener: ((TreeItemData) -> Unit) = this::updateActionEnablement
+        private var actions: ActionsContainer? = null
+        override fun updateItem(item: TreeItemData?, empty: Boolean) {
+            getItem()?.removeChangeListener(changeListener)
+            super.updateItem(item, empty)
+
+            val node = item?.createActions()
+            if (item == null || empty) {
+                text = null
+                graphic = null
+            } else {
+                graphic = node
+                actions = node
+                updateActionEnablement(item)
+                item.registerChangeListener(changeListener)
+            }
+        }
+
+        private fun updateActionEnablement(item: TreeItemData) {
+            actions?.updateDisablement()
+        }
+    }
 
     class TreeItemDataRow : TreeTableRow<TreeItemData>() {
         private val appliedStyleClasses = mutableListOf<String>()

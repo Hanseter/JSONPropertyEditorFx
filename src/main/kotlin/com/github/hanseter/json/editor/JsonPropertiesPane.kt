@@ -16,6 +16,7 @@ import com.github.hanseter.json.editor.util.RootBindableType
 import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.event.Event
 import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
 import org.json.JSONArray
@@ -74,8 +75,8 @@ class JsonPropertiesPane(
     }
 
     private fun wrapControlInTreeItem(control: TypeControl): FilterableTreeItem<TreeItemData> {
-        val actions = ActionsContainer(control, actions) { e, action, control ->
-            val ret = action.apply(contentHandler.data, control.model, e)
+        val actionHandler: (Event, EditorAction, TypeControl) -> Unit = { e, action, source ->
+            val ret = action.apply(contentHandler.data, source.model, e)
             if (ret != null) {
                 val newData = changeListener(ret)
                 fillData(newData)
@@ -83,7 +84,7 @@ class JsonPropertiesPane(
         }
 
         val item: FilterableTreeItem<TreeItemData> =
-                FilterableTreeItem(ControlTreeItemData(control, actions, validators.filter { it.selector.matches(control.model) }))
+                FilterableTreeItem(ControlTreeItemData(control, actions, actionHandler, validators.filter { it.selector.matches(control.model) }))
         if (control is ObjectControl) {
             addObjectControlChildren(item, control)
         } else {
@@ -216,7 +217,6 @@ class JsonPropertiesPane(
     private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
         val errorMap = validate(prepareForValidation(root, data))
         flatten(root).forEach { item ->
-            item.value?.actions?.updateDisablement()
             (item.value as? ControlTreeItemData)?.also { data ->
                 data.validationMessage = errorMap[listOf("#") + data.typeControl.model.schema.pointer]
             }

@@ -28,7 +28,7 @@ class ArrayTest {
         editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        assertThat(arrayEntry.value.actions!!.children, `is`(empty()))
+        assertThat(arrayEntry.value.createActions()!!.children, `is`(empty()))
     }
 
     @Test
@@ -53,9 +53,9 @@ class ArrayTest {
         editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        assertThat(arrayEntry.value.actions!!.children.size, `is`(2))
-        assertThat((arrayEntry.value.actions!!.children[0] as Button).text, `is`("↻"))
-        assertThat((arrayEntry.value.actions!!.children[1] as Button).text, `is`("\uD83D\uDFA3"))
+        assertThat(arrayEntry.value.createActions()!!.children.size, `is`(2))
+        assertThat((arrayEntry.value.createActions()!!.children[0] as Button).text, `is`("↻"))
+        assertThat((arrayEntry.value.createActions()!!.children[1] as Button).text, `is`("\uD83D\uDFA3"))
     }
 
     @Test
@@ -67,7 +67,7 @@ class ArrayTest {
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        val addButton = arrayEntry.value.actions!!.children[1] as Button
+        val addButton = arrayEntry.value.createActions()!!.children[1] as Button
         addButton.fire()
         addButton.fire()
         addButton.fire()
@@ -83,7 +83,7 @@ class ArrayTest {
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
-        val addButton = arrayEntry.value.actions!!.children[1] as Button
+        val addButton = arrayEntry.value.createActions()!!.children[1] as Button
         addButton.fire()
         addButton.fire()
         assertThat(data.getJSONArray("bar").toList(), contains("foo", "foo"))

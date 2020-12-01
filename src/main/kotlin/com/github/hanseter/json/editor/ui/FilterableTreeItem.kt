@@ -1,12 +1,14 @@
 package com.github.hanseter.json.editor.ui
 
 import com.github.hanseter.json.editor.actions.ActionsContainer
+import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.util.LazyControl
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
+import javafx.event.Event
 import javafx.scene.control.TreeItem
 import java.util.function.Predicate
 
@@ -101,12 +103,13 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
 interface TreeItemData {
     val title: String
     val description: String?
-    val actions: ActionsContainer?
     val required: Boolean
     val cssClasses: List<String>
     var validationMessage: String?
 
     fun createControl(): LazyControl?
+
+    fun createActions(): ActionsContainer?
 
     fun registerChangeListener(listener: (TreeItemData) -> Unit)
     fun removeChangeListener(listener: (TreeItemData) -> Unit)
@@ -115,7 +118,8 @@ interface TreeItemData {
 
 class ControlTreeItemData(
         val typeControl: TypeControl,
-        override val actions: ActionsContainer,
+        private val actions: List<EditorAction>,
+        private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
         val validators: List<com.github.hanseter.json.editor.validators.Validator>) : TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 
@@ -131,6 +135,8 @@ class ControlTreeItemData(
     override var validationMessage: String? = null
 
     override fun createControl(): LazyControl? = typeControl.createLazyControl()
+
+    override fun createActions(): ActionsContainer? = ActionsContainer(typeControl, actions, actionHandler)
 
     override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
         changeListeners.add(listener)
@@ -150,14 +156,14 @@ class StyledTreeItemData(override val title: String, override val cssClasses: Li
 
     override val description: String?
         get() = null
-    override val actions: ActionsContainer?
-        get() = null
 
     override val required: Boolean
         get() = false
     override var validationMessage: String? = null
 
     override fun createControl(): LazyControl? = null
+
+    override fun createActions(): ActionsContainer? = null
 
     override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
         changeListeners.forEach { it(this) }
