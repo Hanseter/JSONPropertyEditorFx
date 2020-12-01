@@ -15,5 +15,5 @@ interface Validator {
     /**
      * Returns an error message if validation fails.
      */
-    fun validate(model: TypeModel<*,*>): List<String>
+    fun validate(model: TypeModel<*,*>, objId: String): List<String>
 }

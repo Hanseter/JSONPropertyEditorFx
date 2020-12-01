@@ -1,12 +1,13 @@
 package com.github.hanseter.json.editor
 
+import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 
 interface IdReferenceProposalProvider {
     object IdReferenceProposalProviderEmpty : IdReferenceProposalProvider {
-        override fun calcCompletionProposals(part: String?): List<String> = emptyList()
-        override fun getReferenceDescription(reference: String?): String = ""
-        override fun isValidReference(userInput: String?): Boolean = true
+        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String> = emptyList()
+        override fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String = ""
+        override fun isValidReference(userInput: String?, editedElement: String, editedSchema: StringSchema): Boolean = true
     }
 
     /**
@@ -15,7 +16,7 @@ interface IdReferenceProposalProvider {
      * @param part The input so far.
      * @return The calculated proposals.
      */
-    fun calcCompletionProposals(part: String?): List<String>
+    fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String>
 
     /**
      * Returns a descriptive string for the element referenced by the provided reference.
@@ -23,7 +24,7 @@ interface IdReferenceProposalProvider {
      * @param reference The typed reference id
      * @return A desciptive string for the element identified by the preference.
      */
-    fun getReferenceDescription(reference: String?): String
+    fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String
 
     /**
      * Checks whether the provided user input is a valid reference.
@@ -31,7 +32,7 @@ interface IdReferenceProposalProvider {
      * @param userInput The users input.
      * @return Whether the provided user input is a valid reference.
      */
-    fun isValidReference(userInput: String?): Boolean
+    fun isValidReference(userInput: String?, editedElement: String, editedSchema: StringSchema): Boolean
 
     /**
      * Provides the data and schema for the object identified by the provided id. This data will be used for a preview.

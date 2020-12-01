@@ -4,16 +4,13 @@ import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.actions.TargetSelector
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
+import org.everit.json.schema.StringSchema
 
 class IdReferenceValidator(private val referenceProposalProvider: IdReferenceProposalProvider) : Validator {
     override val selector: TargetSelector = TargetSelector { it.supportedType == SupportedType.SimpleType.IdReferenceType }
 
-    override fun validate(model: TypeModel<*, *>): List<String> =
-            (validateReference(referenceProposalProvider, model.value as? String)?.let { listOf(it) }
-                    ?: emptyList())
+    override fun validate(model: TypeModel<*, *>, objId: String): List<String> =
+            if (referenceProposalProvider.isValidReference(model.value as? String, objId, model.schema.baseSchema as StringSchema)) emptyList()
+            else listOf("Has to be a valid reference")
+
 }
-
-
-fun validateReference(referenceProposalProvider: IdReferenceProposalProvider, value: String?): String? =
-        if (referenceProposalProvider.isValidReference(value)) null
-        else "Has to be a valid reference"

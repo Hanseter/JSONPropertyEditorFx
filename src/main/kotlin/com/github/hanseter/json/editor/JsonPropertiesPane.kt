@@ -24,6 +24,7 @@ import org.json.JSONObject
 
 class JsonPropertiesPane(
         title: String,
+        private val objId: String,
         data: JSONObject,
         schema: Schema,
         private val refProvider: IdReferenceProposalProvider,
@@ -58,7 +59,7 @@ class JsonPropertiesPane(
 
     private fun initObjectControl() {
         if (objectControl != null) return
-        this.objectControl = ControlFactory.convert(schema, EditorContext(refProvider, ::updateTreeAfterChildChange))
+        this.objectControl = ControlFactory.convert(schema, EditorContext(refProvider, objId, ::updateTreeAfterChildChange))
         createControlTree()
     }
 
@@ -83,7 +84,7 @@ class JsonPropertiesPane(
         }
 
         val item: FilterableTreeItem<TreeItemData> =
-                FilterableTreeItem(ControlTreeItemData(control, actions, actionHandler, validators.filter { it.selector.matches(control.model) }))
+                FilterableTreeItem(ControlTreeItemData(control, actions, actionHandler, objId, validators.filter { it.selector.matches(control.model) }))
         if (control is ObjectControl) {
             addObjectControlChildren(item, control)
         } else {
@@ -228,7 +229,7 @@ class JsonPropertiesPane(
         flattenBottomUp(root).forEach { item ->
             (item.value as? ControlTreeItemData)?.also { data ->
                 val pointer = listOf("#") + data.typeControl.model.schema.pointer
-                data.validators.flatMap { it.validate(data.typeControl.model) }.forEach { addError(pointer, it) }
+                data.validators.flatMap { it.validate(data.typeControl.model, objId) }.forEach { addError(pointer, it) }
                 data.validationMessage = createErrorMessage(parentErrorCount[pointer]
                         ?: 0, errorMap[pointer])
             }

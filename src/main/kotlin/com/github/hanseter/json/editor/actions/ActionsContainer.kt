@@ -8,6 +8,7 @@ import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
 
 class ActionsContainer(private val control: TypeControl, actions: List<EditorAction>,
+                       private val objId: String,
                        private val executeActionCallback: (Event, EditorAction, TypeControl) -> Unit)
     : HBox() {
 
@@ -33,7 +34,7 @@ class ActionsContainer(private val control: TypeControl, actions: List<EditorAct
 
     fun updateDisablement() {
         actionButtons.forEach { (action, button) ->
-            button.isDisable = action.shouldBeDisabled(control.model)
+            button.isDisable = action.shouldBeDisabled(control.model, objId)
         }
     }
 }

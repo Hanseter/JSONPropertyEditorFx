@@ -90,7 +90,7 @@ class JsonPropertiesEditor(
             return
         }
         val pane = createTitledPaneForSchema(
-                title, obj,
+                title, objId, obj,
                 parseSchema(schema, resolutionScopeProvider.getResolutionScopeForElement(objId)),
                 callback
         )
@@ -145,9 +145,9 @@ class JsonPropertiesEditor(
         }
     }
 
-    private fun createTitledPaneForSchema(title: String, data: JSONObject,
+    private fun createTitledPaneForSchema(title: String, objId: String, data: JSONObject,
                                           schema: Schema, callback: (JSONObject) -> JSONObject): JsonPropertiesPane =
-            JsonPropertiesPane(title, data, schema, referenceProposalProvider, actions, validators, viewOptions, callback)
+            JsonPropertiesPane(title, objId, data, schema, referenceProposalProvider, actions, validators, viewOptions, callback)
 
     private fun initTreeTableView() {
         val keyColumn = createKeyColumn()

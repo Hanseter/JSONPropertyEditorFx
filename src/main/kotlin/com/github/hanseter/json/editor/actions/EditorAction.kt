@@ -17,6 +17,6 @@ interface EditorAction {
 
     fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject?
 
-    fun shouldBeDisabled(model: TypeModel<*, *>): Boolean =
+    fun shouldBeDisabled(model: TypeModel<*, *>, objId: String): Boolean =
             model.schema.readOnly
 }

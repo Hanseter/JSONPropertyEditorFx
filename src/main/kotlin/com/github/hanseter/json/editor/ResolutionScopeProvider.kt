@@ -7,13 +7,13 @@ fun interface ResolutionScopeProvider {
      * Empty instance which provides an empty URI.
      */
     object ResolutionScopeProviderEmpty : ResolutionScopeProvider {
-        override fun getResolutionScopeForElement(elementId: String): URI? = null
+        override fun getResolutionScopeForElement(objId: String): URI? = null
     }
 
     /**
      * Provides a resolution scope URI for a requested element ID.
-     * @param elementId The ID of the element
+     * @param objId The ID of the element
      * @return The URI of the resolution scope.
      */
-    fun getResolutionScopeForElement(elementId: String) : URI?
+    fun getResolutionScopeForElement(objId: String) : URI?
 }

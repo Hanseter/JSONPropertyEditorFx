@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.ui.LabelledTextField
 import javafx.stage.Stage
+import org.everit.json.schema.StringSchema
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.json.JSONObject
@@ -41,17 +42,16 @@ class IdReferenceTest {
         val elements = mutableListOf<ReferencableElement>()
         val openedElements = mutableListOf<String>()
 
-        override fun calcCompletionProposals(part: String?): List<String> {
+        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String> {
             if (part == null) return emptyList()
             return elements.filter { it.id.startsWith(part) }.map { it.id }
         }
 
-        override fun getReferenceDescription(reference: String?): String =
+        override fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String =
                 elements.find { it.id == reference }?.description ?: ""
 
-        override fun isValidReference(userInput: String?): Boolean {
-            return elements.find { it.id == userInput } != null
-        }
+        override fun isValidReference(userInput: String?, editedElement: String, editedSchema: StringSchema): Boolean =
+                elements.find { it.id == userInput } != null
 
         override fun isOpenable(id: String): Boolean =
                 elements.find { it.id == id }?.isOpenable ?: false

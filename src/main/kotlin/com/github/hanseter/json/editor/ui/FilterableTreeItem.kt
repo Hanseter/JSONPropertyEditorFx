@@ -4,6 +4,7 @@ import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.util.LazyControl
+import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -120,7 +121,8 @@ class ControlTreeItemData(
         val typeControl: TypeControl,
         private val actions: List<EditorAction>,
         private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
-        val validators: List<com.github.hanseter.json.editor.validators.Validator>) : TreeItemData {
+        private val objId: String,
+        val validators: List<Validator>) : TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 
     override val title = typeControl.model.schema.title
@@ -136,7 +138,7 @@ class ControlTreeItemData(
 
     override fun createControl(): LazyControl? = typeControl.createLazyControl()
 
-    override fun createActions(): ActionsContainer? = ActionsContainer(typeControl, actions, actionHandler)
+    override fun createActions(): ActionsContainer? = ActionsContainer(typeControl, actions, objId, actionHandler)
 
     override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
         changeListeners.add(listener)

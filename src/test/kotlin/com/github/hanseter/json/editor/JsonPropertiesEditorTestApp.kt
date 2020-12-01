@@ -10,6 +10,7 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
+import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.net.URI
@@ -21,7 +22,7 @@ fun main(args: Array<String>) {
 class JsonPropertiesEditorTestApp : Application() {
     override fun start(primaryStage: Stage) {
         val customResolutionScopeProvider = object : ResolutionScopeProvider {
-            override fun getResolutionScopeForElement(elementId: String): URI? =
+            override fun getResolutionScopeForElement(objId: String): URI? =
                     this::class.java.classLoader.getResource("")?.toURI()
         }
 
@@ -172,13 +173,14 @@ class JsonPropertiesEditorTestApp : Application() {
                         )
                 )
 
-        override fun calcCompletionProposals(part: String?): List<String> =
+        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String> =
                 possibleProposals.keys.filter { it.startsWith(part ?: "") }
 
-        override fun getReferenceDescription(reference: String?): String =
+        override fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String =
                 possibleProposals[reference]?.data?.optString("name") ?: ""
 
-        override fun isValidReference(userInput: String?): Boolean = possibleProposals.contains(userInput)
+        override fun isValidReference(userInput: String?, editedElement: String, editedSchema: StringSchema): Boolean =
+                possibleProposals.contains(userInput)
 
         override fun getDataAndSchema(id: String): IdReferenceProposalProvider.DataWithSchema? = possibleProposals[id]
         override fun isOpenable(id: String) = true

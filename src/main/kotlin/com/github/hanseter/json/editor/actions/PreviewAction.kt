@@ -19,6 +19,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import org.controlsfx.control.PopOver
+import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 
 class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposalProvider,
@@ -38,8 +39,11 @@ class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposal
         return null
     }
 
-    override fun shouldBeDisabled(model: TypeModel<*, *>): Boolean =
-            !idReferenceProposalProvider.isValidReference((model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value)
+    override fun shouldBeDisabled(model: TypeModel<*, *>, objId: String): Boolean =
+            !idReferenceProposalProvider.isValidReference(
+                    (model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value,
+                    objId,
+                    model.schema.baseSchema as StringSchema)
 
     private fun showPreviewPopup(dataAndSchema: IdReferenceProposalProvider.DataWithSchema, value: String, parent: Node?) {
         val (data, previewSchema) = dataAndSchema
