@@ -1,4 +1,4 @@
-package com.github.hanseter.json.editor.util
+package com.github.hanseter.json.editor.ui
 
 import com.sun.javafx.scene.control.skin.TextFieldSkin
 import javafx.beans.property.SimpleStringProperty
@@ -27,8 +27,6 @@ class LabelledTextField(text: String) : TextField(text) {
     override fun createDefaultSkin(): Skin<*> {
         return LabelledTextFieldSkin(this)
     }
-
-
 }
 
 class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFieldSkin(textField) {

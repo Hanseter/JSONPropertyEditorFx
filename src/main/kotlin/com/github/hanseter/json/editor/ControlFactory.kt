@@ -43,26 +43,26 @@ object ControlFactory {
             }
 
     private fun createBooleanControl(schema: EffectiveSchema<BooleanSchema>) =
-            RowBasedControl(BooleanControl(), BooleanModel(schema))
+            RowBasedControl({ BooleanControl() }, BooleanModel(schema))
 
     private fun createStringControl(schema: EffectiveSchema<StringSchema>, context: EditorContext): TypeControl =
             when (schema.baseSchema.formatValidator.formatName()) {
-                ColorFormat.formatName -> RowBasedControl(ColorControl(), ColorModel(schema))
-                IdReferenceFormat.formatName -> RowBasedControl(IdReferenceControl(schema, context), IdReferenceModel(schema))
-                else -> RowBasedControl(StringControl(), StringModel(schema))
+                ColorFormat.formatName -> RowBasedControl({ ColorControl() }, ColorModel(schema))
+                IdReferenceFormat.formatName -> RowBasedControl({ IdReferenceControl(schema, context) }, IdReferenceModel(schema))
+                else -> RowBasedControl({ StringControl() }, StringModel(schema))
             }
 
     private fun createNumberControl(schema: EffectiveSchema<NumberSchema>): TypeControl =
             if (schema.baseSchema.requiresInteger()) {
-                RowBasedControl(IntegerControl(schema.baseSchema), IntegerModel(schema))
+                RowBasedControl({ IntegerControl(schema.baseSchema) }, IntegerModel(schema))
             } else {
-                RowBasedControl(DoubleControl(schema.baseSchema), DoubleModel(schema))
+                RowBasedControl({ DoubleControl(schema.baseSchema) }, DoubleModel(schema))
             }
 
     @Suppress("UNCHECKED_CAST")
     private fun createEnumControl(schema: EffectiveSchema<out Schema>, enumSchema: EnumSchema): TypeControl {
         val enumModel = EnumModel(schema as EffectiveSchema<Schema>, enumSchema)
-        return RowBasedControl<String?>(EnumControl(enumModel), enumModel)
+        return RowBasedControl<String?>({ EnumControl(enumModel) }, enumModel)
     }
 
     private fun createCombinedControl(schema: EffectiveSchema<CombinedSchema>, context: EditorContext): TypeControl =

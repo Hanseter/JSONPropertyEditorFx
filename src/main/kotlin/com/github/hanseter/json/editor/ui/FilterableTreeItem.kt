@@ -1,16 +1,12 @@
-package com.github.hanseter.json.editor.extensions
+package com.github.hanseter.json.editor.ui
 
 import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.controls.TypeControl
-import com.github.hanseter.json.editor.util.DecoratableLabelSkin
-import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.util.LazyControl
 import javafx.beans.binding.Bindings
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
-import javafx.scene.Node
-import javafx.scene.control.Label
-import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
 import java.util.function.Predicate
 
@@ -103,64 +99,76 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
  *
  */
 interface TreeItemData {
-    val label: Label
     val title: String
-    val control: Node?
+    val description: String?
     val actions: ActionsContainer?
-    val isRoot: Boolean
-        get() = false
-    val isHeadline: Boolean
-        get() = false
+    val required: Boolean
+    val cssClasses: List<String>
+    var validationMessage: String?
+
+    fun createControl(): LazyControl?
+
+    fun registerChangeListener(listener: (TreeItemData) -> Unit)
+    fun removeChangeListener(listener: (TreeItemData) -> Unit)
+    fun updateFinished()
 }
 
 class ControlTreeItemData(
         val typeControl: TypeControl,
         override val actions: ActionsContainer,
-        val validators: List<com.github.hanseter.json.editor.validators.Validator>,
-        viewOptions: ViewOptions) : TreeItemData {
+        val validators: List<com.github.hanseter.json.editor.validators.Validator>) : TreeItemData {
+    private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 
     override val title = typeControl.model.schema.title
 
-    override val label = Label(
-            title + if (viewOptions.markRequired && typeControl.model.schema.required) " *" else ""
-    ).apply {
-        tooltip = typeControl.model.schema.baseSchema.description?.let { Tooltip(it) }
-        skin = DecoratableLabelSkin(this)
+    override val description: String?
+        get() = typeControl.model.schema.baseSchema.description
+
+    override val required: Boolean
+        get() = typeControl.model.schema.required
+    override val cssClasses: List<String>
+        get() = emptyList()
+    override var validationMessage: String? = null
+
+    override fun createControl(): LazyControl? = typeControl.createLazyControl()
+
+    override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
+        changeListeners.add(listener)
     }
 
-    override val control: Node?
-        get() = typeControl.control
-}
-
-object RootTreeItemData : TreeItemData {
-    override val title = "root"
-
-    override val label: Label = Label(title)
-
-    override val control: Node?
-        get() = null
-    override val actions: ActionsContainer?
-        get() = null
-}
-
-class SectionRootTreeItemData(override val title: String) : TreeItemData {
-    override val label: Label = Label(title).apply {
-        skin = DecoratableLabelSkin(this)
+    override fun removeChangeListener(listener: (TreeItemData) -> Unit) {
+        changeListeners.remove(listener)
     }
-    override val control: Node?
-        get() = null
-    override val actions: ActionsContainer?
-        get() = null
-    override val isRoot: Boolean
-        get() = true
+
+    override fun updateFinished() {
+        changeListeners.forEach { it(this) }
+    }
 }
 
-class HeaderTreeItemData(override val title: String) : TreeItemData {
-    override val label: Label = Label(title)
-    override val control: Node?
+class StyledTreeItemData(override val title: String, override val cssClasses: List<String>) : TreeItemData {
+    private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
+
+    override val description: String?
         get() = null
     override val actions: ActionsContainer?
         get() = null
-    override val isHeadline: Boolean
-        get() = true
+
+    override val required: Boolean
+        get() = false
+    override var validationMessage: String? = null
+
+    override fun createControl(): LazyControl? = null
+
+    override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
+        changeListeners.forEach { it(this) }
+    }
+
+    override fun removeChangeListener(listener: (TreeItemData) -> Unit) {
+        changeListeners.forEach { it(this) }
+    }
+
+    override fun updateFinished() {
+        changeListeners.forEach { it(this) }
+    }
 }
+

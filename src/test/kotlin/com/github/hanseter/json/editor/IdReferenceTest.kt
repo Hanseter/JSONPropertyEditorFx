@@ -1,6 +1,6 @@
 package com.github.hanseter.json.editor
 
-import com.github.hanseter.json.editor.util.LabelledTextField
+import com.github.hanseter.json.editor.ui.LabelledTextField
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -27,8 +27,7 @@ class IdReferenceTest {
         val schema = JSONObject("""{"type":"object","properties":{"ref":{"type":"string","format":"id-reference"}}}""")
         referenceProposalProvider.elements.add(ReferencableElement("test2", "description", JSONObject(), schema, false))
         editor.display("1", "1", JSONObject(), schema) { it }
-        val itemTable = editor.getItemTable()
-        val refField = itemTable.root.children.first().findChildWithKey("ref")!!.value.control as LabelledTextField
+        val refField = editor.getControlInTable("ref") as LabelledTextField
         refField.text = "test"
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(false))

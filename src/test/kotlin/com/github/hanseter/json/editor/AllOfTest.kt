@@ -33,12 +33,12 @@ class AllOfTest {
         editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first()
         assertThat(objectEntry.children.size, `is`(5))
-        assertThat(objectEntry.findChildWithKey("fromNested")?.value?.control, `is`(instanceOf(TextField::class.java)))
-        assertThat(objectEntry.findChildWithKey("additional")?.value?.control, `is`(instanceOf(Spinner::class.java)))
-        assertThat(objectEntry.findChildWithKey("name")?.value?.control, `is`(instanceOf(TextField::class.java)))
-        assertThat(objectEntry.findChildWithKey("x")?.value?.control, `is`(instanceOf(Spinner::class.java)))
-        assertThat(objectEntry.findChildWithKey("y")?.value?.control, `is`(instanceOf(Spinner::class.java)))
-        (objectEntry.findChildWithKey("name")?.value?.control as TextField).text = "Foobar"
+        assertThat(editor.getControlInTable("fromNested"), `is`(instanceOf(TextField::class.java)))
+        assertThat(editor.getControlInTable("additional"), `is`(instanceOf(Spinner::class.java)))
+        assertThat(editor.getControlInTable("name"), `is`(instanceOf(TextField::class.java)))
+        assertThat(editor.getControlInTable("x"), `is`(instanceOf(Spinner::class.java)))
+        assertThat(editor.getControlInTable("y"), `is`(instanceOf(Spinner::class.java)))
+        (editor.getControlInTable("name") as TextField).text = "Foobar"
         assertThat(data.keySet(), contains("name"))
         assertThat(data.getString("name"), `is`("Foobar"))
     }
@@ -61,13 +61,13 @@ class AllOfTest {
         editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first().findChildWithKey("notRoot")!!
         assertThat(objectEntry.children.size, `is`(0))
-        (objectEntry.value.control as TypeWithChildrenStatusControl).button.fire()
+        (objectEntry.value.createControl()?.control as TypeWithChildrenStatusControl).button.fire()
         assertThat(objectEntry.children.size, `is`(3))
-        assertThat(objectEntry.findChildWithKey("hello")?.value?.control, `is`(instanceOf(TextField::class.java)))
-        assertThat(objectEntry.findChildWithKey("x")?.value?.control, `is`(instanceOf(Spinner::class.java)))
-        assertThat(objectEntry.findChildWithKey("y")?.value?.control, `is`(instanceOf(Spinner::class.java)))
-        (objectEntry.findChildWithKey("hello")?.value?.control as TextField).text = "Foobar"
-        val numberControl = objectEntry.findChildWithKey("x")?.value?.control as Spinner<Number>
+        assertThat(editor.getControlInTable("hello"), `is`(instanceOf(TextField::class.java)))
+        assertThat(editor.getControlInTable("x"), `is`(instanceOf(Spinner::class.java)))
+        assertThat(editor.getControlInTable("y"), `is`(instanceOf(Spinner::class.java)))
+        (editor.getControlInTable("hello") as TextField).text = "Foobar"
+        val numberControl = editor.getControlInTable("x") as Spinner<Number>
         numberControl.editor.text = numberControl.valueFactory.converter.toString(500.0)
         assertThat(data.keySet(), contains("notRoot"))
         val nestedData = data.getJSONObject("notRoot")
@@ -82,7 +82,10 @@ class AllOfTest {
         val data = JSONObject()
         editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first()
-        val control = objectEntry.findChildWithKey("allOfs")!!.findChildWithKey("required")!!.findChildWithKey("a")!!.value.control as TextField
+        val control = editor.getControlInTable(
+                objectEntry.findChildWithKey("allOfs")!!
+                        .findChildWithKey("required")!!
+                        .findChildWithKey("a")!!.value) as TextField
         control.text = "Hello"
         assertThat(data.getJSONObject("allOfs").getJSONObject("required").getString("a"), `is`("Hello"))
     }

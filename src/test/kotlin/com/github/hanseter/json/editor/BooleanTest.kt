@@ -25,8 +25,7 @@ class BooleanTest {
     fun displayExistingValue(value: Boolean) {
         val schema = JSONObject("""{"type":"object","properties":{"bool":{"type":"boolean"}}}""")
         editor.display("1", "1", JSONObject().put("bool", value), schema) { it }
-        val itemTable = editor.getItemTable()
-        val boolControl = itemTable.root.children.first().findChildWithKey("bool")!!.value.control as ToggleSwitch
+        val boolControl = editor.getControlInTable("bool") as ToggleSwitch
         assertThat(boolControl.isSelected, `is`(value))
     }
 
@@ -35,8 +34,7 @@ class BooleanTest {
     fun displayDefaultValue(value: Boolean) {
         val schema = JSONObject("""{"type":"object","properties":{"bool":{"type":"boolean","default":$value}}}""")
         editor.display("1", "1", JSONObject(), schema) { it }
-        val itemTable = editor.getItemTable()
-        val boolControl = itemTable.root.children.first().findChildWithKey("bool")!!.value.control as ToggleSwitch
+        val boolControl = editor.getControlInTable("bool") as ToggleSwitch
         assertThat(boolControl.isSelected, `is`(value))
     }
 }

@@ -5,18 +5,17 @@ import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.ArrayControl
 import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.controls.TypeControl
-import com.github.hanseter.json.editor.extensions.*
+import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
+import com.github.hanseter.json.editor.ui.ControlTreeItemData
+import com.github.hanseter.json.editor.ui.FilterableTreeItem
+import com.github.hanseter.json.editor.ui.StyledTreeItemData
+import com.github.hanseter.json.editor.ui.TreeItemData
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.RootBindableType
 import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.Control
-import javafx.scene.control.Label
-import org.controlsfx.validation.Severity
-import org.controlsfx.validation.ValidationMessage
-import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
 import org.json.JSONArray
@@ -33,7 +32,7 @@ class JsonPropertiesPane(
         viewOptions: ViewOptions,
         private val changeListener: (JSONObject) -> JSONObject
 ) {
-    val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(SectionRootTreeItemData(title))
+    val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData(title, listOf("isRootRow")))
     private val schema = SimpleEffectiveSchema(null, schema, title)
     private var objectControl: TypeControl? = null
     private var controlItem: FilterableTreeItem<TreeItemData>? = null
@@ -84,7 +83,7 @@ class JsonPropertiesPane(
         }
 
         val item: FilterableTreeItem<TreeItemData> =
-                FilterableTreeItem(ControlTreeItemData(control, actions, validators.filter { it.selector.matches(control.model) }, viewOptions))
+                FilterableTreeItem(ControlTreeItemData(control, actions, validators.filter { it.selector.matches(control.model) }))
         if (control is ObjectControl) {
             addObjectControlChildren(item, control)
         } else {
@@ -198,9 +197,9 @@ class JsonPropertiesPane(
 
     }
 
-    private fun createRequiredHeader(): FilterableTreeItem<TreeItemData> = FilterableTreeItem(HeaderTreeItemData("Required"))
+    private fun createRequiredHeader(): FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData("Required", listOf("isHeadlineRow")))
 
-    private fun createOptionalHeader(): FilterableTreeItem<TreeItemData> = FilterableTreeItem(HeaderTreeItemData("Optional"))
+    private fun createOptionalHeader(): FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData("Optional", listOf("isHeadlineRow")))
 
     private fun addRequiredAndOptionalChildren(node: FilterableTreeItem<TreeItemData>, required: List<TypeControl>, optional: List<TypeControl>) {
         if (required.isNotEmpty()) {
@@ -215,19 +214,16 @@ class JsonPropertiesPane(
     }
 
     private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
-        val decorator = GraphicValidationDecoration()
         val errorMap = validate(prepareForValidation(root, data))
         flatten(root).forEach { item ->
             item.value?.actions?.updateDisablement()
             (item.value as? ControlTreeItemData)?.also { data ->
-                decorator.removeDecorations(data.label)
-                createValidationMessage(data.label,
-                        errorMap[listOf("#") + data.typeControl.model.schema.pointer]
-                )?.also(decorator::applyValidationDecoration)
+                data.validationMessage = errorMap[listOf("#") + data.typeControl.model.schema.pointer]
             }
+            item.value.updateFinished()
         }
-        decorator.removeDecorations(treeItem.value.label)
-        createValidationMessage(treeItem.value.label, errorMap[listOf("#")])?.also(decorator::applyValidationDecoration)
+        treeItem.value.validationMessage = errorMap[listOf("#")]
+        treeItem.value.updateFinished()
     }
 
     private fun validate(data: JSONObject): Map<List<String>, String> {
@@ -284,19 +280,6 @@ class JsonPropertiesPane(
         parentErrorCount.forEach { (k, v) -> addError(k, "$v sub-error" + if (v > 1) "s" else "") }
 
         return ret
-    }
-
-    private fun createValidationMessage(label: Label, msg: String?): SimpleValidationMessage? =
-            msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
-
-    class SimpleValidationMessage(
-            private val target: Control,
-            private val text: String,
-            private val severity: Severity
-    ) : ValidationMessage {
-        override fun getTarget(): Control = target
-        override fun getText(): String = text
-        override fun getSeverity(): Severity = severity
     }
 
     private inner class ContentHandler(var data: JSONObject) {

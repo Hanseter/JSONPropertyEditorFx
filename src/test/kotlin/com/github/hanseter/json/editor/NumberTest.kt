@@ -27,7 +27,7 @@ class NumberTest {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number"}}}""")
         editor.display("1", "1", JSONObject().put("num", 723.168), schema) { it }
         val itemTable = editor.getItemTable()
-        val numberControl = itemTable.root.children.first().findChildWithKey("num")!!.value.control as Spinner<Number>
+        val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(723.168)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
     }
@@ -38,7 +38,7 @@ class NumberTest {
         val data = JSONObject().put("num", 723.168)
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
-        val numberControl = itemTable.root.children.first().findChildWithKey("num")!!.value.control as Spinner<Number>
+        val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(500.36)
         numberControl.editor.text = converted
         MatcherAssert.assertThat(data.getDouble("num"), `is`(500.36))
@@ -56,7 +56,7 @@ class NumberTest {
         val data = JSONObject().put("num", initialValue)
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
-        val numberControl = itemTable.root.children.first().findChildWithKey("num")!!.value.control as Spinner<Number>
+        val numberControl = editor.getControlInTable("num") as Spinner<Number>
         numberControl.increment(step)
         val converted = numberControl.valueFactory.converter.toString(result)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
@@ -78,7 +78,7 @@ class NumberTest {
         val data = JSONObject().put("num", initialValue)
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
-        val numberControl = itemTable.root.children.first().findChildWithKey("num")!!.value.control as Spinner<Number>
+        val numberControl = editor.getControlInTable("num") as Spinner<Number>
         numberControl.increment(step)
         val converted = numberControl.valueFactory.converter.toString(result)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
@@ -89,7 +89,7 @@ class NumberTest {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number","default":723.168}}}""")
         editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
-        val numberControl = itemTable.root.children.first().findChildWithKey("num")!!.value.control as Spinner<Number>
+        val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(723.168)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
     }

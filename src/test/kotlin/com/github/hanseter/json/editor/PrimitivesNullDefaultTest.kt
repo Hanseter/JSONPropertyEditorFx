@@ -52,7 +52,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, getRequiredSchema(it.propertyWithDefault)) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(it.valueExtractor(control), `is`(it.default))
                     assertThat(control.styleClass.contains("has-default-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(true))
@@ -65,7 +65,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, getSchema(it.propertyWithDefault)) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(it.valueExtractor(control), `is`(it.default))
                     assertThat(control.styleClass.contains("has-default-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(true))
@@ -81,7 +81,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, getRequiredSchema(it.property)) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(false))
                 }
@@ -93,7 +93,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, getSchema(it.property)) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(true))
                 }
@@ -113,7 +113,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(false))
                 }
@@ -125,7 +125,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(true))
                 }
@@ -140,7 +140,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(false))
                 }
@@ -152,7 +152,7 @@ class PrimitivesNullDefaultTest {
                     val editor = JsonPropertiesEditor()
                     editor.display("id", "title", data, schema) { it }
                     WaitForAsyncUtils.waitForFxEvents()
-                    val control = editor.getItemTable().root.children.first().findChildWithKey("key")!!.value.control as Control
+                    val control = editor.getControlInTable("key") as Control
                     assertThat(control.styleClass.contains("has-null-value"), `is`(true))
                     assertThat(editor.valid.get(), `is`(true))
                 }

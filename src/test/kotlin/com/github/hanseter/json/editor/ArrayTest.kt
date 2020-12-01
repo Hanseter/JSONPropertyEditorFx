@@ -35,14 +35,14 @@ class ArrayTest {
     fun nestedReadOnlyAndWritable() {
         val schema = JSONObject("""{"type":"object","properties":{"bar":{"type":"array",
             "readOnly":true,
-            "items":{"type":"object", properties:{"a":{"type":"number"},"b":{"type":"boolean", "readOnly":false}}}
+            "items":{"type":"object", "properties":{"a":{"type":"number"},"b":{"type":"boolean", "readOnly":false}}}
             }}}""")
         editor.display("1", "1", JSONObject("""{"bar":[{"a":42,"b":true},{"a":32,"b":true}]}"""), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val firstObjEntry = arrayEntry.children.first()
-        assertThat(firstObjEntry.children[1].value.control!!.isDisabled, `is`(true))
-        assertThat(firstObjEntry.children[2].value.control!!.isDisabled, `is`(false))
+        assertThat(firstObjEntry.children[1].value.createControl()!!.control.isDisabled, `is`(true))
+        assertThat(firstObjEntry.children[2].value.createControl()!!.control.isDisabled, `is`(false))
     }
 
     @Test

@@ -1,4 +1,4 @@
-package com.github.hanseter.json.editor.extensions
+package com.github.hanseter.json.editor.ui
 
 import javafx.scene.Node
 import javafx.scene.control.TreeTableCell

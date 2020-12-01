@@ -1,26 +1,24 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.actions.*
-import com.github.hanseter.json.editor.extensions.CustomNodeTreeTableCell
-import com.github.hanseter.json.editor.extensions.FilterableTreeItem
-import com.github.hanseter.json.editor.extensions.RootTreeItemData
-import com.github.hanseter.json.editor.extensions.TreeItemData
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import com.github.hanseter.json.editor.ui.*
+import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.util.ViewOptions
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
-import javafx.event.EventHandler
-import javafx.scene.Cursor
 import javafx.scene.control.*
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.util.Callback
+import org.controlsfx.validation.Severity
+import org.controlsfx.validation.ValidationMessage
+import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.everit.json.schema.Schema
 import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONObject
@@ -53,14 +51,10 @@ class JsonPropertiesEditor(
         }
 
     init {
-        treeTableView.onMouseClicked = EventHandler{
-            println("Foo")
-            println(treeTableView.selectionModel.selectedItem)
-        }
         initTreeTableView()
         filterText.promptText = "Filter properties"
 
-        val filteredTreeItemRoot: FilterableTreeItem<TreeItemData> = FilterableTreeItem(RootTreeItemData)
+        val filteredTreeItemRoot: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData("root", listOf()))
         filterText.textProperty().addListener { _, _, newValue ->
             filteredTreeItemRoot.setPredicate(
                     if (newValue.isEmpty()) {
@@ -170,26 +164,94 @@ class JsonPropertiesEditor(
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Key"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.createLabel() } }
+                cellFactory = Callback { KeyCell() }
                 minWidth = 150.0
                 isSortable = false
             }
+
+    private inner class KeyCell : TreeTableCell<TreeItemData, TreeItemData>() {
+        private var changeListener: ((TreeItemData) -> Unit) = this::updateValidation
+        override fun updateItem(item: TreeItemData?, empty: Boolean) {
+            getItem()?.removeChangeListener(changeListener)
+            super.updateItem(item, empty)
+
+            val node = item?.let { dataItem ->
+                Label().apply {
+                    text = dataItem.title + if (viewOptions.markRequired && dataItem.required) " *" else ""
+                    tooltip = dataItem.description?.let { Tooltip(it) }
+                    skin = DecoratableLabelSkin(this)
+                }
+            }
+            if (node == null || empty) {
+                text = null
+                graphic = null
+            } else {
+                graphic = node
+                updateValidation(item)
+                item.registerChangeListener(changeListener)
+            }
+        }
+
+        fun updateValidation(treeItemData: TreeItemData) {
+            (graphic as? Control)?.also { label ->
+                DECORATOR.removeDecorations(label)
+                createValidationMessage(label, treeItemData.validationMessage)?.also(DECORATOR::applyValidationDecoration)
+            }
+        }
+
+        private fun createValidationMessage(label: Control, msg: String?): SimpleValidationMessage? =
+                msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
+
+        private inner class SimpleValidationMessage(
+                private val target: Control,
+                private val text: String,
+                private val severity: Severity
+        ) : ValidationMessage {
+            override fun getTarget(): Control = target
+            override fun getText(): String = text
+            override fun getSeverity(): Severity = severity
+        }
+    }
 
     private fun createControlColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Value"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.control?.let {c -> HBox(c) } }}
+                cellFactory = Callback { ValueCell() }//Callback { CustomNodeTreeTableCell { it.control?.let { c -> HBox(c) } } }
                 minWidth = 150.0
                 styleClass.add("control-cell")
                 isSortable = false
             }
 
+    class ValueCell : TreeTableCell<TreeItemData, TreeItemData>() {
+        private var changeListener: ((TreeItemData) -> Unit) = this::updateControl
+        private var lazyControl: LazyControl? = null
+
+        public override fun updateItem(item: TreeItemData?, empty: Boolean) {
+            getItem()?.removeChangeListener(changeListener)
+            super.updateItem(item, empty)
+
+            lazyControl = item?.createControl()
+            if (item == null || empty) {
+                text = null
+                graphic = null
+            } else {
+                graphic = lazyControl?.control
+                updateControl(item)
+                item.registerChangeListener(changeListener)
+            }
+        }
+
+        private fun updateControl(item: TreeItemData?) {
+            lazyControl?.also { it.updateDisplayedValue() }
+        }
+    }
+
     private fun createActionColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
             TreeTableColumn<TreeItemData, TreeItemData>().apply {
                 text = "Action"
                 cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { _ -> CustomNodeTreeTableCell { it.actions } }
+                cellFactory = Callback { CustomNodeTreeTableCell { it.actions } }
                 minWidth = 100.0
                 prefWidth = 100.0
                 styleClass.add("action-cell")
@@ -198,25 +260,20 @@ class JsonPropertiesEditor(
             }
 
     class TreeItemDataRow : TreeTableRow<TreeItemData>() {
+        private val appliedStyleClasses = mutableListOf<String>()
         override fun updateItem(item: TreeItemData?, empty: Boolean) {
             super.updateItem(item, empty)
             cursor = null
-            styleClass.remove("isRootRow")
-            styleClass.remove("isHeadlineRow")
-            if (item != null && item.isRoot) {
-                cursor = Cursor.HAND
-                styleClass.add("isRootRow")
-                setOnMouseClicked {
-                    if (!disclosureNode.boundsInParent.contains(it.x, it.y)) {
-                        treeItem.isExpanded = !treeItem.isExpanded
-                    }
-                }
-            } else if (item != null && item.isHeadline) {
-                styleClass.add("isHeadlineRow")
-                onMouseClicked = null
-            } else {
-                onMouseClicked = null
+            styleClass.removeAll(appliedStyleClasses)
+            appliedStyleClasses.clear()
+            if (item != null) {
+                appliedStyleClasses.addAll(item.cssClasses)
+                styleClass.addAll(appliedStyleClasses)
             }
         }
+    }
+
+    companion object {
+        val DECORATOR = GraphicValidationDecoration()
     }
 }

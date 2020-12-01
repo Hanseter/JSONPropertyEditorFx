@@ -2,7 +2,7 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.util.EditorContext
-import com.github.hanseter.json.editor.util.LabelledTextField
+import com.github.hanseter.json.editor.ui.LabelledTextField
 import javafx.beans.property.Property
 import org.controlsfx.control.textfield.TextFields
 import org.everit.json.schema.StringSchema

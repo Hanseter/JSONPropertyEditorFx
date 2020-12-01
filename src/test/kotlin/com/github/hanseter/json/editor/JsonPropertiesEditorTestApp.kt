@@ -82,6 +82,7 @@ class JsonPropertiesEditorTestApp : Application() {
     private fun display(editor: JsonPropertiesEditor, schemaName: String, data: JSONObject) {
         editor.display("test", "isRoot 1 2 3 4 5 long text", data, loadSchema(schemaName)) {
             println(it.toString(1))
+            editor.lookup("c2")
             it
         }
     }

@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.CombinedObjectModel
 import com.github.hanseter.json.editor.util.BindableJsonType
+import com.github.hanseter.json.editor.util.LazyControl
 import org.json.JSONObject
 
 class CombinedObjectControl(override val model: CombinedObjectModel, val controls: List<ObjectControl>)
@@ -12,10 +13,6 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
 
     override var requiredChildren: List<TypeControl> = allRequiredChildren
     override var optionalChildren: List<TypeControl> = allOptionalChildren
-
-    override val control = TypeWithChildrenStatusControl("Create") {
-        model.value = JSONObject()
-    }
 
     override fun bindTo(type: BindableJsonType) {
         model.bound = type
@@ -28,6 +25,8 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
         valueChanged()
     }
 
+    override fun createLazyControl(): LazyControl = ObjectControl.LazyObjectControl(this)
+
     private fun valueChanged() {
         if (model.value != null) {
             if (requiredChildren.isEmpty() && optionalChildren.isEmpty()) {
@@ -39,12 +38,7 @@ class CombinedObjectControl(override val model: CombinedObjectModel, val control
             requiredChildren = emptyList()
             optionalChildren = emptyList()
         }
-
-        if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
-            control.displayNull()
-        } else {
-            control.displayNonNull("")
-        }
     }
+
 
 }

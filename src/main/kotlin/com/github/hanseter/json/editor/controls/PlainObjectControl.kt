@@ -4,14 +4,11 @@ import com.github.hanseter.json.editor.types.PlainObjectModel
 import com.github.hanseter.json.editor.util.BindableJsonObject
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
+import com.github.hanseter.json.editor.util.LazyControl
 import org.json.JSONObject
 
 class PlainObjectControl(override val model: PlainObjectModel, context: EditorContext)
     : ObjectControl {
-
-    override val control = TypeWithChildrenStatusControl("Create") {
-        model.value = JSONObject()
-    }
 
     override val allRequiredChildren: List<TypeControl>
     override val allOptionalChildren: List<TypeControl>
@@ -50,17 +47,9 @@ class PlainObjectControl(override val model: PlainObjectModel, context: EditorCo
             requiredChildren = emptyList()
             optionalChildren = emptyList()
         }
-        valueChanged()
     }
 
-    private fun valueChanged() {
-        if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
-            control.displayNull()
-        } else {
-            val size = requiredChildren.size + optionalChildren.size
-            control.displayNonNull("[${size} Propert${if (size == 1) "y" else "ies"}]")
-        }
-    }
+    override fun createLazyControl(): LazyControl = ObjectControl.LazyObjectControl(this)
 
     private fun createSubType(parent: BindableJsonType): BindableJsonObject? {
         val rawObj = parent.getValue(model.schema)

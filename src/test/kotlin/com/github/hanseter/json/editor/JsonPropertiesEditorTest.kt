@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor
 
-import com.github.hanseter.json.editor.extensions.TreeItemData
+import com.github.hanseter.json.editor.ui.TreeItemData
+import javafx.scene.Node
 import javafx.scene.control.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -33,10 +34,9 @@ class JsonPropertiesEditorTest {
         val schema = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
         val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
         editor.display("1", "1", data, schema) { it }
-        val itemTable = editor.getItemTable()
-        val objTable = itemTable.root.children.first()
-        assertThat((objTable.findChildWithKey("str")!!.value.control as TextField).text, `is`("Hello"))
-        val numberControl = (objTable.findChildWithKey("num")!!.value.control as Spinner<Number>)
+
+        assertThat((editor.getControlInTable("str") as TextField).text, `is`("Hello"))
+        val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(42.5)
         assertThat(numberControl.editor.text, `is`(converted))
     }
@@ -51,21 +51,49 @@ class JsonPropertiesEditorTest {
             updateCount++
             it
         }
-        val itemTable = editor.getItemTable()
-        val objTable = itemTable.root.children.first()
-        val stringControl = (objTable.findChildWithKey("str")!!.value.control as TextField)
+        val stringControl = (editor.getControlInTable("str") as TextField)
         stringControl.text = "foobar"
         assertThat(data.similar(JSONObject("""{"num":42.5,"str":"foobar"}""")), `is`(true))
         assertThat(updateCount, `is`(1))
-        val numberControl = (objTable.findChildWithKey("num")!!.value.control as Spinner<Number>)
+        val numberControl = (editor.getControlInTable("num") as Spinner<Number>)
         numberControl.editor.text = "1573"
         assertThat(data.similar(JSONObject().put("str", "foobar").put("num", 1573.0)), `is`(true))
         assertThat(updateCount, `is`(2))
+    }
+
+    @Test
+    fun modifySimpleObjectInCallback() {
+        val editor = JsonPropertiesEditor()
+        val schema = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
+        val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
+        editor.display("1", "1", data, schema) {
+            it.put("num", 17)
+            it
+        }
+        val numberControl = (editor.getControlInTable("num") as Spinner<Number>)
+        val stringControl = (editor.getControlInTable("str") as TextField)
+        stringControl.text = "foobar"
+        assertThat(numberControl.editor.text, `is`("17"))
     }
 }
 
 fun JsonPropertiesEditor.getItemTable(): TreeTableView<TreeItemData> =
         (lookup("#contentArea") as ScrollPane).content as TreeTableView<TreeItemData>
 
-fun TreeItem<TreeItemData>.findChildWithKey(key: String) =
-        children.firstOrNull { it.value.label.text == key }
+fun TreeItem<TreeItemData>.findChildWithKey(key: String): TreeItem<TreeItemData>? =
+        children.firstOrNull { it.value.title == key }
+
+fun TreeItem<TreeItemData>.findChildWithKeyRecursive(key: String): TreeItem<TreeItemData>? =
+        findChildWithKey(key)
+                ?: children.asSequence().map { it.findChildWithKeyRecursive(key) }.firstOrNull()
+
+fun JsonPropertiesEditor.getControlInTable(key: String): Node =
+        getControlInTable(getItemTable().root.findChildWithKeyRecursive(key)?.value)
+
+fun JsonPropertiesEditor.getControlInTable(itemData: TreeItemData?): Node {
+    val table = getItemTable()
+    val column: TreeTableColumn<TreeItemData, TreeItemData> = table.columns[1] as TreeTableColumn<TreeItemData, TreeItemData>
+    val cell: JsonPropertiesEditor.ValueCell = column.cellFactory.call(column) as JsonPropertiesEditor.ValueCell
+    cell.updateItem(itemData, false)
+    return cell.graphic
+}

@@ -4,20 +4,13 @@ import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.types.ArrayModel
-import com.github.hanseter.json.editor.util.BindableJsonArray
-import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
-import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.util.EditorContext
+import com.github.hanseter.json.editor.util.*
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
 
 
 class ArrayControl(override val model: ArrayModel, private val context: EditorContext) : TypeControl {
-    override val control = TypeWithChildrenStatusControl("To Empty List") {
-        model.value = JSONArray()
-        valuesChanged()
-    }
     override val childControls = mutableListOf<TypeControl>()
     private var subArray: BindableJsonArray? = null
 
@@ -25,6 +18,27 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
         model.bound = type
         subArray = createSubArray(type, model.schema)
         valuesChanged()
+    }
+
+    override fun createLazyControl(): LazyControl = LazyArrayControl()
+
+    private inner class LazyArrayControl : LazyControl {
+        override val control = TypeWithChildrenStatusControl("To Empty List") {
+            model.value = JSONArray()
+            valuesChanged()
+        }
+
+        override fun updateDisplayedValue() {
+            updateLabel()
+        }
+
+        private fun updateLabel() {
+            if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
+                control.displayNull()
+            } else {
+                control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")
+            }
+        }
     }
 
     private fun valuesChanged() {
@@ -62,16 +76,6 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
             model.value = values
         } else {
             childControls.clear()
-        }
-
-        updateLabel()
-    }
-
-    private fun updateLabel() {
-        if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
-            control.displayNull()
-        } else {
-            control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")
         }
     }
 }

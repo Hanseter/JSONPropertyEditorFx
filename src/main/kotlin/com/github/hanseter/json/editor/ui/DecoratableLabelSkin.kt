@@ -1,4 +1,4 @@
-package com.github.hanseter.json.editor.util
+package com.github.hanseter.json.editor.ui
 
 import com.sun.javafx.scene.control.skin.LabelSkin
 import javafx.scene.control.Label
