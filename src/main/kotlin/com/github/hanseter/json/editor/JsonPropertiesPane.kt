@@ -1,6 +1,5 @@
 package com.github.hanseter.json.editor
 
-import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.ArrayControl
 import com.github.hanseter.json.editor.controls.ObjectControl
@@ -14,6 +13,7 @@ import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.RootBindableType
 import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
@@ -21,7 +21,6 @@ import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject
-import org.json.JSONPointer
 
 class JsonPropertiesPane(
         title: String,
@@ -29,7 +28,7 @@ class JsonPropertiesPane(
         schema: Schema,
         private val refProvider: IdReferenceProposalProvider,
         private val actions: List<EditorAction>,
-        private val validators: List<com.github.hanseter.json.editor.validators.Validator>,
+        private val validators: List<Validator>,
         viewOptions: ViewOptions,
         private val changeListener: (JSONObject) -> JSONObject
 ) {
@@ -215,36 +214,52 @@ class JsonPropertiesPane(
     }
 
     private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
-        val errorMap = validate(prepareForValidation(root, data))
-        flatten(root).forEach { item ->
+        val errorMap = mutableMapOf<JSONPointer, MutableList<String>>()
+        val parentErrorCount = mutableMapOf<JSONPointer, Int>()
+        fun addError(pointer: List<String>, message: String) {
+            val pointers = pointer.heads()
+            pointers.dropLast(1).forEach { parentPointer ->
+                val count = parentErrorCount[parentPointer] ?: 0
+                parentErrorCount[parentPointer] = count + 1
+            }
+            errorMap.getOrPut(pointer, { mutableListOf() }).add(message)
+        }
+        validateSchema(prepareForValidation(root, data), ::addError)
+        flattenBottomUp(root).forEach { item ->
             (item.value as? ControlTreeItemData)?.also { data ->
-                data.validationMessage = errorMap[listOf("#") + data.typeControl.model.schema.pointer]
+                val pointer = listOf("#") + data.typeControl.model.schema.pointer
+                data.validators.flatMap { it.validate(data.typeControl.model) }.forEach { addError(pointer, it) }
+                data.validationMessage = createErrorMessage(parentErrorCount[pointer]
+                        ?: 0, errorMap[pointer])
             }
             item.value.updateFinished()
         }
-        treeItem.value.validationMessage = errorMap[listOf("#")]
+        treeItem.value.validationMessage = createErrorMessage(parentErrorCount[listOf("#")]
+                ?: 0, errorMap[listOf("#")])
         treeItem.value.updateFinished()
     }
 
-    private fun validate(data: JSONObject): Map<List<String>, String> {
-        return (try {
-            schema.baseSchema.validate(data)
-            valid.set(true)
-            null
-        } catch (e: ValidationException) {
-            valid.set(false)
-            e
-        })?.let(::mapPointerToError) ?: emptyMap()
+    private fun createErrorMessage(subErrors: Int, errors: List<String>?): String? {
+        val subErrorMessage = if (subErrors > 0) {
+            "$subErrors sub-error" + if (subErrors > 1) "s" else ""
+        } else null
+        val errorMessage = errors?.joinToString("\n")
+        return when {
+            subErrorMessage != null && errorMessage != null -> subErrorMessage + "\n" + errorMessage
+            errorMessage != null -> errorMessage
+            subErrorMessage != null -> subErrorMessage
+            else -> null
+        }
     }
 
     private fun prepareForValidation(root: FilterableTreeItem<TreeItemData>, data: JSONObject): JSONObject {
         val copy = deepCopyForJson(data)
-        flatten(root).map { it.value }.filterIsInstance<ControlTreeItemData>().forEach {
+        flattenBottomUp(root).map { it.value }.filterIsInstance<ControlTreeItemData>().forEach {
             val schema = it.typeControl.model.schema
             val defaultValue = schema.defaultValue
             if (defaultValue != null) {
                 val pointer = schema.pointer
-                val parent = JSONPointer(pointer.dropLast(1)).queryFrom(copy) as? JSONObject
+                val parent = org.json.JSONPointer(pointer.dropLast(1)).queryFrom(copy) as? JSONObject
                 if (parent != null && !parent.has(pointer.last())) {
                     parent.put(pointer.last(), schema.defaultValue)
                 }
@@ -253,33 +268,25 @@ class JsonPropertiesPane(
         return copy
     }
 
-    private fun <T> flatten(item: FilterableTreeItem<T>): Sequence<FilterableTreeItem<T>> =
-            item.list.asSequence().flatMap { flatten(it) } + sequenceOf(item)
+    private fun validateSchema(data: JSONObject, errorCollector: (JSONPointer, String) -> Unit) {
+        try {
+            schema.baseSchema.validate(data)
+        } catch (e: ValidationException) {
+            mapPointerToError(e, errorCollector)
+        }
+    }
 
-    private fun mapPointerToError(ex: ValidationException): Map<List<String>, String> {
+    private fun <T> flattenBottomUp(item: FilterableTreeItem<T>): Sequence<FilterableTreeItem<T>> =
+            item.list.asSequence().flatMap { flattenBottomUp(it) } + sequenceOf(item)
+
+    private fun mapPointerToError(ex: ValidationException, errorCollector: (JSONPointer, String) -> Unit) {
         fun flatten(ex: ValidationException): Sequence<ValidationException> =
                 if (ex.causingExceptions.isEmpty()) sequenceOf(ex)
                 else ex.causingExceptions.asSequence().flatMap { flatten(it) }
 
-        val ret = mutableMapOf<List<String>, String>()
-        fun addError(pointer: List<String>, message: String) {
-            val errorsSoFar = ret[pointer]
-            ret[pointer] = if (errorsSoFar == null) message else errorsSoFar + "\n" + message
-        }
-
-        val parentErrorCount = mutableMapOf<List<String>, Int>()
-
         flatten(ex).forEach { validationError ->
-            val pointers = validationError.pointerToViolation.split('/').heads()
-            pointers.dropLast(1).forEach { parentPointer ->
-                val count = parentErrorCount[parentPointer] ?: 0
-                parentErrorCount[parentPointer] = count + 1
-            }
-            addError(pointers.last(), validationError.errorMessage)
+            errorCollector(validationError.pointerToViolation.split('/'), validationError.errorMessage)
         }
-        parentErrorCount.forEach { (k, v) -> addError(k, "$v sub-error" + if (v > 1) "s" else "") }
-
-        return ret
     }
 
     private inner class ContentHandler(var data: JSONObject) {
@@ -323,3 +330,5 @@ private fun <T> deepCopyForJson(obj: T): T = when (obj) {
     } as T
     else -> obj
 }
+
+typealias JSONPointer = List<String>

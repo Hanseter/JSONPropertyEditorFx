@@ -9,6 +9,7 @@ import com.github.hanseter.json.editor.ui.StyledTreeItemData
 import com.github.hanseter.json.editor.ui.TreeItemData
 import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.validators.IdReferenceValidator
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
@@ -35,7 +36,7 @@ class JsonPropertiesEditor(
         private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
         viewOptions: ViewOptions = ViewOptions(),
         actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-        private val validators: List<Validator> = listOf(),
+        private val validators: List<Validator> = listOf(IdReferenceValidator(referenceProposalProvider))
 ) : VBox() {
     private val actions = actions + PreviewAction(referenceProposalProvider, resolutionScopeProvider) + arrayActions
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -262,7 +263,7 @@ class JsonPropertiesEditor(
                 isSortable = false
             }
 
-    class ActionCell: TreeTableCell<TreeItemData, TreeItemData>() {
+    class ActionCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateActionEnablement
         private var actions: ActionsContainer? = null
         override fun updateItem(item: TreeItemData?, empty: Boolean) {
