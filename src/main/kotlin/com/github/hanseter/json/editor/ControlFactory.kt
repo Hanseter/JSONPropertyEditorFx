@@ -61,7 +61,15 @@ object ControlFactory {
 
     @Suppress("UNCHECKED_CAST")
     private fun createEnumControl(schema: EffectiveSchema<out Schema>, enumSchema: EnumSchema): TypeControl {
-        val enumModel = EnumModel(schema as EffectiveSchema<Schema>, enumSchema)
+
+        val baseSchema = schema.baseSchema
+        val effectiveSchema: EffectiveSchema<Schema> = if (null in enumSchema.possibleValues) {
+            NullableEffectiveSchema(schema as EffectiveSchema<CombinedSchema>, baseSchema)
+        } else {
+            schema as EffectiveSchema<Schema>
+        }
+
+        val enumModel = EnumModel(effectiveSchema, enumSchema)
         return RowBasedControl<String?>({ EnumControl(enumModel) }, enumModel)
     }
 

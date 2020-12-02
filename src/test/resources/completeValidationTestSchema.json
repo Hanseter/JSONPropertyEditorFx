@@ -8,6 +8,12 @@
         "req": {
           "type": "string"
         },
+        "nullable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "minLength": {
           "type": "string",
           "minLength": 3
@@ -291,6 +297,63 @@
       "required": [
         "required"
       ]
+    },
+    "enums": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "string",
+          "enum": [
+            "foo",
+            "bar",
+            "baz"
+          ]
+        },
+        "optional": {
+          "type": "string",
+          "enum": [
+            "foo",
+            "bar",
+            "baz"
+          ]
+        },
+        "default": {
+          "type": "string",
+          "enum": [
+            "foo",
+            "bar",
+            "baz"
+          ],
+          "default": "bar"
+        },
+        "nullable": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "foo",
+            "bar",
+            "baz",
+            null
+          ]
+        },
+        "nullableDefault": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "foo",
+            "bar",
+            "baz"
+          ],
+          "default": "bar"
+        }
+      },
+      "required": [
+        "required"
+      ]
     }
   },
   "required": [
@@ -301,11 +364,13 @@
     "integers",
     "numbers",
     "strings",
-    "booleans"
+    "booleans",
+    "enums"
   ],
   "order": [
     "booleans",
     "allOfs",
+    "enums",
     "id-references",
     "integers",
     "lists",

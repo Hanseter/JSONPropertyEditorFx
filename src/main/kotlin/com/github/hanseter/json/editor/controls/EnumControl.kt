@@ -14,12 +14,12 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
 
     init {
         control.minWidth = 150.0
-        control.items.setAll(model.enumSchema.possibleValuesAsList.map { it.toString() })
+        control.items.setAll(model.enumSchema.possibleValuesAsList.filterNotNull().map { it.toString() })
         control.selectionModel.selectedIndexProperty()
                 .addListener { _, _, new ->
                     if (new.toInt() >= 0) {
                         property.removeListener(this)
-                        property.value = model.enumSchema.possibleValuesAsList[new.toInt()].toString()
+                        property.value = model.enumSchema.possibleValuesAsList.filterNotNull()[new.toInt()].toString()
                         property.addListener(this)
                     }
                 }
