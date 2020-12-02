@@ -238,6 +238,7 @@ class JsonPropertiesPane(
         treeItem.value.validationMessage = createErrorMessage(parentErrorCount[listOf("#")]
                 ?: 0, errorMap[listOf("#")])
         treeItem.value.updateFinished()
+        valid.set(errorMap.isEmpty())
     }
 
     private fun createErrorMessage(subErrors: Int, errors: List<String>?): String? {

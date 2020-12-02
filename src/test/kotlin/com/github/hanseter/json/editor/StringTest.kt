@@ -57,7 +57,6 @@ class StringTest {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","minLength":5}}}""")
         val data = JSONObject().put("string", "foobar")
         editor.display("1", "1", data, schema) { it }
-        val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(true))
