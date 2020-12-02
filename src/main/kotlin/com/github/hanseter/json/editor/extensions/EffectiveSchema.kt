@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.extensions
 
+import com.github.hanseter.json.editor.schemaExtensions.synthetic
+import org.everit.json.schema.CombinedSchema
 import org.everit.json.schema.JSONPointer
 import org.everit.json.schema.ObjectSchema
 import org.everit.json.schema.Schema
@@ -23,7 +25,7 @@ interface EffectiveSchema<T : Schema> {
         get() = parent?.pointer?.let { it + propertyName } ?: emptyList()
 
     val required: Boolean
-        get() = true == (parent?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(propertyName)
+        get() = true == (nonSyntheticAncestor?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(propertyName)
 
     val propertyName: String
 
@@ -34,4 +36,18 @@ interface EffectiveSchema<T : Schema> {
 
     fun extractProperty(json: JSONObject): Any? =
             JSONPointer(pointer).queryFrom(json)
+
+    /**
+     * Gets the closest non-synthetic ancestor.
+     */
+    val nonSyntheticAncestor: EffectiveSchema<*>?
+        get() {
+            val baseSchema = parent?.baseSchema
+
+            if (baseSchema is CombinedSchema && baseSchema.synthetic) {
+                return parent?.nonSyntheticAncestor
+            }
+
+            return parent
+        }
 }
