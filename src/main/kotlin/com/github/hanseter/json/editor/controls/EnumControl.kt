@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import org.controlsfx.control.SearchableComboBox
+import org.json.JSONObject
 
 //TODO this control makes every enum a string, even if it is something else. This needs to be improved.
 class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, ChangeListener<String?> {
@@ -35,11 +36,13 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
     }
 
     private fun setSelectedValue(value: String?) {
-        if (control.items.contains(value)) {
-            control.selectionModel.select(value)
-        } else {
-            control.selectionModel.select(model.defaultValue)
-        }
+        control.selectionModel.select(
+                when {
+                    control.items.contains(value) -> value
+                    model.rawValue == JSONObject.NULL -> null
+                    else -> model.defaultValue
+                }
+        )
     }
 
 }
