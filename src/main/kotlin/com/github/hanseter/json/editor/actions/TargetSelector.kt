@@ -57,7 +57,18 @@ fun interface TargetSelector {
     object Required : TargetSelector {
 
         override fun matches(model: TypeModel<*, *>): Boolean {
-            val schema = model.schema.parent?.baseSchema?.let { getReferredSchema(it) }
+            /*
+             this differs from schema.required in that this returns true if the actual status cannot
+             be determined while schema.required returns false.
+
+             Many custom actions expect it to be true in those cases, so this method should not
+             simply be reduced to querying schema.required.
+
+             It may be prudent to make this selector configurable so the API user can decide whether
+             they want it to apply strictly or leniently.
+             */
+
+            val schema = model.schema.nonSyntheticAncestor?.baseSchema?.let { getReferredSchema(it) }
 
             return (schema as? ObjectSchema)?.let {
                 model.schema.propertyName in it.requiredProperties

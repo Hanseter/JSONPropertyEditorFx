@@ -7,10 +7,10 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
 import com.github.hanseter.json.editor.extensions.NullableEffectiveSchema
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import com.github.hanseter.json.editor.schemaExtensions.synthetic
 import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
-import java.lang.reflect.Method
 
 
 object ControlFactory {
@@ -61,7 +61,15 @@ object ControlFactory {
 
     @Suppress("UNCHECKED_CAST")
     private fun createEnumControl(schema: EffectiveSchema<out Schema>, enumSchema: EnumSchema): TypeControl {
-        val enumModel = EnumModel(schema as EffectiveSchema<Schema>, enumSchema)
+
+        val baseSchema = schema.baseSchema
+        val effectiveSchema: EffectiveSchema<Schema> = if (null in enumSchema.possibleValues) {
+            NullableEffectiveSchema(schema as EffectiveSchema<CombinedSchema>, baseSchema)
+        } else {
+            schema as EffectiveSchema<Schema>
+        }
+
+        val enumModel = EnumModel(effectiveSchema, enumSchema)
         return RowBasedControl<String?>({ EnumControl(enumModel) }, enumModel)
     }
 
@@ -74,7 +82,7 @@ object ControlFactory {
             }
 
     private fun createAllOfControl(schema: EffectiveSchema<CombinedSchema>, context: EditorContext): TypeControl {
-        if (isSynthetic(schema.baseSchema)) {
+        if (schema.baseSchema.synthetic) {
             return createControlFromSyntheticAllOf(schema)
         }
 
@@ -106,10 +114,6 @@ object ControlFactory {
         }
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
-
-    private val isSyntheticMethod: Method = CombinedSchema::class.java.getDeclaredMethod("isSynthetic").apply { isAccessible = true }
-    private fun isSynthetic(combinedSchema: CombinedSchema): Boolean =
-            isSyntheticMethod.invoke(combinedSchema) as Boolean
 
 }
 
