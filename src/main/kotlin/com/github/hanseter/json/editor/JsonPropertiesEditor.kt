@@ -107,11 +107,7 @@ class JsonPropertiesEditor(
                 .draftV7Support()
                 .addFormatValidator(ColorFormat.Validator)
                 .addFormatValidator(IdReferenceFormat.Validator(referenceProposalProvider))
-                .schemaJson(schema)
-
-        if (resolutionScope != null) {
-            slb.resolutionScope(resolutionScope)
-        }
+                .schemaJson(SchemaNormalizer.normalizeSchema(schema, resolutionScope))
 
         return slb.build().load().readOnly(readOnly).build()
     }

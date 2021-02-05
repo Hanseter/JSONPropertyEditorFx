@@ -15,5 +15,5 @@ fun interface ResolutionScopeProvider {
      * @param objId The ID of the element
      * @return The URI of the resolution scope.
      */
-    fun getResolutionScopeForElement(objId: String) : URI?
+    fun getResolutionScopeForElement(objId: String): URI?
 }

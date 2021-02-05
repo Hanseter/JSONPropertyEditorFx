@@ -72,8 +72,12 @@ class JsonPropertiesEditorTestApp : Application() {
 //                "completeValidationTestSchema.json"
 //        "StringSchema.json"
 
-        display(propEdit, "completeValidationTestSchema.json", JSONObject())
+        display(propEdit, "compositeSchema.json", JSONObject())
 //        displayElementWithOneOf(propEdit)
+//        val schema =
+//            JSONObject("""{"definitions": {"test": {"type":"string"}},
+//                "type":"object","properties":{"string":{"${'$'}ref": "#/definitions/test"}}}""")
+//        propEdit.display("1", "1", JSONObject().put("string", "foobar"), schema) { it }
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)

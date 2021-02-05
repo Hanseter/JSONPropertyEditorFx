@@ -1,0 +1,52 @@
+{
+  "defines": [
+    {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer"
+        }
+      }
+    }
+  ],
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
+          "type": "string"
+        },
+        "direction2": {
+          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
+          "$ref": "#/defines/0"
+        }
+      },
+      "required": [
+        "direction"
+      ],
+      "order": [
+        "direction2"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "dir": {
+          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
+          "type": "string"
+        },
+        "dir2": {
+          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dir"
+      ],
+      "order": [
+        "dir2"
+      ]
+    }
+  ]
+}

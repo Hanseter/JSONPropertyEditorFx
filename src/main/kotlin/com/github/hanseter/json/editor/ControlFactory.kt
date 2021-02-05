@@ -2,8 +2,6 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.controls.*
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
-import com.github.hanseter.json.editor.extensions.EffectiveSchemaFromReference
-import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
 import com.github.hanseter.json.editor.extensions.NullableEffectiveSchema
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
@@ -23,7 +21,6 @@ object ControlFactory {
                 is BooleanSchema -> createBooleanControl(schema as EffectiveSchema<BooleanSchema>)
                 is StringSchema -> createStringControl(schema as EffectiveSchema<StringSchema>, context)
                 is NumberSchema -> createNumberControl(schema as EffectiveSchema<NumberSchema>)
-                is ReferenceSchema -> convert(EffectiveSchemaFromReference(schema as EffectiveSchema<ReferenceSchema>, actualSchema.referredSchema), context)
                 is EnumSchema -> createEnumControl(schema, actualSchema)
                 is CombinedSchema -> createCombinedControl(schema as EffectiveSchema<CombinedSchema>, context)
                 else -> UnsupportedTypeControl(UnsupportedTypeModel(schema))
@@ -85,13 +82,7 @@ object ControlFactory {
         if (schema.baseSchema.synthetic) {
             return createControlFromSyntheticAllOf(schema)
         }
-
-        val subSchemas = schema.baseSchema.subschemas.map { EffectiveSchemaOfCombination(schema, it) }
-        val controls = subSchemas.map { convert(it, context) }
-        if (controls.any { it !is ObjectControl }) {
-            return UnsupportedTypeControl(UnsupportedTypeModel(schema))
-        }
-        return CombinedObjectControl(CombinedObjectModel(schema), controls as List<ObjectControl>)
+        return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
 
     private fun createControlFromSyntheticAllOf(schema: EffectiveSchema<CombinedSchema>): TypeControl {
