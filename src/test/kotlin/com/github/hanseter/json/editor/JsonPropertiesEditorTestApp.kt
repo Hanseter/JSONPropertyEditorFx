@@ -72,7 +72,7 @@ class JsonPropertiesEditorTestApp : Application() {
 //                "completeValidationTestSchema.json"
 //        "StringSchema.json"
 
-        display(propEdit, "compositeSchema.json", JSONObject())
+        display(propEdit, "nestedCompositeSchema.json", JSONObject())
 //        displayElementWithOneOf(propEdit)
 //        val schema =
 //            JSONObject("""{"definitions": {"test": {"type":"string"}},

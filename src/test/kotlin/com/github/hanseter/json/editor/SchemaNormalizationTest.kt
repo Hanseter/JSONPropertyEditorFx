@@ -5,6 +5,7 @@ import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONTokener
 import org.junit.jupiter.api.Test
 
 class SchemaNormalizationTest {
@@ -107,4 +108,11 @@ class SchemaNormalizationTest {
         assertThat(properties.getJSONObject("int1").getString("type"), `is`("integer"))
     }
 
+    @Test
+    fun normalizeDeeplyNestedSchema() {
+        val schema = javaClass.classLoader.getResourceAsStream("nestedCompositeSchema.json").use {
+            JSONObject(JSONTokener(it))
+        }
+        println(SchemaNormalizer.normalizeSchema(schema, javaClass.classLoader.getResource("").toURI()).toString(1))
+    }
 }

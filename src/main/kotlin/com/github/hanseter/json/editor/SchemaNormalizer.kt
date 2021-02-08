@@ -45,11 +45,13 @@ object SchemaNormalizer {
         }
 
         val ref = schemaPart.optString("${'$'}ref", null) ?: return
-        val referredSchema = if (ref.first() == '#') {
-            resolveRefInDocument(schema, ref.drop(2), resolutionScope)
-        } else {
-            JSONObject(JSONTokener(resolveRefFromUrl(ref, resolutionScope)))
-        }
+        val referredSchema = resolveRefs(
+            if (ref.first() == '#') {
+                resolveRefInDocument(schema, ref.drop(2), resolutionScope)
+            } else {
+                JSONObject(JSONTokener(resolveRefFromUrl(ref, resolutionScope)))
+            }, resolutionScope
+        )
         val target = copyTarget()
         target.remove("${"$"}ref")
         referredSchema.keySet().forEach {
@@ -161,7 +163,7 @@ object SchemaNormalizer {
 
     fun inlineCompositions(schema: JSONObject): JSONObject {
         var copy: JSONObject? = null
-        inlineCompostions(schema, schema) {
+        inlineCompositions(schema) {
             if (copy == null) {
                 copy = createCopy(schema)
             }
@@ -170,24 +172,45 @@ object SchemaNormalizer {
         return copy ?: schema
     }
 
-    private fun inlineCompostions(
-        schema: JSONObject,
+    private fun inlineCompositions(
         subPart: JSONObject,
         copyTarget: () -> JSONObject
     ) {
         val properties = subPart.optJSONObject("properties")
         if (properties != null) {
             properties.keySet().forEach {
-                inlineCompostions(schema, properties.getJSONObject(it)) {
-                    copyTarget().getJSONObject("properties")
+                inlineCompositions(properties.getJSONObject(it)) {
+                    copyTarget().getJSONObject("properties").getJSONObject(it)
                 }
             }
             return
         }
         val allOf = subPart.optJSONArray("allOf") ?: return
-        subPart.remove("allOf")
-        (0 until allOf.length()).fold(copyTarget()) { target, index ->
-            merge(target, allOf.getJSONObject(index))
+        copyTarget().apply {
+            remove("allOf")
+            put("type", "object")
+            put("properties", JSONObject())
+        }
+        getAllPropertiesInAllOf(allOf).forEach { propObj ->
+            merge(copyTarget().getJSONObject("properties"), propObj.getJSONObject("properties"))
+        }
+        inlineCompositions(copyTarget()) { copyTarget() }
+    }
+
+    private fun getAllPropertiesInAllOf(allOf: JSONArray): List<JSONObject> {
+        return (0 until allOf.length()).flatMap { i ->
+            val allOfEntry = allOf.getJSONObject(i)
+            val props = allOfEntry.optJSONObject("properties")
+            if (props != null) {
+                listOf(allOfEntry)
+            } else {
+                val nestedAllOff = allOfEntry.optJSONArray("allOf")
+                if (nestedAllOff != null) {
+                    getAllPropertiesInAllOf(nestedAllOff)
+                } else {
+                    emptyList()
+                }
+            }
         }
     }
 

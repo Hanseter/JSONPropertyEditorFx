@@ -14,11 +14,9 @@
       "type": "object",
       "properties": {
         "direction": {
-          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
           "type": "string"
         },
         "direction2": {
-          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
           "$ref": "#/defines/0"
         }
       },
@@ -33,11 +31,9 @@
       "type": "object",
       "properties": {
         "dir": {
-          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
           "type": "string"
         },
         "dir2": {
-          "description": "Point orientation in relation to the MID direction. Definition see [R01]",
           "type": "string"
         }
       },

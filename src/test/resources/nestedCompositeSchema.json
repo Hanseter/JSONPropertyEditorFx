@@ -10,6 +10,38 @@
       "properties": {
         "fromNested": {
           "type": "string"
+        },
+        "nestedAllOf": {
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "allOf1": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "allOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "allOf2.1": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "allOf2.2": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
     }
