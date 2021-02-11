@@ -32,7 +32,7 @@ class AllOfTest {
         val data = JSONObject()
         editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first()
-        assertThat(objectEntry.children.size, `is`(5))
+        assertThat(objectEntry.children.size, `is`(6))
         assertThat(editor.getControlInTable("fromNested"), `is`(instanceOf(TextField::class.java)))
         assertThat(editor.getControlInTable("additional"), `is`(instanceOf(Spinner::class.java)))
         assertThat(editor.getControlInTable("name"), `is`(instanceOf(TextField::class.java)))

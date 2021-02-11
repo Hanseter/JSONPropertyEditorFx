@@ -1,5 +1,9 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
+import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import org.everit.json.schema.Schema
+import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -9,6 +13,19 @@ import java.io.UncheckedIOException
 import java.net.URI
 
 object SchemaNormalizer {
+
+    fun parseSchema(
+        schema: JSONObject,
+        resolutionScope: URI?,
+        readOnly: Boolean,
+        referenceProposalProvider: IdReferenceProposalProvider
+    ): Schema = SchemaLoader.builder()
+        .useDefaults(true)
+        .draftV7Support()
+        .addFormatValidator(ColorFormat.Validator)
+        .addFormatValidator(IdReferenceFormat.Validator(referenceProposalProvider))
+        .schemaJson(normalizeSchema(schema, resolutionScope))
+        .build().load().readOnly(readOnly).build()
 
     fun normalizeSchema(schema: JSONObject, resolutionScope: URI?) =
         inlineCompositions(resolveRefs(schema, resolutionScope))
@@ -49,7 +66,9 @@ object SchemaNormalizer {
             if (ref.first() == '#') {
                 resolveRefInDocument(schema, ref.drop(2), resolutionScope)
             } else {
-                JSONObject(JSONTokener(resolveRefFromUrl(ref, resolutionScope)))
+                resolveRefFromUrl(ref, resolutionScope).use {
+                    JSONObject(JSONTokener(it))
+                }
             }, resolutionScope
         )
         val target = copyTarget()

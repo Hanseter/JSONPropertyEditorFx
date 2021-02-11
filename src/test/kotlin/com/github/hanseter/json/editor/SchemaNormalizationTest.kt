@@ -113,6 +113,27 @@ class SchemaNormalizationTest {
         val schema = javaClass.classLoader.getResourceAsStream("nestedCompositeSchema.json").use {
             JSONObject(JSONTokener(it))
         }
-        println(SchemaNormalizer.normalizeSchema(schema, javaClass.classLoader.getResource("").toURI()).toString(1))
+        val result = SchemaNormalizer.normalizeSchema(schema, javaClass.classLoader.getResource("").toURI())
+        assertThat(result.toString(), equals(JSONObject("""{
+ "$schema": "http://json-schema.org/draft-07/schema",
+ "title": "composite",
+ "type": "object",
+ "properties": {
+  "fromNested": {"type": "string"},
+  "nestedAllOf": {
+   "type": "object",
+   "properties": {
+    "allOf1": {"type": "string"},
+    "allOf2.2": {"type": "string"},
+    "allOf2.1": {"type": "string"}
+   }
+  },
+  "additional": {"type": "number"},
+  "x": {"type": "number"},
+  "name": {"type": "string"},
+  "y": {"type": "number"}
+ }
+}
+""").toString()))
     }
 }
