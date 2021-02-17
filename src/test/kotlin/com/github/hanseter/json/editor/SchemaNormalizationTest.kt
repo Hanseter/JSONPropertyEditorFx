@@ -114,8 +114,8 @@ class SchemaNormalizationTest {
             JSONObject(JSONTokener(it))
         }
         val result = SchemaNormalizer.normalizeSchema(schema, javaClass.classLoader.getResource("").toURI())
-        assertThat(result.toString(), equals(JSONObject("""{
- "$schema": "http://json-schema.org/draft-07/schema",
+        assertThat(result.toString(), `is`(JSONObject("""{
+ "${'$'}schema": "http://json-schema.org/draft-07/schema",
  "title": "composite",
  "type": "object",
  "properties": {
@@ -134,6 +134,7 @@ class SchemaNormalizationTest {
   "y": {"type": "number"}
  }
 }
-""").toString()))
+""").toString())
+        )
     }
 }
