@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
 import org.testfx.util.WaitForAsyncUtils
+import java.util.stream.Stream
 
 @ExtendWith(ApplicationExtension::class)
 class IdReferenceTest {
@@ -42,9 +43,9 @@ class IdReferenceTest {
         val elements = mutableListOf<ReferencableElement>()
         val openedElements = mutableListOf<String>()
 
-        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String> {
-            if (part == null) return emptyList()
-            return elements.filter { it.id.startsWith(part) }.map { it.id }
+        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): Stream<String> {
+            if (part == null) return Stream.empty()
+            return elements.stream().filter { it.id.startsWith(part) }.map { it.id }
         }
 
         override fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String =

@@ -9,7 +9,34 @@ package com.github.hanseter.json.editor.util
  */
 data class ViewOptions(val markRequired: Boolean = false,
                        val groupBy: PropertyGrouping = PropertyGrouping.REQUIRED,
-                       val collapseThreshold: Int = 5)
+                       val collapseThreshold: Int = 5,
+                       val idRefDisplayMode: IdRefDisplayMode = IdRefDisplayMode.ID_WITH_DESCRIPTION)
+
+/**
+ * The data that will be displayed in the id reference control.
+ */
+enum class IdRefDisplayMode {
+    /**
+     * Only the id will be displayed
+     */
+    ID_ONLY,
+
+    /**
+     * Only the description will be displayed
+     */
+    DESCRIPTION_ONLY,
+
+    /**
+     * The id will be displayed with the description in parentheses
+     */
+    ID_WITH_DESCRIPTION,
+
+    /**
+     * The description will be displayed with the id in parentheses
+     */
+    DESCRIPTION_WITH_ID
+
+}
 
 /**
  * The grouping mechanism for the properties of an object.

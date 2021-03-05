@@ -1,11 +1,13 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import org.everit.json.schema.StringSchema
 import org.json.JSONObject
+import java.util.stream.Stream
 
 interface IdReferenceProposalProvider {
     object IdReferenceProposalProviderEmpty : IdReferenceProposalProvider {
-        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String> = emptyList()
+        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema, idRefMode: IdRefDisplayMode): Stream<String> = Stream.empty()
         override fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String = ""
         override fun isValidReference(userInput: String?, editedElement: String, editedSchema: StringSchema): Boolean = true
     }
@@ -16,7 +18,7 @@ interface IdReferenceProposalProvider {
      * @param part The input so far.
      * @return The calculated proposals.
      */
-    fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String>
+    fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema, idRefMode: IdRefDisplayMode): Stream<String>
 
     /**
      * Returns a descriptive string for the element referenced by the provided reference.

@@ -58,7 +58,7 @@ class JsonPropertiesPane(
 
     private fun initObjectControl() {
         if (objectControl != null) return
-        this.objectControl = ControlFactory.convert(schema, EditorContext(refProvider, objId, ::updateTreeAfterChildChange))
+        this.objectControl = ControlFactory.convert(schema, EditorContext(refProvider, objId, ::updateTreeAfterChildChange, viewOptions.idRefDisplayMode))
         createControlTree()
     }
 

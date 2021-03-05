@@ -48,7 +48,8 @@ fun interface TargetSelector {
         }
 
         override fun matches(model: TypeModel<*, *>): Boolean {
-            val schemaPointer = getFragmentFromJsonPointer(model.schema.baseSchema.schemaLocation)
+            val location = model.schema.schemaLocation ?: return false
+            val schemaPointer = getFragmentFromJsonPointer(location)
 
             return schemaPointer == this.jsonPointerFragment
         }

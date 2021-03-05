@@ -23,6 +23,8 @@ interface EffectiveSchema<T : Schema> {
         get() = (baseSchema.isReadOnly ?: parent?.readOnly ?: false)
     val pointer: List<String>
         get() = parent?.pointer?.let { it + propertyName } ?: emptyList()
+    val schemaLocation: String?
+        get() = findSchemaLocation(this)
 
     val required: Boolean
         get() = true == (nonSyntheticAncestor?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(propertyName)
@@ -36,6 +38,12 @@ interface EffectiveSchema<T : Schema> {
 
     fun extractProperty(json: JSONObject): Any? =
             JSONPointer(pointer).queryFrom(json)
+
+    private tailrec fun findSchemaLocation(schema: EffectiveSchema<*>): String? {
+        if (schema.baseSchema.schemaLocation != null) return schema.baseSchema.schemaLocation
+        val parent = schema.parent ?: return null
+        return findSchemaLocation(parent)
+    }
 
     /**
      * Gets the closest non-synthetic ancestor.

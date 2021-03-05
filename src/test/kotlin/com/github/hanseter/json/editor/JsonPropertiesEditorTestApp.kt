@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.application.Application
@@ -14,6 +15,7 @@ import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.net.URI
+import java.util.stream.Stream
 
 fun main(args: Array<String>) {
     Application.launch(JsonPropertiesEditorTestApp::class.java, *args)
@@ -177,8 +179,10 @@ class JsonPropertiesEditorTestApp : Application() {
                         )
                 )
 
-        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): List<String> =
-                possibleProposals.keys.filter { it.startsWith(part ?: "") }
+        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema, idRefMode: IdRefDisplayMode): Stream<String> =
+                if (idRefMode == IdRefDisplayMode.DESCRIPTION_WITH_ID || idRefMode == IdRefDisplayMode.DESCRIPTION_ONLY) possibleProposals.keys.stream()
+                else possibleProposals.keys.stream().filter { it.startsWith(part ?: "") }
+
 
         override fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String =
                 possibleProposals[reference]?.data?.optString("name") ?: ""

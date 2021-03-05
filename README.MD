@@ -6,8 +6,6 @@ An editor to edit json in a property sheet - created automatically by a json sch
 
 Further separation of model and UI. Model should be completely UI technology agnostic.
 
-Create UI controls lazily (only when they are displayed in the virtual flow)
-
 Give possibility to display elements without root titledPane
 
 All enums are treated as strings
