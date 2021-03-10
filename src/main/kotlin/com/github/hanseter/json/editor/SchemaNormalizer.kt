@@ -14,21 +14,23 @@ import java.net.URI
 
 object SchemaNormalizer {
 
+    private val KEYS_NOT_TO_MERGE = setOf("order", "properties", "title")
+
     fun parseSchema(
-        schema: JSONObject,
-        resolutionScope: URI?,
-        readOnly: Boolean,
-        referenceProposalProvider: IdReferenceProposalProvider
+            schema: JSONObject,
+            resolutionScope: URI?,
+            readOnly: Boolean,
+            referenceProposalProvider: IdReferenceProposalProvider
     ): Schema = SchemaLoader.builder()
-        .useDefaults(true)
-        .draftV7Support()
-        .addFormatValidator(ColorFormat.Validator)
-        .addFormatValidator(IdReferenceFormat.Validator(referenceProposalProvider))
-        .schemaJson(normalizeSchema(schema, resolutionScope))
-        .build().load().readOnly(readOnly).build()
+            .useDefaults(true)
+            .draftV7Support()
+            .addFormatValidator(ColorFormat.Validator)
+            .addFormatValidator(IdReferenceFormat.Validator(referenceProposalProvider))
+            .schemaJson(normalizeSchema(schema, resolutionScope))
+            .build().load().readOnly(readOnly).build()
 
     fun normalizeSchema(schema: JSONObject, resolutionScope: URI?) =
-        inlineCompositions(resolveRefs(schema, resolutionScope))
+            covertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
 
     fun resolveRefs(schema: JSONObject, resolutionScope: URI?): JSONObject {
         var copy: JSONObject? = null
@@ -42,25 +44,25 @@ object SchemaNormalizer {
     }
 
     private fun resolveRefs(
-        schema: JSONObject,
-        schemaPart: JSONObject,
-        resolutionScope: URI?,
-        copyTarget: () -> JSONObject,
+            schema: JSONObject,
+            schemaPart: JSONObject,
+            resolutionScope: URI?,
+            copyTarget: () -> JSONObject,
     ) {
         if (resolveRefsInAllOf(schemaPart, schema, resolutionScope, copyTarget)) return
         if (resolveRefsInOneOf(schemaPart, schema, resolutionScope, copyTarget)) return
         if (resolveRefsInProperties(schemaPart, schema, resolutionScope, copyTarget)) return
         if (resolveRefsInItems(schemaPart, schema, resolutionScope, copyTarget)) return
 
-        val ref = schemaPart.optString("${'$'}ref", null) ?: return
+        val ref = schemaPart.optString("\$ref", null) ?: return
         val referredSchema = resolveRefs(
-            if (ref.first() == '#') {
-                resolveRefInDocument(schema, ref.drop(2), resolutionScope)
-            } else {
-                resolveRefFromUrl(ref, resolutionScope).use {
-                    JSONObject(JSONTokener(it))
-                }
-            }, resolutionScope
+                if (ref.first() == '#') {
+                    resolveRefInDocument(schema, ref.drop(2), resolutionScope)
+                } else {
+                    resolveRefFromUrl(ref, resolutionScope).use {
+                        JSONObject(JSONTokener(it))
+                    }
+                }, resolutionScope
         )
         val target = copyTarget()
         target.remove("${"$"}ref")
@@ -72,10 +74,10 @@ object SchemaNormalizer {
     }
 
     private fun resolveRefsInProperties(
-        schemaPart: JSONObject,
-        schema: JSONObject,
-        resolutionScope: URI?,
-        copyTarget: () -> JSONObject
+            schemaPart: JSONObject,
+            schema: JSONObject,
+            resolutionScope: URI?,
+            copyTarget: () -> JSONObject
     ): Boolean {
         val properties = schemaPart.optJSONObject("properties")
         if (properties != null) {
@@ -90,10 +92,10 @@ object SchemaNormalizer {
     }
 
     private fun resolveRefsInItems(
-        schemaPart: JSONObject,
-        schema: JSONObject,
-        resolutionScope: URI?,
-        copyTarget: () -> JSONObject
+            schemaPart: JSONObject,
+            schema: JSONObject,
+            resolutionScope: URI?,
+            copyTarget: () -> JSONObject
     ): Boolean {
         val arrayItems = schemaPart.optJSONObject("items")
         if (arrayItems != null) {
@@ -115,27 +117,27 @@ object SchemaNormalizer {
     }
 
     private fun resolveRefsInAllOf(
-        schemaPart: JSONObject,
-        schema: JSONObject,
-        resolutionScope: URI?,
-        copyTarget: () -> JSONObject
+            schemaPart: JSONObject,
+            schema: JSONObject,
+            resolutionScope: URI?,
+            copyTarget: () -> JSONObject
     ): Boolean =
-        resolveRefsInComposition(schemaPart, schema, resolutionScope, copyTarget, "allOf")
+            resolveRefsInComposition(schemaPart, schema, resolutionScope, copyTarget, "allOf")
 
     private fun resolveRefsInOneOf(
-        schemaPart: JSONObject,
-        schema: JSONObject,
-        resolutionScope: URI?,
-        copyTarget: () -> JSONObject
+            schemaPart: JSONObject,
+            schema: JSONObject,
+            resolutionScope: URI?,
+            copyTarget: () -> JSONObject
     ): Boolean =
-        resolveRefsInComposition(schemaPart, schema, resolutionScope, copyTarget, "oneOf")
+            resolveRefsInComposition(schemaPart, schema, resolutionScope, copyTarget, "oneOf")
 
     private fun resolveRefsInComposition(
-        schemaPart: JSONObject,
-        schema: JSONObject,
-        resolutionScope: URI?,
-        copyTarget: () -> JSONObject,
-        compositionType: String
+            schemaPart: JSONObject,
+            schema: JSONObject,
+            resolutionScope: URI?,
+            copyTarget: () -> JSONObject,
+            compositionType: String
     ): Boolean {
         val composition = schemaPart.optJSONArray(compositionType)
         if (composition != null) {
@@ -150,9 +152,9 @@ object SchemaNormalizer {
     }
 
     private fun resolveRefInDocument(
-        schema: JSONObject,
-        referred: String,
-        resolutionScope: URI?
+            schema: JSONObject,
+            referred: String,
+            resolutionScope: URI?
     ): JSONObject {
         val pointer = referred.split('/')
         val referredSchema = queryObject(schema, pointer)
@@ -161,8 +163,8 @@ object SchemaNormalizer {
     }
 
     private fun queryObjOrArray(
-        schema: JSONObject,
-        pointer: List<String>
+            schema: JSONObject,
+            pointer: List<String>
     ): Any {
         var current: Any = schema
         pointer.forEach {
@@ -176,7 +178,7 @@ object SchemaNormalizer {
     }
 
     private fun queryObject(schema: JSONObject, pointer: List<String>): JSONObject =
-        queryObjOrArray(schema, pointer) as JSONObject
+            queryObjOrArray(schema, pointer) as JSONObject
 
     private fun resolveRefFromUrl(url: String, resolutionScope: URI?): InputStream {
         fun get(uri: URI): InputStream {
@@ -200,9 +202,9 @@ object SchemaNormalizer {
     }
 
     private fun createCopy(toCopy: JSONObject): JSONObject =
-        toCopy.keySet().fold(JSONObject()) { acc, it ->
-            acc.put(it, deepCopy(toCopy.get(it)))
-        }
+            toCopy.keySet().fold(JSONObject()) { acc, it ->
+                acc.put(it, deepCopy(toCopy.get(it)))
+            }
 
     private fun createCopy(toCopy: JSONArray): JSONArray = toCopy.fold(JSONArray()) { acc, it ->
         acc.put(deepCopy(it))
@@ -225,23 +227,31 @@ object SchemaNormalizer {
         return copy ?: schema
     }
 
-    private fun inlineCompositions(
-        subPart: JSONObject,
-        copyTarget: () -> JSONObject
+    private tailrec fun inlineCompositions(
+            subPart: JSONObject,
+            copyTarget: () -> JSONObject
     ) {
         if (inlineInProperties(subPart, copyTarget)) return
         if (inlineInItems(subPart, copyTarget)) return
-        
+
         val allOf = subPart.optJSONArray("allOf") ?: return
         copyTarget().apply {
             remove("allOf")
             put("type", "object")
             put("properties", JSONObject())
         }
-        getAllPropertiesInAllOf(allOf).forEach { propObj ->
+        val order = JSONArray()
+        getAllObjectsInAllOf(allOf).forEach { propObj ->
             merge(copyTarget().getJSONObject("properties"), propObj.getJSONObject("properties"))
+            propObj.optJSONArray("order")?.also { order.put(it) }
+            propObj.optJSONObject("order")?.also { order.put(it) }
+            merge(copyTarget(), propObj, KEYS_NOT_TO_MERGE)
         }
-        inlineCompositions(copyTarget()) { copyTarget() }
+        if (!order.isEmpty) {
+            copyTarget().put("order", order)
+        }
+
+        inlineCompositions(copyTarget(), copyTarget)
     }
 
     private fun inlineInProperties(subPart: JSONObject, copyTarget: () -> JSONObject): Boolean {
@@ -277,7 +287,7 @@ object SchemaNormalizer {
         return false
     }
 
-    private fun getAllPropertiesInAllOf(allOf: JSONArray): List<JSONObject> {
+    private fun getAllObjectsInAllOf(allOf: JSONArray): List<JSONObject> {
         return (0 until allOf.length()).flatMap { i ->
             val allOfEntry = allOf.getJSONObject(i)
             val props = allOfEntry.optJSONObject("properties")
@@ -286,7 +296,7 @@ object SchemaNormalizer {
             } else {
                 val nestedAllOff = allOfEntry.optJSONArray("allOf")
                 if (nestedAllOff != null) {
-                    getAllPropertiesInAllOf(nestedAllOff)
+                    getAllObjectsInAllOf(nestedAllOff)
                 } else {
                     emptyList()
                 }
@@ -294,27 +304,88 @@ object SchemaNormalizer {
         }
     }
 
-    fun merge(a: JSONObject, b: JSONObject) = mergeInternal(a, b)
-
-    private fun mergeInternal(target: JSONObject, source: JSONObject): JSONObject =
-        source.keySet().fold(target) { acc, key ->
-            val old = acc.optJSONObject(key)
-            val new = source.optJSONObject(key)
-            if (old == null || new == null) {
-                val oldArray = acc.optJSONArray(key)
-                val newArray = source.optJSONArray(key)
-
-                if (newArray != null) {
-                    acc.put(key, mergeArrays(oldArray, newArray))
-                } else {
-                    acc.put(key, source.get(key))
-                }
-            } else {
-                val merged = merge(old, new)
-                acc.put(key, merged)
+    fun covertOrder(schema: JSONObject): JSONObject {
+        var copy: JSONObject? = null
+        covertOrder(schema) {
+            if (copy == null) {
+                copy = createCopy(schema)
             }
-            acc
+            copy!!
         }
+        return copy ?: schema
+    }
+
+    private fun covertOrder(schema: JSONObject, copyProvider: () -> JSONObject) {
+        convertOrderInProperties(schema, copyProvider)
+        convertOrderInItems(schema, copyProvider)
+        val target = copyOrder(schema.optJSONArray("order"))
+                ?: copyOrder(schema.optJSONObject("order")) ?: return
+        if (target.isEmpty()) return
+        copyProvider().put("order", target.toList().sortedBy { it.second }.map { it.first })
+    }
+
+    private fun copyOrder(orderArr: JSONArray?): Map<String, Int>? {
+        if (orderArr == null || orderArr.length() == 0 || orderArr[0] is String) return null
+        val ret = mutableMapOf<String, Int>()
+        (0 until orderArr.length()).forEach { i ->
+            orderArr.optJSONArray(i)?.also { arrEntry ->
+                val offset = i * 1000
+                (0 until arrEntry.length()).forEach { j ->
+                    ret[arrEntry.getString(j)] = offset + j
+                }
+            }
+            orderArr.optJSONObject(i)?.also { objEntry ->
+                objEntry.keySet().forEach { key -> ret[key] = objEntry.getInt(key) }
+            }
+        }
+        return ret
+    }
+
+    private fun copyOrder(orderObj: JSONObject?): Map<String, Int>? =
+            orderObj?.keySet()?.associate { key -> key to orderObj.getInt(key) }
+
+    private fun convertOrderInProperties(subPart: JSONObject, copyTarget: () -> JSONObject) {
+        val properties = subPart.optJSONObject("properties") ?: return
+        properties.keySet()?.forEach {
+            covertOrder(properties.getJSONObject(it)) {
+                copyTarget().getJSONObject("properties").getJSONObject(it)
+            }
+        }
+    }
+
+    private fun convertOrderInItems(subPart: JSONObject, copyTarget: () -> JSONObject) {
+        val arrItems = subPart.optJSONObject("items")
+        if (arrItems != null) {
+            covertOrder(arrItems) {
+                copyTarget().getJSONObject("items")
+            }
+        }
+        subPart.optJSONArray("items")?.forEachIndexed { index, obj ->
+            covertOrder(obj as JSONObject) {
+                copyTarget().getJSONArray("items").getJSONObject(index)
+            }
+        }
+    }
+
+    private fun merge(target: JSONObject, source: JSONObject, keyBlackList: Set<String> = emptySet()): JSONObject =
+            (source.keySet() - keyBlackList).fold(target) { acc, key ->
+                val old = acc.optJSONObject(key)
+                val new = source.optJSONObject(key)
+                if (old == null || new == null) {
+                    val oldArray = acc.optJSONArray(key)
+                    val newArray = source.optJSONArray(key)
+
+                    if (newArray != null) {
+                        acc.put(key, mergeArrays(oldArray, newArray))
+                    } else {
+                        acc.put(key, source.get(key))
+                    }
+                } else {
+                    val merged = merge(old, new)
+                    acc.put(key, merged)
+                }
+                acc
+            }
 
     private fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
         if (target == null) return source

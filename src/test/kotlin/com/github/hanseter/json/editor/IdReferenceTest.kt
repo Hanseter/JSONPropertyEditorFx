@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.ui.LabelledTextField
+import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import javafx.stage.Stage
 import org.everit.json.schema.StringSchema
 import org.hamcrest.MatcherAssert.assertThat
@@ -43,7 +44,7 @@ class IdReferenceTest {
         val elements = mutableListOf<ReferencableElement>()
         val openedElements = mutableListOf<String>()
 
-        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema): Stream<String> {
+        override fun calcCompletionProposals(part: String?, editedElement: String, editedSchema: StringSchema, idRefMode: IdRefDisplayMode): Stream<String> {
             if (part == null) return Stream.empty()
             return elements.stream().filter { it.id.startsWith(part) }.map { it.id }
         }

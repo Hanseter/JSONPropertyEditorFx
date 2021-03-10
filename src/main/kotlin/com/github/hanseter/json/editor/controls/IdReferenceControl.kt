@@ -21,7 +21,9 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
         val regex = schema.baseSchema.pattern
         var internalChange = false
         val completionBinding = TextFields.bindAutoCompletion(control) { request ->
-            mapProposals(getValidProposals(request, regex)).limit(30).collect(Collectors.toList())
+            mapProposals(getValidProposals(request, regex))
+                    .filter { it.matchesInput(request.userText) }
+                    .limit(30).collect(Collectors.toList())
         }
         completionBinding.setOnAutoCompleted {
             it.consume()
@@ -69,11 +71,12 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
                 property.value = id.id
             }
             IdRefDisplayMode.DESCRIPTION_ONLY -> {
-                control.text = id.description ?: id.id
-                if (id.description != null) {
-                    property.value = id.description
-                } else {
+                if (id.description == null) {
+                    control.text = id.id
                     property.value = ""
+                } else {
+                    control.text = id.description
+                    property.value = id.id
                 }
             }
             IdRefDisplayMode.ID_WITH_DESCRIPTION -> {
@@ -102,6 +105,8 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
     inner class Preview(val id: String, description: String) {
         val description: String? = if (description.isBlank()) null
         else description
+
+        fun matchesInput(input: String) = id.startsWith(input) || description?.startsWith(input) ?: false
 
         override fun toString(): String = when (context.idRefDisplayMode) {
             IdRefDisplayMode.ID_ONLY -> id

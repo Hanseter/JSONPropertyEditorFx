@@ -30,7 +30,8 @@ class JsonPropertiesEditorTestApp : Application() {
 
         val viewOptions = ViewOptions(
                 markRequired = true,
-                groupBy = PropertyGrouping.NONE
+                groupBy = PropertyGrouping.NONE,
+                idRefDisplayMode = IdRefDisplayMode.DESCRIPTION_ONLY
         )
 
         val propEdit = JsonPropertiesEditor(ReferenceProvider, false, 2,
