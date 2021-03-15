@@ -37,7 +37,7 @@ class IdReferenceTest {
         refField.text = "test2"
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(true))
-        assertThat(refField.label, `is`(" (description)"))
+        assertThat(refField.label, `is`("description"))
     }
 
     private class IdReferenceProposalProviderForTests : IdReferenceProposalProvider {
