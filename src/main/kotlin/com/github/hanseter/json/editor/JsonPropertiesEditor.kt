@@ -80,7 +80,7 @@ class JsonPropertiesEditor(
             title: String,
             obj: JSONObject,
             schema: JSONObject,
-            callback: (JSONObject) -> JsonEditorData
+            callback: OnEditCallback
     ) {
         if (idsToPanes.contains(objId)) {
             updateObject(objId, obj)
@@ -92,6 +92,7 @@ class JsonPropertiesEditor(
         val pane = createTitledPaneForSchema(
                 title, objId, obj,
                 SchemaNormalizer.parseSchema(schema, resolutionScope, readOnly, referenceProposalProvider),
+                schema,
                 readOnly,
                 resolutionScope, callback
         )
@@ -100,6 +101,18 @@ class JsonPropertiesEditor(
         (treeTableView.root as FilterableTreeItem).add(pane.treeItem)
         pane.treeItem.isExpanded = idsToPanes.size <= numberOfInitiallyOpenedObjects
         rebindValidProperty()
+    }
+
+    fun display(
+            objId: String,
+            title: String,
+            obj: JSONObject,
+            schema: JSONObject,
+            callback: (JSONObject) -> JSONObject
+    ) {
+        display(objId, title, obj, schema) { it: PropertiesEditInput ->
+            PropertiesEditResult(callback(it.data))
+        }
     }
 
     fun updateObject(
@@ -134,9 +147,9 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(
             title: String, objId: String, data: JSONObject,
-            schema: Schema, readOnly: Boolean, resolutionScope: URI?, callback: (JSONObject) -> JsonEditorData
+            schema: Schema, rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?, callback: OnEditCallback
     ): JsonPropertiesPane =
-            JsonPropertiesPane(title, objId, data, schema, readOnly, resolutionScope, referenceProposalProvider, actions, validators, viewOptions, callback)
+            JsonPropertiesPane(title, objId, data, schema, rawSchema, readOnly, resolutionScope, referenceProposalProvider, actions, validators, viewOptions, callback)
 
     private fun initTreeTableView() {
         val keyColumn = createKeyColumn()
@@ -252,6 +265,12 @@ class JsonPropertiesEditor(
                 isSortable = false
             }
 
+    fun interface OnEditCallback {
+
+        operator fun invoke(data: PropertiesEditInput): PropertiesEditResult
+
+    }
+
     class ActionCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateActionEnablement
         private var actions: ActionsContainer? = null
@@ -286,6 +305,7 @@ class JsonPropertiesEditor(
             if (item != null) {
                 appliedStyleClasses.addAll(item.cssClasses)
                 styleClass.addAll(appliedStyleClasses)
+                style = item.cssStyle
             }
         }
     }

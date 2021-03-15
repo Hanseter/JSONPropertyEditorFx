@@ -30,7 +30,7 @@ class AllOfTest {
     fun nestedCompositeSchema() {
         val schema = loadSchema("nestedCompositeSchema.json")
         val data = JSONObject()
-        editor.display("foo", "foo", data, schema) { JsonEditorData(it) }
+        editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first()
         assertThat(objectEntry.children.size, `is`(6))
         assertThat(editor.getControlInTable("fromNested"), `is`(instanceOf(TextField::class.java)))
@@ -58,7 +58,7 @@ class AllOfTest {
     }]}}}""")
 
         val data = JSONObject()
-        editor.display("foo", "foo", data, schema) { JsonEditorData(it) }
+        editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first().findChildWithKey("notRoot")!!
         assertThat(objectEntry.children.size, `is`(0))
         (objectEntry.value.createControl()?.control as TypeWithChildrenStatusControl).button.fire()
@@ -80,7 +80,7 @@ class AllOfTest {
     fun allOfWithReuqiredSubType() {
         val schema = loadSchema("completeValidationTestSchema.json")
         val data = JSONObject()
-        editor.display("foo", "foo", data, schema) { JsonEditorData(it) }
+        editor.display("foo", "foo", data, schema) { it }
         val objectEntry = editor.getItemTable().root.children.first()
         val control = editor.getControlInTable(
                 objectEntry.findChildWithKey("allOfs")!!

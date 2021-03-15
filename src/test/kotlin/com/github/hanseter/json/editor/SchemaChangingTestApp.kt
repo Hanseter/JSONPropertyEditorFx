@@ -42,7 +42,8 @@ class SchemaChangingTestApp : Application() {
       "default": "string"
     },
     "b": {
-      "type": "string"
+      "type": "string",
+      "style": "-fx-background-color: yellow;"
     },
     "arr": {
       "type": "array",
@@ -76,13 +77,13 @@ class SchemaChangingTestApp : Application() {
         var schema = JSONObject(schemaString)
 
 
-        val callback: (JSONObject) -> JsonEditorData = {
+        val callback: (PropertiesEditInput) -> PropertiesEditResult = {
 
-            val newSchema = JSONObject(schema.toString())
+            val newSchema = it.schema
 
             val bSchema = newSchema.getJSONObject("properties").getJSONObject("b")
 
-            if (it.optString("a", "string") == "number") {
+            if (it.data.optString("a", "string") == "number") {
                 bSchema.put("type", "number")
             } else {
                 bSchema.put("type", "string")
@@ -90,7 +91,7 @@ class SchemaChangingTestApp : Application() {
 
             schema = newSchema
 
-            JsonEditorData(it, newSchema)
+            PropertiesEditResult(it.data, newSchema)
         }
 
         propEdit.display(

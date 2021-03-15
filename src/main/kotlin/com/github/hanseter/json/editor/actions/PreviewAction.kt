@@ -1,7 +1,6 @@
 package com.github.hanseter.json.editor.actions
 
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.JsonEditorData
 import com.github.hanseter.json.editor.JsonPropertiesEditor
 import com.github.hanseter.json.editor.ResolutionScopeProvider
 import com.github.hanseter.json.editor.controls.IdReferenceControl
@@ -49,7 +48,7 @@ class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposal
     private fun showPreviewPopup(dataAndSchema: IdReferenceProposalProvider.DataWithSchema, value: String, parent: Node?) {
         val (data, previewSchema) = dataAndSchema
         val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1, resolutionScopeProvider)
-        preview.display(value, value, data, previewSchema) { JsonEditorData(it) }
+        preview.display(value, value, data, previewSchema) { it }
         val scrollPane = ScrollPane(preview)
         scrollPane.maxHeight = 500.0
         scrollPane.hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER

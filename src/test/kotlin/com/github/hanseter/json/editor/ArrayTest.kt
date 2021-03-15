@@ -25,7 +25,7 @@ class ArrayTest {
             "readOnly":true,
             "items":{"type":"string"}
             }}}""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         assertThat(arrayEntry.value.createActions()!!.children, `is`(empty()))
@@ -37,7 +37,7 @@ class ArrayTest {
             "readOnly":true,
             "items":{"type":"object", "properties":{"a":{"type":"number"},"b":{"type":"boolean", "readOnly":false}}}
             }}}""")
-        editor.display("1", "1", JSONObject("""{"bar":[{"a":42,"b":true},{"a":32,"b":true}]}"""), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject("""{"bar":[{"a":42,"b":true},{"a":32,"b":true}]}"""), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val firstObjEntry = arrayEntry.children.first()
@@ -50,7 +50,7 @@ class ArrayTest {
         val schema = JSONObject("""{"type":"object","properties":{"bar":{"type":"array",
             "items":{"type":"string"}
             }}}""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         assertThat(arrayEntry.value.createActions()!!.children.size, `is`(2))
@@ -64,7 +64,7 @@ class ArrayTest {
             "items":{"type":"string"}
             }}}""")
         val data = JSONObject()
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val addButton = arrayEntry.value.createActions()!!.children[1] as Button
@@ -80,7 +80,7 @@ class ArrayTest {
             "items":{"type":"string","default":"foo"}
             }}}""")
         val data = JSONObject()
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val addButton = arrayEntry.value.createActions()!!.children[1] as Button

@@ -24,13 +24,14 @@ class JsonPropertiesPane(
         private val objId: String,
         data: JSONObject,
         schema: Schema,
+        private var rawSchema: JSONObject,
         private val readOnly: Boolean,
         private val resolutionScope: URI?,
         private val refProvider: IdReferenceProposalProvider,
         private val actions: List<EditorAction>,
         private val validators: List<Validator>,
         viewOptions: ViewOptions,
-        private val changeListener: (JSONObject) -> JsonEditorData
+        private val changeListener: JsonPropertiesEditor.OnEditCallback
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData(title, listOf("isRootRow")))
     private var schema = SimpleEffectiveSchema(null, schema, title)
@@ -87,9 +88,12 @@ class JsonPropertiesPane(
         val actionHandler: (Event, EditorAction, TypeControl) -> Unit = { e, action, source ->
             val ret = action.apply(contentHandler.data, source.model, e)
             if (ret != null) {
-                val newData = changeListener(ret)
+                val newData = changeListener(PropertiesEditInput(ret, rawSchema))
 
                 if (newData.schema != null) {
+
+                    rawSchema = newData.schema
+
                     schema = SimpleEffectiveSchema(null, SchemaNormalizer.parseSchema(newData.schema,
                             resolutionScope,
                             readOnly,
@@ -123,9 +127,12 @@ class JsonPropertiesPane(
         objectControl?.bindTo(type)
         fillTree(data)
         type.registerListener {
-            val newData = changeListener(type.value!!)
+            val newData = changeListener(PropertiesEditInput(type.value!!, rawSchema))
 
             if (newData.schema != null) {
+
+                rawSchema = newData.schema
+
                 val parsedSchema = SchemaNormalizer.parseSchema(newData.schema,
                         resolutionScope,
                         readOnly,

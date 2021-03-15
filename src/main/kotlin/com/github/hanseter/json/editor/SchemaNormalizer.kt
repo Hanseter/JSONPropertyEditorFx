@@ -210,7 +210,7 @@ object SchemaNormalizer {
         acc.put(deepCopy(it))
     }
 
-    private fun deepCopy(toCopy: Any): Any = when (toCopy) {
+    fun deepCopy(toCopy: Any): Any = when (toCopy) {
         is JSONObject -> createCopy(toCopy)
         is JSONArray -> createCopy(toCopy)
         else -> toCopy
@@ -245,7 +245,7 @@ object SchemaNormalizer {
             merge(copyTarget().getJSONObject("properties"), propObj.getJSONObject("properties"))
             propObj.optJSONArray("order")?.also { order.put(it) }
             propObj.optJSONObject("order")?.also { order.put(it) }
-            merge(copyTarget(), propObj, KEYS_NOT_TO_MERGE)
+            merge(copyTarget(), propObj, propObj.keySet())
         }
         if (!order.isEmpty) {
             copyTarget().put("order", order)

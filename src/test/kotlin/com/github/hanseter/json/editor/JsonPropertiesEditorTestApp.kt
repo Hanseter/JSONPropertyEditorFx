@@ -91,7 +91,7 @@ class JsonPropertiesEditorTestApp : Application() {
         editor.display("test", "isRoot 1 2 3 4 5 long text", data, loadSchema(schemaName)) {
             println(it.toString(1))
             editor.lookup("c2")
-            JsonEditorData(it)
+            it
         }
     }
 
@@ -109,7 +109,7 @@ class JsonPropertiesEditorTestApp : Application() {
 ]}}}""")
         editor.display("1", "1", JSONObject().put("choice", JSONObject.NULL), schema) {
             println(it.toString(1))
-            JsonEditorData(it)
+            it
         }
     }
 

@@ -25,7 +25,7 @@ class ReferenceSchemaTest {
         val schema =
                 JSONObject("""{"definitions": {"test": {"type":"string"}},
                 "type":"object","properties":{"string":{"${'$'}ref": "#/definitions/test"}}}""")
-        editor.display("1", "1", JSONObject().put("string", "foobar"), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject().put("string", "foobar"), schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         MatcherAssert.assertThat(stringControl.text, Matchers.`is`("foobar"))

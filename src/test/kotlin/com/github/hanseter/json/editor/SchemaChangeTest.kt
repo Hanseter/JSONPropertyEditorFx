@@ -33,7 +33,7 @@ class SchemaChangeTest {
 }
         """)
 
-        editor.display("1", "1", JSONObject(), schema) {
+        editor.display("1", "1", JSONObject(), schema) { it: PropertiesEditInput ->
 
             val newSchema = JSONObject("""
 {
@@ -46,11 +46,11 @@ class SchemaChangeTest {
 }
             """)
 
-            newSchema.getJSONObject("properties").put(it.optString("src", "target"), JSONObject(mapOf("type" to "string")))
+            newSchema.getJSONObject("properties").put(it.data.optString("src", "target"), JSONObject(mapOf("type" to "string")))
 
 
 
-            JsonEditorData(it, newSchema)
+            PropertiesEditResult(it.data, newSchema)
         }
 
 

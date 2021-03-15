@@ -25,7 +25,7 @@ class NumberTest {
     @Test
     fun displayExistingValue() {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number"}}}""")
-        editor.display("1", "1", JSONObject().put("num", 723.168), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject().put("num", 723.168), schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(723.168)
@@ -36,7 +36,7 @@ class NumberTest {
     fun modifyValueByTextInput() {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number"}}}""")
         val data = JSONObject().put("num", 723.168)
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(500.36)
@@ -54,7 +54,7 @@ class NumberTest {
     fun modifyValueBySpinner(requireInt: Boolean, initialValue: Double, step: Int, result: Double) {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number","requireInt":"$requireInt"}}}""")
         val data = JSONObject().put("num", initialValue)
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         numberControl.increment(step)
@@ -76,7 +76,7 @@ class NumberTest {
             "maximum":43
 }}}""")
         val data = JSONObject().put("num", initialValue)
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         numberControl.increment(step)
@@ -87,7 +87,7 @@ class NumberTest {
     @Test
     fun displaysCorrectDefaultValue() {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number","default":723.168}}}""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(723.168)

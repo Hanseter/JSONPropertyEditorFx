@@ -33,7 +33,7 @@ class EnumTest {
     }
   }
 }""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
         assertThat(enumEntry.value.createActions()!!.children, Matchers.hasSize(1))
@@ -53,7 +53,7 @@ class EnumTest {
     }
   }
 }""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
         assertThat(enumEntry.value.createActions()!!.children, Matchers.hasSize(1))
@@ -73,7 +73,7 @@ class EnumTest {
   },
   "required": ["e"]
 }""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
 
@@ -93,7 +93,7 @@ class EnumTest {
     }
   }
 }""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
 
@@ -113,7 +113,7 @@ class EnumTest {
     }
   }
 }""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
 
@@ -137,7 +137,7 @@ class EnumTest {
 }""")
         val data = JSONObject("""{"e": "foo"}""")
 
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
 

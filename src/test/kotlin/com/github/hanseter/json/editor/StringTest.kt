@@ -26,7 +26,7 @@ class StringTest {
     @Test
     fun displayExistingValue() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
-        editor.display("1", "1", JSONObject().put("string", "foobar"), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject().put("string", "foobar"), schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         assertThat(stringControl.text, `is`("foobar"))
@@ -36,7 +36,7 @@ class StringTest {
     fun modifyValueByTextInput() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         stringControl.text = "something"
@@ -47,7 +47,7 @@ class StringTest {
     fun minLengthValidation() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","minLength":15}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(false))
     }
@@ -56,7 +56,7 @@ class StringTest {
     fun minLengthValidationAfterChange() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","minLength":5}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val stringControl = editor.getControlInTable("string") as TextField
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(true))
@@ -69,7 +69,7 @@ class StringTest {
     fun maxLengthValidation() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","maxLength":5}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(false))
     }
@@ -78,7 +78,7 @@ class StringTest {
     fun maxLengthValidationAfterChange() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","maxLength":15}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         WaitForAsyncUtils.waitForFxEvents()
@@ -92,7 +92,7 @@ class StringTest {
     fun patternValidation() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","pattern":"^b.*"}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(false))
     }
@@ -101,7 +101,7 @@ class StringTest {
     fun patternValidationAfterChange() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","pattern":"f.*"}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         WaitForAsyncUtils.waitForFxEvents()
@@ -115,7 +115,7 @@ class StringTest {
     fun formatValidation() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","format":"date"}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(false))
     }
@@ -124,7 +124,7 @@ class StringTest {
     fun formatValidationAfterModification() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","format":"date"}}}""")
         val data = JSONObject().put("string", "2018-11-13")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         WaitForAsyncUtils.waitForFxEvents()
@@ -138,7 +138,7 @@ class StringTest {
     fun multiValidation() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","pattern":"foo.+","minLength":5}}}""")
         val data = JSONObject().put("string", "foobar")
-        editor.display("1", "1", data, schema) { JsonEditorData(it) }
+        editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         WaitForAsyncUtils.waitForFxEvents()
@@ -157,7 +157,7 @@ class StringTest {
     @Test
     fun displayDefaultValue() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string","default": "foobar"}}}""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         assertThat(stringControl.text, `is`("foobar"))
@@ -166,7 +166,7 @@ class StringTest {
     @Test
     fun displayNull() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
-        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         assertThat(stringControl.text, `is`(nullValue()))
