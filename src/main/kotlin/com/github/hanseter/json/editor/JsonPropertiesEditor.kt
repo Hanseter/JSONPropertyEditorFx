@@ -23,16 +23,17 @@ import org.controlsfx.validation.ValidationMessage
 import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.everit.json.schema.Schema
 import org.json.JSONObject
+import java.net.URI
 import java.util.function.Predicate
 
 class JsonPropertiesEditor(
-    private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
-    private val readOnly: Boolean = false,
-    private val numberOfInitiallyOpenedObjects: Int = 5,
-    private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
-    viewOptions: ViewOptions = ViewOptions(),
-    actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-    private val validators: List<Validator> = listOf(IdReferenceValidator(referenceProposalProvider))
+        private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
+        private val readOnly: Boolean = false,
+        private val numberOfInitiallyOpenedObjects: Int = 5,
+        private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
+        viewOptions: ViewOptions = ViewOptions(),
+        actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
+        private val validators: List<Validator> = listOf(IdReferenceValidator(referenceProposalProvider))
 ) : VBox() {
     private val actions = actions + PreviewAction(referenceProposalProvider, resolutionScopeProvider) + arrayActions
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -57,11 +58,11 @@ class JsonPropertiesEditor(
         val filteredTreeItemRoot: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData("root", listOf()))
         filterText.textProperty().addListener { _, _, newValue ->
             filteredTreeItemRoot.setPredicate(
-                if (newValue.isEmpty()) {
-                    Predicate { true }
-                } else {
-                    Predicate { it.title.contains(newValue) }
-                })
+                    if (newValue.isEmpty()) {
+                        Predicate { true }
+                    } else {
+                        Predicate { it.title.contains(newValue) }
+                    })
         }
 
         treeTableView.root = filteredTreeItemRoot
@@ -75,20 +76,24 @@ class JsonPropertiesEditor(
     }
 
     fun display(
-        objId: String,
-        title: String,
-        obj: JSONObject,
-        schema: JSONObject,
-        callback: (JSONObject) -> JSONObject
+            objId: String,
+            title: String,
+            obj: JSONObject,
+            schema: JSONObject,
+            callback: (JSONObject) -> JsonEditorData
     ) {
         if (idsToPanes.contains(objId)) {
             updateObject(objId, obj)
             return
         }
+
+        val resolutionScope = resolutionScopeProvider.getResolutionScopeForElement(objId)
+
         val pane = createTitledPaneForSchema(
-            title, objId, obj,
-            SchemaNormalizer.parseSchema(schema, resolutionScopeProvider.getResolutionScopeForElement(objId), readOnly, referenceProposalProvider),
-            callback
+                title, objId, obj,
+                SchemaNormalizer.parseSchema(schema, resolutionScope, readOnly, referenceProposalProvider),
+                readOnly,
+                resolutionScope, callback
         )
         pane.fillData(obj)
         idsToPanes[objId] = pane
@@ -98,8 +103,8 @@ class JsonPropertiesEditor(
     }
 
     fun updateObject(
-        objId: String,
-        obj: JSONObject
+            objId: String,
+            obj: JSONObject
     ) {
         val pane = idsToPanes[objId] ?: return
         pane.fillData(obj)
@@ -126,11 +131,12 @@ class JsonPropertiesEditor(
         }
     }
 
+
     private fun createTitledPaneForSchema(
-        title: String, objId: String, data: JSONObject,
-        schema: Schema, callback: (JSONObject) -> JSONObject
+            title: String, objId: String, data: JSONObject,
+            schema: Schema, readOnly: Boolean, resolutionScope: URI?, callback: (JSONObject) -> JsonEditorData
     ): JsonPropertiesPane =
-        JsonPropertiesPane(title, objId, data, schema, referenceProposalProvider, actions, validators, viewOptions, callback)
+            JsonPropertiesPane(title, objId, data, schema, readOnly, resolutionScope, referenceProposalProvider, actions, validators, viewOptions, callback)
 
     private fun initTreeTableView() {
         val keyColumn = createKeyColumn()
@@ -148,13 +154,13 @@ class JsonPropertiesEditor(
     }
 
     private fun createKeyColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
-        TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Key"
-            cellValueFactory = Callback { it.value.valueProperty() }
-            cellFactory = Callback { KeyCell() }
-            minWidth = 150.0
-            isSortable = false
-        }
+            TreeTableColumn<TreeItemData, TreeItemData>().apply {
+                text = "Key"
+                cellValueFactory = Callback { it.value.valueProperty() }
+                cellFactory = Callback { KeyCell() }
+                minWidth = 150.0
+                isSortable = false
+            }
 
     private inner class KeyCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateValidation
@@ -187,12 +193,12 @@ class JsonPropertiesEditor(
         }
 
         private fun createValidationMessage(label: Control, msg: String?): SimpleValidationMessage? =
-            msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
+                msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
 
         private inner class SimpleValidationMessage(
-            private val target: Control,
-            private val text: String,
-            private val severity: Severity
+                private val target: Control,
+                private val text: String,
+                private val severity: Severity
         ) : ValidationMessage {
             override fun getTarget(): Control = target
             override fun getText(): String = text
@@ -201,14 +207,14 @@ class JsonPropertiesEditor(
     }
 
     private fun createControlColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
-        TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Value"
-            cellValueFactory = Callback { it.value.valueProperty() }
-            cellFactory = Callback { ValueCell() }
-            minWidth = 150.0
-            styleClass.add("control-cell")
-            isSortable = false
-        }
+            TreeTableColumn<TreeItemData, TreeItemData>().apply {
+                text = "Value"
+                cellValueFactory = Callback { it.value.valueProperty() }
+                cellFactory = Callback { ValueCell() }
+                minWidth = 150.0
+                styleClass.add("control-cell")
+                isSortable = false
+            }
 
     class ValueCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateControl
@@ -235,16 +241,16 @@ class JsonPropertiesEditor(
     }
 
     private fun createActionColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
-        TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Action"
-            cellValueFactory = Callback { it.value.valueProperty() }
-            cellFactory = Callback { ActionCell() }
-            minWidth = 100.0
-            prefWidth = 100.0
-            styleClass.add("action-cell")
-            style = "-fx-alignment: CENTER"
-            isSortable = false
-        }
+            TreeTableColumn<TreeItemData, TreeItemData>().apply {
+                text = "Action"
+                cellValueFactory = Callback { it.value.valueProperty() }
+                cellFactory = Callback { ActionCell() }
+                minWidth = 100.0
+                prefWidth = 100.0
+                styleClass.add("action-cell")
+                style = "-fx-alignment: CENTER"
+                isSortable = false
+            }
 
     class ActionCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateActionEnablement

@@ -29,7 +29,7 @@ class IdReferenceTest {
     fun validatesReference() {
         val schema = JSONObject("""{"type":"object","properties":{"ref":{"type":"string","format":"id-reference"}}}""")
         referenceProposalProvider.elements.add(ReferencableElement("test2", "description", JSONObject(), schema, false))
-        editor.display("1", "1", JSONObject(), schema) { it }
+        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
         val refField = editor.getControlInTable("ref") as LabelledTextField
         refField.text = "test"
         WaitForAsyncUtils.waitForFxEvents()

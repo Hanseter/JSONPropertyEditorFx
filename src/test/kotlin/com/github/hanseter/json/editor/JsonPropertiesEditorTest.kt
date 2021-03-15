@@ -18,9 +18,9 @@ class JsonPropertiesEditorTest {
     fun expandsOnlyTheFirstElements() {
         val editor = JsonPropertiesEditor(numberOfInitiallyOpenedObjects = 1)
         val schema = JSONObject("""{"type":"object","properties":{"foo":{"type":"string"}}}""")
-        editor.display("1", "1", JSONObject(), schema) { it }
-        editor.display("2", "2", JSONObject(), schema) { it }
-        editor.display("3", "3", JSONObject(), schema) { it }
+        editor.display("1", "1", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("2", "2", JSONObject(), schema) { JsonEditorData(it) }
+        editor.display("3", "3", JSONObject(), schema) { JsonEditorData(it) }
         val itemTable = editor.getItemTable()
         assertThat(itemTable.root.children.size, `is`(3))
         assertThat(itemTable.root.children[0].isExpanded, `is`(true))
@@ -33,7 +33,7 @@ class JsonPropertiesEditorTest {
         val editor = JsonPropertiesEditor()
         val schema = JSONObject("""{"type":"object","properties":{"str":{"type":"string"}, "num":{"type":"number"}}}""")
         val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
-        editor.display("1", "1", data, schema) { it }
+        editor.display("1", "1", data, schema) { JsonEditorData(it) }
 
         assertThat((editor.getControlInTable("str") as TextField).text, `is`("Hello"))
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
@@ -49,7 +49,7 @@ class JsonPropertiesEditorTest {
         var updateCount = 0
         editor.display("1", "1", data, schema) {
             updateCount++
-            it
+            JsonEditorData(it)
         }
         val stringControl = (editor.getControlInTable("str") as TextField)
         stringControl.text = "foobar"
@@ -68,7 +68,7 @@ class JsonPropertiesEditorTest {
         val data = JSONObject("""{"num":42.5,"str":"Hello"}""")
         editor.display("1", "1", data, schema) {
             it.put("num", 17)
-            it
+            JsonEditorData(it)
         }
         val numberControl = (editor.getControlInTable("num") as Spinner<Number>)
         val stringControl = (editor.getControlInTable("str") as TextField)

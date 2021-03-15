@@ -5,10 +5,7 @@ import com.github.hanseter.json.editor.controls.ArrayControl
 import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
-import com.github.hanseter.json.editor.ui.ControlTreeItemData
-import com.github.hanseter.json.editor.ui.FilterableTreeItem
-import com.github.hanseter.json.editor.ui.StyledTreeItemData
-import com.github.hanseter.json.editor.ui.TreeItemData
+import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.RootBindableType
@@ -20,20 +17,23 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
 import org.everit.json.schema.Schema
 import org.json.JSONObject
+import java.net.URI
 
 class JsonPropertiesPane(
-    title: String,
-    private val objId: String,
-    data: JSONObject,
-    schema: Schema,
-    private val refProvider: IdReferenceProposalProvider,
-    private val actions: List<EditorAction>,
-    private val validators: List<Validator>,
-    viewOptions: ViewOptions,
-    private val changeListener: (JSONObject) -> JSONObject
+        private val title: String,
+        private val objId: String,
+        data: JSONObject,
+        schema: Schema,
+        private val readOnly: Boolean,
+        private val resolutionScope: URI?,
+        private val refProvider: IdReferenceProposalProvider,
+        private val actions: List<EditorAction>,
+        private val validators: List<Validator>,
+        viewOptions: ViewOptions,
+        private val changeListener: (JSONObject) -> JsonEditorData
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData(title, listOf("isRootRow")))
-    private val schema = SimpleEffectiveSchema(null, schema, title)
+    private var schema = SimpleEffectiveSchema(null, schema, title)
     private var objectControl: TypeControl? = null
     private var controlItem: FilterableTreeItem<TreeItemData>? = null
     private val contentHandler = ContentHandler(data)
@@ -62,6 +62,16 @@ class JsonPropertiesPane(
         createControlTree()
     }
 
+    private fun rebuildControlTree() {
+
+        val uiState = saveUiState()
+
+        objectControl = null
+        initObjectControl()
+
+        uiState?.let { loadUiState(it) }
+    }
+
     private fun createControlTree() {
         val controlItem = objectControl?.let { wrapControlInTreeItem(it) } ?: return
         this.controlItem?.also {
@@ -78,12 +88,23 @@ class JsonPropertiesPane(
             val ret = action.apply(contentHandler.data, source.model, e)
             if (ret != null) {
                 val newData = changeListener(ret)
-                fillData(newData)
+
+                if (newData.schema != null) {
+                    schema = SimpleEffectiveSchema(null, SchemaNormalizer.parseSchema(newData.schema,
+                            resolutionScope,
+                            readOnly,
+                            refProvider
+                    ), title)
+
+                    rebuildControlTree()
+                }
+
+                fillData(newData.data)
             }
         }
 
         val item: FilterableTreeItem<TreeItemData> =
-            FilterableTreeItem(ControlTreeItemData(control, actions, actionHandler, objId, validators.filter { it.selector.matches(control.model) }))
+                FilterableTreeItem(ControlTreeItemData(control, actions, actionHandler, objId, validators.filter { it.selector.matches(control.model) }))
         if (control is ObjectControl) {
             addObjectControlChildren(item, control)
         } else {
@@ -103,7 +124,20 @@ class JsonPropertiesPane(
         fillTree(data)
         type.registerListener {
             val newData = changeListener(type.value!!)
-            fillData(newData)
+
+            if (newData.schema != null) {
+                val parsedSchema = SchemaNormalizer.parseSchema(newData.schema,
+                        resolutionScope,
+                        readOnly,
+                        refProvider
+                )
+
+                schema = SimpleEffectiveSchema(null, parsedSchema, title)
+
+                rebuildControlTree()
+            }
+
+            fillData(newData.data)
         }
     }
 
@@ -136,8 +170,8 @@ class JsonPropertiesPane(
     }
 
     private fun findInTree(item: FilterableTreeItem<TreeItemData>, control: TypeControl): FilterableTreeItem<TreeItemData>? =
-        item.list.find { (it.value as? ControlTreeItemData)?.typeControl == control }
-            ?: item.list.asSequence().mapNotNull { findInTree(it, control) }.firstOrNull()
+            item.list.find { (it.value as? ControlTreeItemData)?.typeControl == control }
+                    ?: item.list.asSequence().mapNotNull { findInTree(it, control) }.firstOrNull()
 
     private fun updateTree(item: FilterableTreeItem<TreeItemData>, control: TypeControl) {
         when (control) {
@@ -172,14 +206,14 @@ class JsonPropertiesPane(
         val propOrder = control.model.schema.propertyOrder
         if (viewOptions.groupBy == PropertyGrouping.REQUIRED) {
             addRequiredAndOptionalChildren(
-                node,
-                control.requiredChildren.sortedWith(PropOrderComparator(propOrder)),
-                control.optionalChildren.sortedWith(PropOrderComparator(propOrder))
+                    node,
+                    control.requiredChildren.sortedWith(PropOrderComparator(propOrder)),
+                    control.optionalChildren.sortedWith(PropOrderComparator(propOrder))
             )
         } else {
             node.addAll(control.childControls
-                .sortedWith(PropOrderComparator(propOrder))
-                .map { wrapControlInTreeItem(it) })
+                    .sortedWith(PropOrderComparator(propOrder))
+                    .map { wrapControlInTreeItem(it) })
         }
     }
 
@@ -230,8 +264,23 @@ class JsonPropertiesPane(
         }
     }
 
+    private fun saveUiState(): UiState? {
+        val controlItem = controlItem ?: return null
+
+        val mainRowState = RowUiState(controlItem)
+
+        return UiState(mainRowState)
+    }
+
+    private fun loadUiState(state: UiState) {
+        val controlItem = controlItem ?: return
+
+        state.rowState.apply(controlItem)
+    }
+
+
     private fun <T> flattenBottomUp(item: FilterableTreeItem<T>): Sequence<FilterableTreeItem<T>> =
-        item.list.asSequence().flatMap { flattenBottomUp(it) } + sequenceOf(item)
+            item.list.asSequence().flatMap { flattenBottomUp(it) } + sequenceOf(item)
 
     private inner class ContentHandler(var data: JSONObject) {
         private var dataDirty = true
