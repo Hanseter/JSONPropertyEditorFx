@@ -35,6 +35,10 @@ interface EffectiveSchema<T : Schema> {
         get() = (baseSchema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()?.toList()?.distinct()
                 ?: emptyList()
 
+    val cssClasses: List<String>
+        get() = baseSchema.unprocessedProperties["styleClass"]?.toString()?.split(" ")
+                ?: emptyList()
+
     val cssStyle: String?
         get() = baseSchema.unprocessedProperties["style"]?.toString()
 

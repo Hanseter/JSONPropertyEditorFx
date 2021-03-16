@@ -86,15 +86,21 @@ class JsonPropertiesPane(
 
     private fun wrapControlInTreeItem(control: TypeControl): FilterableTreeItem<TreeItemData> {
         val actionHandler: (Event, EditorAction, TypeControl) -> Unit = { e, action, source ->
-            val ret = action.apply(contentHandler.data, source.model, e)
+            val ret = action.apply(PropertiesEditInput(contentHandler.data, rawSchema), source.model, e)
             if (ret != null) {
-                val newData = changeListener(PropertiesEditInput(ret, rawSchema))
 
-                if (newData.schema != null) {
+                val actionSchema = ret.schema
 
-                    rawSchema = newData.schema
+                val newData = changeListener(PropertiesEditInput(ret.data, actionSchema
+                        ?: rawSchema))
 
-                    schema = SimpleEffectiveSchema(null, SchemaNormalizer.parseSchema(newData.schema,
+                val newSchema = newData.schema ?: actionSchema
+
+                if (newSchema != null) {
+
+                    rawSchema = newSchema
+
+                    schema = SimpleEffectiveSchema(null, SchemaNormalizer.parseSchema(rawSchema,
                             resolutionScope,
                             readOnly,
                             refProvider

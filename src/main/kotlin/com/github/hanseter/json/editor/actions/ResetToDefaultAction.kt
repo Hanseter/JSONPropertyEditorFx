@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.actions
 
+import com.github.hanseter.json.editor.PropertiesEditInput
+import com.github.hanseter.json.editor.PropertiesEditResult
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
 import org.json.JSONArray
@@ -17,13 +19,13 @@ object ResetToDefaultAction : EditorAction {
             ))
     ))
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
+    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult {
         val key = model.schema.propertyName
-        when (val parentContainer = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData)) {
+        when (val parentContainer = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(input.data)) {
             is JSONObject -> parentContainer.remove(key)
             is JSONArray -> parentContainer.put(key.toInt(), model.defaultValue ?: JSONObject.NULL)
             else -> throw IllegalStateException("Unknown parent container type: ${parentContainer::class.java}")
         }
-        return currentData
+        return PropertiesEditResult(input.data)
     }
 }

@@ -134,7 +134,7 @@ class ControlTreeItemData(
     override val required: Boolean
         get() = typeControl.model.schema.required
     override val cssClasses: List<String>
-        get() = emptyList()
+        get() = typeControl.model.schema.cssClasses
     override val cssStyle: String?
         get() = typeControl.model.schema.cssStyle
 
