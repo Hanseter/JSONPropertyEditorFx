@@ -21,7 +21,6 @@ import javafx.util.Callback
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
 import org.controlsfx.validation.decoration.GraphicValidationDecoration
-import org.everit.json.schema.Schema
 import org.json.JSONObject
 import java.net.URI
 import java.util.function.Predicate
@@ -91,7 +90,6 @@ class JsonPropertiesEditor(
 
         val pane = createTitledPaneForSchema(
                 title, objId, obj,
-                SchemaNormalizer.parseSchema(schema, resolutionScope, readOnly, referenceProposalProvider),
                 schema,
                 readOnly,
                 resolutionScope, callback
@@ -147,9 +145,9 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(
             title: String, objId: String, data: JSONObject,
-            schema: Schema, rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?, callback: OnEditCallback
+            rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?, callback: OnEditCallback
     ): JsonPropertiesPane =
-            JsonPropertiesPane(title, objId, data, schema, rawSchema, readOnly, resolutionScope, referenceProposalProvider, actions, validators, viewOptions, callback)
+            JsonPropertiesPane(title, objId, data, rawSchema, readOnly, resolutionScope, referenceProposalProvider, actions, validators, viewOptions, callback)
 
     private fun initTreeTableView() {
         val keyColumn = createKeyColumn()
@@ -171,6 +169,7 @@ class JsonPropertiesEditor(
                 text = "Key"
                 cellValueFactory = Callback { it.value.valueProperty() }
                 cellFactory = Callback { KeyCell() }
+                styleClass.add("key-cell")
                 minWidth = 150.0
                 isSortable = false
             }

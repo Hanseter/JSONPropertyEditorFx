@@ -15,7 +15,6 @@ import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
-import org.everit.json.schema.Schema
 import org.json.JSONObject
 import java.net.URI
 
@@ -23,7 +22,6 @@ class JsonPropertiesPane(
         private val title: String,
         private val objId: String,
         data: JSONObject,
-        schema: Schema,
         private var rawSchema: JSONObject,
         private val readOnly: Boolean,
         private val resolutionScope: URI?,
@@ -34,7 +32,9 @@ class JsonPropertiesPane(
         private val changeListener: JsonPropertiesEditor.OnEditCallback
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData(title, listOf("isRootRow")))
-    private var schema = SimpleEffectiveSchema(null, schema, title)
+    private var schema = SimpleEffectiveSchema(null,
+            SchemaNormalizer.parseSchema(rawSchema, resolutionScope, readOnly, refProvider),
+            title)
     private var objectControl: TypeControl? = null
     private var controlItem: FilterableTreeItem<TreeItemData>? = null
     private val contentHandler = ContentHandler(data)
