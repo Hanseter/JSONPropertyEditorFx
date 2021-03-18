@@ -1,8 +1,6 @@
 package com.github.hanseter.json.editor.actions
 
-import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.JsonPropertiesEditor
-import com.github.hanseter.json.editor.ResolutionScopeProvider
+import com.github.hanseter.json.editor.*
 import com.github.hanseter.json.editor.controls.IdReferenceControl
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
@@ -20,7 +18,6 @@ import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import org.controlsfx.control.PopOver
 import org.everit.json.schema.StringSchema
-import org.json.JSONObject
 
 class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposalProvider,
                     private val resolutionScopeProvider: ResolutionScopeProvider) : EditorAction {
@@ -28,7 +25,7 @@ class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposal
     override val description: String = "Open Preview for Reference Target"
     override val selector: TargetSelector = TargetSelector.SchemaType(SupportedType.SimpleType.IdReferenceType)
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
+    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult? {
         val value = (model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value
         if (value != null) {
             val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value)

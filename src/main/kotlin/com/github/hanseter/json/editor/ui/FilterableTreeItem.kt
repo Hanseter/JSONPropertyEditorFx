@@ -106,6 +106,7 @@ interface TreeItemData {
     val description: String?
     val required: Boolean
     val cssClasses: List<String>
+    val cssStyle: String?
     var validationMessage: String?
 
     fun createControl(): LazyControl?
@@ -133,7 +134,10 @@ class ControlTreeItemData(
     override val required: Boolean
         get() = typeControl.model.schema.required
     override val cssClasses: List<String>
-        get() = emptyList()
+        get() = typeControl.model.schema.cssClasses
+    override val cssStyle: String?
+        get() = typeControl.model.schema.cssStyle
+
     override var validationMessage: String? = null
 
     override fun createControl(): LazyControl? = typeControl.createLazyControl()
@@ -162,6 +166,9 @@ class StyledTreeItemData(override val title: String, override val cssClasses: Li
     override val required: Boolean
         get() = false
     override var validationMessage: String? = null
+
+    override val cssStyle: String?
+        get() = null
 
     override fun createControl(): LazyControl? = null
 

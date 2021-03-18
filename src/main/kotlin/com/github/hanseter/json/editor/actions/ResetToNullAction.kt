@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.actions
 
+import com.github.hanseter.json.editor.PropertiesEditInput
+import com.github.hanseter.json.editor.PropertiesEditResult
 import com.github.hanseter.json.editor.extensions.NullableEffectiveSchema
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
@@ -15,14 +17,14 @@ object ResetToNullAction : EditorAction {
             TargetSelector { it.schema is NullableEffectiveSchema }
     ))
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject {
+    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult {
         val key = model.schema.propertyName
-        when (val parentContainer = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData)) {
+        when (val parentContainer = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(input.data)) {
             is JSONObject -> parentContainer.put(key, JSONObject.NULL)
             is JSONArray -> parentContainer.put(key.toInt(), JSONObject.NULL)
             else -> throw IllegalStateException("Unknown parent container type: ${parentContainer::class.java}")
         }
-        return currentData
+        return PropertiesEditResult(input.data)
     }
 
 }
