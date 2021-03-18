@@ -47,7 +47,8 @@ class AllOfTest {
     fun compositeSchemaNotInRoot() {
         val schema = JSONObject("""{"type":"object","properties":{"notRoot":{"allOf": [
             {
-      "${'$'}ref": "ReferencedPointSchema.json"
+      "${'$'}ref": "ReferencedPointSchema.json",
+      "title": "notRoot"
     },{
       "type": "object",
       "properties": {
