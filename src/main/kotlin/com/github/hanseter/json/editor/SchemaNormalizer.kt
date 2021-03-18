@@ -14,8 +14,6 @@ import java.net.URI
 
 object SchemaNormalizer {
 
-    private val KEYS_NOT_TO_MERGE = setOf("order", "properties", "title")
-
     fun parseSchema(
             schema: JSONObject,
             resolutionScope: URI?,
@@ -245,7 +243,7 @@ object SchemaNormalizer {
             merge(copyTarget().getJSONObject("properties"), propObj.getJSONObject("properties"))
             propObj.optJSONArray("order")?.also { order.put(it) }
             propObj.optJSONObject("order")?.also { order.put(it) }
-            merge(copyTarget(), propObj, propObj.keySet())
+            merge(copyTarget(), propObj, copyTarget().keySet())
         }
         if (!order.isEmpty) {
             copyTarget().put("order", order)
