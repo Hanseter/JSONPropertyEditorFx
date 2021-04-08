@@ -293,12 +293,23 @@ class SchemaNormalizationTest {
     },
     "b": {
       "${'$'}ref": "#/definitions/a"
+    },
+    "c": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "${'$'}ref": "#/definitions/b"
+        }
+      }
     }
   },
   "type": "object",
   "properties": {
     "foo": {
       "${'$'}ref": "#/definitions/b"
+    },
+    "bar": {
+      "${'$'}ref": "#/definitions/c"
     }
   }
 }
@@ -306,5 +317,7 @@ class SchemaNormalizationTest {
         val result = SchemaNormalizer.resolveRefs(schema, null)
 
         assertThat(result.query("#/properties/foo/type"), `is`("integer"))
+
+        assertThat(result.query("#/properties/bar/properties/a/type"), `is`("integer"))
     }
 }
