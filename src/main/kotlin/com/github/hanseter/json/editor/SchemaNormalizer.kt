@@ -30,9 +30,17 @@ object SchemaNormalizer {
     fun normalizeSchema(schema: JSONObject, resolutionScope: URI?) =
             covertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
 
-    fun resolveRefs(schema: JSONObject, resolutionScope: URI?): JSONObject {
+    /**
+     * Resolves $refs in a schema.
+     *
+     * @param schema the schema to resolve the references in
+     * @param resolutionScope the URI to resolve $refs to other files from
+     * @param completeSchema the schema to resolve internal $refs relative to (usually the root schema), or `null` to resolve them relative to `schema`
+     * @return a schema where the $refs have been resolved
+     */
+    fun resolveRefs(schema: JSONObject, resolutionScope: URI?, completeSchema: JSONObject? = null): JSONObject {
         var copy: JSONObject? = null
-        resolveRefs(schema, schema, resolutionScope) {
+        resolveRefs(completeSchema ?: schema, schema, resolutionScope) {
             if (copy == null) {
                 copy = createCopy(schema)
             }
@@ -53,15 +61,21 @@ object SchemaNormalizer {
         if (resolveRefsInItems(schemaPart, schema, resolutionScope, copyTarget)) return
 
         val ref = schemaPart.optString("\$ref", null) ?: return
-        val referredSchema = resolveRefs(
-                if (ref.first() == '#') {
-                    resolveRefInDocument(schema, ref.drop(2), resolutionScope)
-                } else {
+
+        val referredSchema = if (ref.first() == '#') {
+            resolveRefs(
+                    resolveRefInDocument(schema, ref.drop(2), resolutionScope),
+                    resolutionScope, schema
+            )
+        } else {
+            resolveRefs(
                     resolveRefFromUrl(ref, resolutionScope).use {
                         JSONObject(JSONTokener(it))
-                    }
-                }, resolutionScope
-        )
+                    },
+                    resolutionScope
+            )
+        }
+
         val target = copyTarget()
         target.remove("${"$"}ref")
         referredSchema.keySet().forEach {
@@ -156,7 +170,7 @@ object SchemaNormalizer {
     ): JSONObject {
         val pointer = referred.split('/')
         val referredSchema = queryObject(schema, pointer)
-        resolveRefs(referredSchema, resolutionScope)
+        resolveRefs(referredSchema, resolutionScope, schema)
         return referredSchema
     }
 

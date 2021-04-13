@@ -20,4 +20,9 @@ class NullableEffectiveSchema<T : Schema>(override val parent: EffectiveSchema<C
     override val propertyName: String
         get() = parent.propertyName
 
+    override val cssClasses: List<String>
+        get() = super.cssClasses + parent.cssClasses
+
+    override val cssStyle: String?
+        get() = super.cssStyle ?: parent.cssStyle
 }
