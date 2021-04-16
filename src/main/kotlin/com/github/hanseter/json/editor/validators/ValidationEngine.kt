@@ -26,12 +26,13 @@ object ValidationEngine {
         return controls.mapNotNull { control ->
             val pointer = listOf("#") + control.model.schema.pointer
             validateCustomValidator(control, pointer, customValidators, id, ::addError)
-            createErrorMessage(parentErrorCount[pointer] ?: 0, errorMap[pointer])?.let { pointer to it }
+            createErrorMessage(parentErrorCount[pointer]
+                    ?: 0, errorMap[pointer])?.let { pointer to it }
         }
     }
 
     private fun flattenControl(toFlatten: TypeControl): Sequence<TypeControl> =
-        toFlatten.childControls.asSequence().flatMap { flattenControl(it) } + sequenceOf(toFlatten)
+            toFlatten.childControls.asSequence().flatMap { flattenControl(it) } + sequenceOf(toFlatten)
 
     private fun prepareForValidation(schemas: Sequence<EffectiveSchema<*>>, data: JSONObject): JSONObject {
         val copy = deepCopyForJson(data)
@@ -58,8 +59,8 @@ object ValidationEngine {
 
     private fun mapPointerToError(ex: ValidationException, errorCollector: (JSONPointer, String) -> Unit) {
         fun flatten(ex: ValidationException): Sequence<ValidationException> =
-            if (ex.causingExceptions.isEmpty()) sequenceOf(ex)
-            else ex.causingExceptions.asSequence().flatMap { flatten(it) }
+                if (ex.causingExceptions.isEmpty()) sequenceOf(ex)
+                else ex.causingExceptions.asSequence().flatMap { flatten(it) }
 
         flatten(ex).forEach { validationError ->
             errorCollector(validationError.pointerToViolation.split('/'), validationError.errorMessage)
@@ -67,11 +68,11 @@ object ValidationEngine {
     }
 
     private fun validateCustomValidator(
-        control: TypeControl,
-        pointer: JSONPointer,
-        customValidators: List<Validator>,
-        id: String,
-        errorCollector: (JSONPointer, String) -> Unit
+            control: TypeControl,
+            pointer: JSONPointer,
+            customValidators: List<Validator>,
+            id: String,
+            errorCollector: (JSONPointer, String) -> Unit
     ) {
         customValidators.filter { it.selector.matches(control.model) }.forEach { validator ->
             validator.validate(control.model, id).forEach { errorCollector(pointer, it) }

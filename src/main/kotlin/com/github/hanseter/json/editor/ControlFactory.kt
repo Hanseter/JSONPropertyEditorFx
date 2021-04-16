@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.controls.*
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.NullableEffectiveSchema
+import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import com.github.hanseter.json.editor.schemaExtensions.synthetic
@@ -80,16 +81,20 @@ object ControlFactory {
 
     private fun createAllOfControl(schema: EffectiveSchema<CombinedSchema>, context: EditorContext): TypeControl {
         if (schema.baseSchema.synthetic) {
-            return createControlFromSyntheticAllOf(schema)
+            return createControlFromSyntheticAllOf(schema, context)
         }
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
 
-    private fun createControlFromSyntheticAllOf(schema: EffectiveSchema<CombinedSchema>): TypeControl {
+    private fun createControlFromSyntheticAllOf(schema: EffectiveSchema<CombinedSchema>, context: EditorContext): TypeControl {
         val enumSchema = schema.baseSchema.subschemas.find { it is EnumSchema } as? EnumSchema
         if (enumSchema != null) {
             return createEnumControl(schema, enumSchema)
         }
+        getSingleUiSchema(schema)?.let {
+            return convert(it, context)
+        }
+
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
 
@@ -103,9 +108,21 @@ object ControlFactory {
         if (notNullSchema != null) {
             return convert(NullableEffectiveSchema(schema, notNullSchema), context)
         }
+
+        getSingleUiSchema(schema)?.let {
+            return convert(it, context)
+        }
+
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
 
+    private fun getSingleUiSchema(schema: EffectiveSchema<CombinedSchema>): EffectiveSchema<*>? {
+        val onlySchema = schema.baseSchema.subschemas.singleOrNull {
+            !(it is NotSchema || it is ConditionalSchema || it is TrueSchema)
+        } ?: return null
+
+        return PartialEffectiveSchema(schema, onlySchema)
+    }
 }
 
 

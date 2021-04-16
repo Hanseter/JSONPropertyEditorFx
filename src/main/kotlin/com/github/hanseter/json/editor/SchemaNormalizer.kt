@@ -154,8 +154,10 @@ object SchemaNormalizer {
         val composition = schemaPart.optJSONArray(compositionType)
         if (composition != null) {
             composition.forEachIndexed { index, obj ->
-                resolveRefs(schema, obj as JSONObject, resolutionScope) {
-                    copyTarget().getJSONArray(compositionType).getJSONObject(index)
+                if (obj is JSONObject) {
+                    resolveRefs(schema, obj as JSONObject, resolutionScope) {
+                        copyTarget().getJSONArray(compositionType).getJSONObject(index)
+                    }
                 }
             }
             return true
@@ -243,6 +245,8 @@ object SchemaNormalizer {
             subPart: JSONObject,
             copyTarget: () -> JSONObject
     ) {
+        inlineInValidationOnly(subPart, copyTarget)
+
         if (inlineInProperties(subPart, copyTarget)) return
         if (inlineInItems(subPart, copyTarget)) return
 
@@ -299,19 +303,42 @@ object SchemaNormalizer {
         return false
     }
 
+    private fun inlineInValidationOnly(subPart: JSONObject, copyTarget: () -> JSONObject) {
+        inlineCompositionsForKey("not", subPart, copyTarget)
+        inlineCompositionsForKey("if", subPart, copyTarget)
+        inlineCompositionsForKey("then", subPart, copyTarget)
+        inlineCompositionsForKey("else", subPart, copyTarget)
+    }
+
+    private fun inlineCompositionsForKey(key: String, subPart: JSONObject, copyTarget: () -> JSONObject) {
+        subPart.optJSONObject(key)?.let { ifSchema ->
+            inlineCompositions(ifSchema) {
+                copyTarget().getJSONObject(key)
+            }
+        }
+    }
+
+    /**
+     * Gets all objects inside a JSONArray.
+     * If the array contains items other than objects, they are filtered out.
+     */
     private fun getAllObjectsInAllOf(allOf: JSONArray): List<JSONObject> {
         return (0 until allOf.length()).flatMap { i ->
-            val allOfEntry = allOf.getJSONObject(i)
-            val props = allOfEntry.optJSONObject("properties")
-            if (props != null) {
-                listOf(allOfEntry)
-            } else {
-                val nestedAllOff = allOfEntry.optJSONArray("allOf")
-                if (nestedAllOff != null) {
-                    getAllObjectsInAllOf(nestedAllOff)
+            val allOfEntry = allOf.get(i)
+            if (allOfEntry is JSONObject) {
+                val props = allOfEntry.optJSONObject("properties")
+                if (props != null) {
+                    listOf(allOfEntry)
                 } else {
-                    emptyList()
+                    val nestedAllOff = allOfEntry.optJSONArray("allOf")
+                    if (nestedAllOff != null) {
+                        getAllObjectsInAllOf(nestedAllOff)
+                    } else {
+                        emptyList()
+                    }
                 }
+            } else {
+                emptyList()
             }
         }
     }
