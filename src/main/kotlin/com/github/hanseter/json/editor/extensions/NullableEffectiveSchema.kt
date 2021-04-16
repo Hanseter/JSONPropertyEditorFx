@@ -17,6 +17,9 @@ class NullableEffectiveSchema<T : Schema>(override val parent: EffectiveSchema<C
     override val description: String?
         get() = parent.description
 
+    override val required
+        get() = parent.required
+
     override val propertyName: String
         get() = parent.propertyName
 
