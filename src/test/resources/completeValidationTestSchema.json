@@ -6,17 +6,27 @@
       "type": "object",
       "properties": {
         "req": {
-          "type": "string"
+          "type": "string",
+          "description": "A required String."
         },
         "nullable": {
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "description": "An optional, but explicitly nullable String."
+        },
+        "reqNullable": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "A required, but explicitly nullable String."
         },
         "minLength": {
           "type": "string",
-          "minLength": 3
+          "minLength": 3,
+          "description": "A String with a minimum length of 3."
         },
         "maxLength": {
           "type": "string",
@@ -112,7 +122,8 @@
         }
       },
       "required": [
-        "req"
+        "req",
+        "reqNullable"
       ]
     },
     "integers": {
