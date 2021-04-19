@@ -41,7 +41,7 @@ interface BaseEffectiveSchema {
     val propertyName: String
 
     val required: Boolean
-        get() = true == (nonSyntheticAncestor?.baseSchema as? ObjectSchema)?.requiredProperties?.contains(propertyName)
+        get() = true == objectAncestor?.baseSchema?.requiredProperties?.contains(propertyName)
 
     val propertyOrder: List<String>
         get() = (baseSchema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()?.toList()?.distinct()
@@ -58,6 +58,8 @@ interface BaseEffectiveSchema {
      * Gets the closest non-synthetic ancestor.
      */
     val nonSyntheticAncestor: BaseEffectiveSchema?
+
+    val objectAncestor: EffectiveSchema<ObjectSchema>?
 
     fun extractProperty(json: JSONObject): Any? =
             JSONPointer(pointer).queryFrom(json)

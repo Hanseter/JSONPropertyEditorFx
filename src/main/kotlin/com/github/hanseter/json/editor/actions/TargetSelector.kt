@@ -69,7 +69,7 @@ fun interface TargetSelector {
              they want it to apply strictly or leniently.
              */
 
-            val schema = model.schema.nonSyntheticAncestor?.baseSchema?.let { getReferredSchema(it) }
+            val schema = model.schema.objectAncestor?.baseSchema?.let { getReferredSchema(it) }
 
             return (schema as? ObjectSchema)?.let {
                 model.schema.propertyName in it.requiredProperties

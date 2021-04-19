@@ -2,7 +2,6 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.controls.*
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
-import com.github.hanseter.json.editor.extensions.NullableEffectiveSchema
 import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
@@ -62,7 +61,7 @@ object ControlFactory {
 
         val baseSchema = schema.baseSchema
         val effectiveSchema: EffectiveSchema<Schema> = if (null in enumSchema.possibleValues) {
-            NullableEffectiveSchema(schema as EffectiveSchema<CombinedSchema>, baseSchema)
+            PartialEffectiveSchema(schema as EffectiveSchema<CombinedSchema>, baseSchema)
         } else {
             schema as EffectiveSchema<Schema>
         }
@@ -103,12 +102,6 @@ object ControlFactory {
     }
 
     private fun createAnyOfControl(schema: EffectiveSchema<CombinedSchema>, context: EditorContext): TypeControl {
-        val subSchemas = schema.baseSchema.subschemas
-        val notNullSchema = subSchemas.singleOrNull { it !is NullSchema }
-        if (notNullSchema != null) {
-            return convert(NullableEffectiveSchema(schema, notNullSchema), context)
-        }
-
         getSingleUiSchema(schema)?.let {
             return convert(it, context)
         }
@@ -118,7 +111,7 @@ object ControlFactory {
 
     private fun getSingleUiSchema(schema: EffectiveSchema<CombinedSchema>): EffectiveSchema<*>? {
         val onlySchema = schema.baseSchema.subschemas.singleOrNull {
-            !(it is NotSchema || it is ConditionalSchema || it is TrueSchema)
+            !(it is NotSchema || it is ConditionalSchema || it is TrueSchema || it is NullSchema)
         } ?: return null
 
         return PartialEffectiveSchema(schema, onlySchema)

@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.extensions
 
 import com.github.hanseter.json.editor.schemaExtensions.synthetic
 import org.everit.json.schema.CombinedSchema
+import org.everit.json.schema.ObjectSchema
 import org.everit.json.schema.Schema
 
 /**
@@ -28,5 +29,19 @@ interface EffectiveSchema<T : Schema> : BaseEffectiveSchema {
             }
 
             return parent
+        }
+
+    override val objectAncestor: EffectiveSchema<ObjectSchema>?
+        get() {
+            val baseSchema = parent?.baseSchema
+
+            if (baseSchema is CombinedSchema) {
+                return parent?.objectAncestor
+            }
+            if (baseSchema is ObjectSchema) {
+                @Suppress("UNCHECKED_CAST")
+                return parent as EffectiveSchema<ObjectSchema>
+            }
+            return null
         }
 }
