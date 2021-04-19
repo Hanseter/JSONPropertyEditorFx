@@ -395,6 +395,37 @@
             "pattern": ".*bar.*"
           }
         },
+        "withComplexIf": {
+          "properties": {
+            "a": {
+              "type": "string"
+            },
+            "b": {
+              "type": "string"
+            }
+          },
+          "if": {
+            "properties": {
+              "a": {
+                "const": "foo"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "b": {
+                "pattern": ".*bar.*"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "b": {
+                "pattern": ".*baz.*"
+              }
+            }
+          }
+        },
         "alwaysValidates": {
           "anyOf": [
             {
