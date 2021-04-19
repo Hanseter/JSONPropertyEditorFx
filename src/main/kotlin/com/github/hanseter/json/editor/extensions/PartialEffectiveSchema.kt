@@ -5,6 +5,7 @@ import org.everit.json.schema.Schema
 
 /**
  * Effective schema that exposes only part of the schema for UI building.
+ * Used when the schema contains validation-only keywords like "not" or "if".
  */
 class PartialEffectiveSchema<T : Schema>(
         override val parent: EffectiveSchema<CombinedSchema>,
