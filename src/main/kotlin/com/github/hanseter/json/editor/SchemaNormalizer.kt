@@ -9,6 +9,7 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.IOException
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.io.UncheckedIOException
 import java.net.URI
 
@@ -70,7 +71,7 @@ object SchemaNormalizer {
         } else {
             resolveRefs(
                     resolveRefFromUrl(ref, resolutionScope).use {
-                        JSONObject(JSONTokener(it))
+                        JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
                     },
                     resolutionScope
             )
