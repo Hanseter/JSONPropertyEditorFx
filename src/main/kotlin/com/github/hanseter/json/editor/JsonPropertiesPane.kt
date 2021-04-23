@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.ArrayControl
 import com.github.hanseter.json.editor.controls.ObjectControl
+import com.github.hanseter.json.editor.controls.TupleControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
 import com.github.hanseter.json.editor.ui.*
@@ -190,6 +191,7 @@ class JsonPropertiesPane(
         when (control) {
             is ObjectControl -> updateObjectControlInTree(item, control)
             is ArrayControl -> updateArrayControlInTree(item, control)
+            is TupleControl -> updateTupleControlInTree(item, control)
         }
         item.children.forEach { child ->
             (child.value as? ControlTreeItemData)?.also { updateTree(child as FilterableTreeItem<TreeItemData>, it.typeControl) }
@@ -213,6 +215,18 @@ class JsonPropertiesPane(
             item.list.removeLast()
         }
         item.addAll((item.list.size until control.childControls.size).map { wrapControlInTreeItem(control.childControls[it]) })
+    }
+
+    private fun updateTupleControlInTree(item: FilterableTreeItem<TreeItemData>, control: TupleControl) {
+        if (item.isLeaf) {
+            if (control.childControls.isNotEmpty()) {
+                item.addAll(control.childControls.map { wrapControlInTreeItem(it) })
+            }
+        } else {
+            if (control.childControls.isEmpty()) {
+                item.clear()
+            }
+        }
     }
 
     private fun addObjectControlChildren(node: FilterableTreeItem<TreeItemData>, control: ObjectControl) {

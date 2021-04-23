@@ -209,6 +209,25 @@
         }
       }
     },
+    "tuples": {
+      "type": "object",
+      "properties": {
+        "3ints": {
+          "type": "array",
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        }
+      }
+    },
     "id-references": {
       "type": "object",
       "properties": {
@@ -457,6 +476,7 @@
     "oneOfs",
     "id-references",
     "lists",
+    "tuples",
     "integers",
     "numbers",
     "strings",
@@ -471,6 +491,7 @@
     "id-references",
     "integers",
     "lists",
+    "tuples",
     "numbers",
     "oneOfs",
     "strings",
