@@ -11,18 +11,18 @@ class TupleControl(override val model: TupleModel, context: EditorContext)
     : TypeControl {
 
     private val childControlsNotNull: List<TypeControl> = createTypeControlsFromSchemas(model.schema, model.contentSchemas, context)
-    override var childControls: List<TypeControl> = createTypeControlsFromSchemas(model.schema, model.contentSchemas, context)
+    override val childControls: MutableList<TypeControl> = childControlsNotNull.toMutableList()
 
 
     override fun bindTo(type: BindableJsonType) {
         val subType = createSubArray(type, model.schema)
         if (subType != null) {
             if (childControls.isEmpty()) {
-                childControls = childControlsNotNull
+                childControls.addAll(childControlsNotNull)
             }
             childControls.forEach { it.bindTo(subType) }
         } else {
-            childControls = emptyList()
+            childControls.clear()
         }
         model.bound = type
     }

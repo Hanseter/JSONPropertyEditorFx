@@ -2,7 +2,7 @@ package com.github.hanseter.json.editor.actions
 
 import com.github.hanseter.json.editor.PropertiesEditInput
 import com.github.hanseter.json.editor.PropertiesEditResult
-import com.github.hanseter.json.editor.extensions.NullableEffectiveSchema
+import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
 import org.json.JSONArray
@@ -14,7 +14,7 @@ object ResetToNullAction : EditorAction {
     override val description: String = "Reset to null"
     override val selector: TargetSelector = TargetSelector.AllOf(listOf(
             TargetSelector.ReadOnly.invert(),
-            TargetSelector { it.schema is NullableEffectiveSchema }
+            TargetSelector { (it.schema as? PartialEffectiveSchema)?.allowsNull == true }
     ))
 
     override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult {

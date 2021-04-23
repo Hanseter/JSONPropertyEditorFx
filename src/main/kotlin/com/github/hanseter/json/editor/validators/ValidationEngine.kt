@@ -71,7 +71,7 @@ object ValidationEngine {
 
     private fun validateSchema(data: JSONObject, schema: EffectiveSchema<*>, errorCollector: (JSONPointer, String) -> Unit) {
         try {
-            schema.baseSchema.validate(data)
+            schema.schemaForValidation.validate(data)
         } catch (e: ValidationException) {
             mapPointerToError(e, errorCollector)
         }
