@@ -108,6 +108,52 @@ class SchemaNormalizationTest {
     }
 
     @Test
+    fun mergesPartialRef() {
+        val schema = JSONObject("""
+{
+  "definitions": {
+    "foo": {
+      "type": "string",
+      "title": "ref title",
+      "description": "ref desc"
+    }
+  },
+  "properties": {
+    "all": {
+      "${'$'}ref": "#/definitions/foo"
+    },
+    "less": {
+      "${'$'}ref": "#/definitions/foo",
+      "title": "real title"
+    },
+    "least": {
+      "${'$'}ref": "#/definitions/foo",
+      "title": "real title",
+      "description": "real desc"
+    }
+  }
+}
+        """)
+
+        val result = SchemaNormalizer.resolveRefs(schema, null)
+        val properties = result.getJSONObject("properties")
+
+        assertThat(properties.keySet(), containsInAnyOrder("all", "less", "least"))
+
+        assertThat(properties.getJSONObject("all").getString("type"), `is`("string"))
+        assertThat(properties.getJSONObject("all").getString("title"), `is`("ref title"))
+        assertThat(properties.getJSONObject("all").getString("description"), `is`("ref desc"))
+
+        assertThat(properties.getJSONObject("less").getString("type"), `is`("string"))
+        assertThat(properties.getJSONObject("less").getString("title"), `is`("real title"))
+        assertThat(properties.getJSONObject("less").getString("description"), `is`("ref desc"))
+
+        assertThat(properties.getJSONObject("least").getString("type"), `is`("string"))
+        assertThat(properties.getJSONObject("least").getString("title"), `is`("real title"))
+        assertThat(properties.getJSONObject("least").getString("description"), `is`("real desc"))
+    }
+
+    @Test
     fun normalizeDeeplyNestedSchema() {
         val schema = javaClass.classLoader.getResourceAsStream("nestedCompositeSchema.json").use {
             JSONObject(JSONTokener(it))
@@ -213,5 +259,65 @@ class SchemaNormalizationTest {
         assertThat(result.getJSONArray("order").toList(), contains("int0", "obj0"))
         assertThat(result.getJSONObject("properties").getJSONObject("obj0")
                 .getJSONArray("order").toList(), contains("int1", "string1"))
+    }
+
+    @Test
+    fun testRefToExternalFile() {
+        val uri = this::class.java.classLoader.getResource("")?.toURI()
+
+        val schema = JSONObject(
+                """
+{
+  "type": "object",
+  "properties": {
+    "foo": {
+      "${'$'}ref": "ReferencedPointSchema.json"
+    }
+  }
+}
+""")
+
+        val result = SchemaNormalizer.resolveRefs(schema, uri)
+
+        assertThat(result.query("#/properties/foo/type"), `is`("object"))
+    }
+
+    @Test
+    fun testRefInsideDefinitions() {
+        val schema = JSONObject(
+                """
+{
+  "definitions": {
+    "a": {
+      "type": "integer"
+    },
+    "b": {
+      "${'$'}ref": "#/definitions/a"
+    },
+    "c": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "${'$'}ref": "#/definitions/b"
+        }
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "foo": {
+      "${'$'}ref": "#/definitions/b"
+    },
+    "bar": {
+      "${'$'}ref": "#/definitions/c"
+    }
+  }
+}
+""")
+        val result = SchemaNormalizer.resolveRefs(schema, null)
+
+        assertThat(result.query("#/properties/foo/type"), `is`("integer"))
+
+        assertThat(result.query("#/properties/bar/properties/a/type"), `is`("integer"))
     }
 }

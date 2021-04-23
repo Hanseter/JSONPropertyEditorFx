@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.actions
 
+import com.github.hanseter.json.editor.PropertiesEditInput
+import com.github.hanseter.json.editor.PropertiesEditResult
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
@@ -18,14 +20,14 @@ object AddToArrayAction : EditorAction {
             TargetSelector.ReadOnly.invert(),
             TargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType }))
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
+    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult {
         val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value
                 ?: JSONArray().also {
                     model.value = it
                 }
         val childDefaultValue = (model.schema.baseSchema as ArraySchema).allItemSchema.defaultValue
         children.put(children.length(), childDefaultValue ?: JSONObject.NULL)
-        return currentData
+        return PropertiesEditResult(input.data)
     }
 }
 
@@ -40,12 +42,12 @@ object RemoveFromArrayAction : EditorAction {
     override val selector: TargetSelector
         get() = ArrayChildSelector
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
-        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData) as? JSONArray
+    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult? {
+        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(input.data) as? JSONArray
                 ?: return null
         val index = (model.schema as EffectiveSchemaInArray).index
         children.remove(index)
-        return currentData
+        return PropertiesEditResult(input.data)
     }
 }
 
@@ -55,15 +57,15 @@ object MoveArrayItemUpAction : EditorAction {
     override val selector: TargetSelector
         get() = ArrayChildSelector
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
-        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData) as? JSONArray
+    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult? {
+        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(input.data) as? JSONArray
                 ?: return null
         val index = (model.schema as EffectiveSchemaInArray).index
         if (index == 0) return null
         val tmp = children.get(index - 1)
         children.put(index - 1, children.get(index))
         children.put(index, tmp)
-        return currentData
+        return PropertiesEditResult(input.data)
     }
 }
 
@@ -73,15 +75,15 @@ object MoveArrayItemDownAction : EditorAction {
     override val selector: TargetSelector
         get() = ArrayChildSelector
 
-    override fun apply(currentData: JSONObject, model: TypeModel<*, *>, mouseEvent: Event?): JSONObject? {
+    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult? {
 
-        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(currentData) as? JSONArray
+        val children = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(input.data) as? JSONArray
                 ?: return null
         val index = (model.schema as EffectiveSchemaInArray).index
         if (index >= children.length() - 1) return null
         val tmp = children.get(index + 1)
         children.put(index + 1, children.get(index))
         children.put(index, tmp)
-        return currentData
+        return PropertiesEditResult(input.data)
     }
 }
