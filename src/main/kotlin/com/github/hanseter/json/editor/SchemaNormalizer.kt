@@ -9,7 +9,6 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.IOException
 import java.io.InputStream
-import java.io.InputStreamReader
 import java.io.UncheckedIOException
 import java.net.URI
 
@@ -70,12 +69,11 @@ object SchemaNormalizer {
                     resolutionScope, schema
             )
         } else {
-            resolveRefs(
-                    resolveRefFromUrl(ref, resolutionScope).use {
-                        JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
-                    },
-                    resolutionScope
-            )
+            val resolvedSchema = resolveRefFromUrl(ref, resolutionScope)
+
+            resolveRefs(resolvedSchema.inputStream.use {
+                JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
+            }, resolvedSchema.location)
         }
 
         val target = copyTarget()
@@ -212,7 +210,7 @@ object SchemaNormalizer {
     private fun queryObject(schema: JSONObject, pointer: List<String>): JSONObject =
             queryObjOrArray(schema, pointer) as JSONObject
 
-    private fun resolveRefFromUrl(url: String, resolutionScope: URI?): InputStream {
+    private fun resolveRefFromUrl(url: String, resolutionScope: URI?): ResolvedSchema {
         fun get(uri: URI): InputStream {
             val conn = uri.toURL().openConnection()
             val location = conn.getHeaderField("Location")
@@ -220,13 +218,15 @@ object SchemaNormalizer {
         }
         if (resolutionScope != null) {
             try {
-                return get(resolutionScope.resolve(url))
+                val fullUri = resolutionScope.resolve(url)
+                return ResolvedSchema(get(fullUri), fullUri.resolve("."))
             } catch (e: IOException) {
                 //ignore exception
             }
         }
         try {
-            return get(URI(url))
+            val fullUri = URI(url)
+            return ResolvedSchema(get(fullUri), fullUri.resolve("."))
         } catch (e: IOException) {
             throw UncheckedIOException(e)
         }
@@ -463,4 +463,6 @@ object SchemaNormalizer {
         }
         return target
     }
+
+    data class ResolvedSchema(val inputStream: InputStream, val location: URI)
 }
