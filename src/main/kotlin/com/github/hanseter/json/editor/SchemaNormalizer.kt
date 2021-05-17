@@ -28,7 +28,7 @@ object SchemaNormalizer {
             .build().load().readOnly(readOnly).build()
 
     fun normalizeSchema(schema: JSONObject, resolutionScope: URI?) =
-            covertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
+            convertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
 
     /**
      * Resolves $refs in a schema.
@@ -58,6 +58,7 @@ object SchemaNormalizer {
         if (resolveRefsInAllOf(schemaPart, schema, resolutionScope, copyTarget)) return
         if (resolveRefsInOneOf(schemaPart, schema, resolutionScope, copyTarget)) return
         if (resolveRefsInProperties(schemaPart, schema, resolutionScope, copyTarget)) return
+        if (resolveRefsInAdditionalProperties(schemaPart, schema, resolutionScope, copyTarget)) return
         if (resolveRefsInItems(schemaPart, schema, resolutionScope, copyTarget)) return
 
         val ref = schemaPart.optString("\$ref", null) ?: return
@@ -97,6 +98,22 @@ object SchemaNormalizer {
                 resolveRefs(schema, properties.getJSONObject(key), resolutionScope) {
                     copyTarget().getJSONObject("properties").getJSONObject(key)
                 }
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun resolveRefsInAdditionalProperties(
+            schemaPart: JSONObject,
+            schema: JSONObject,
+            resolutionScope: URI?,
+            copyTarget: () -> JSONObject
+    ): Boolean {
+        val properties = schemaPart.optJSONObject("additionalProperties")
+        if (properties != null) {
+            resolveRefs(schema, properties, resolutionScope) {
+                copyTarget().getJSONObject("additionalProperties")
             }
             return true
         }
@@ -244,6 +261,7 @@ object SchemaNormalizer {
             copyTarget: () -> JSONObject
     ) {
         if (inlineInProperties(subPart, copyTarget)) return
+        if (inlineInAdditionalProperties(subPart, copyTarget)) return
         if (inlineInItems(subPart, copyTarget)) return
 
         val allOf = subPart.optJSONArray("allOf") ?: return
@@ -273,6 +291,17 @@ object SchemaNormalizer {
                 inlineCompositions(properties.getJSONObject(it)) {
                     copyTarget().getJSONObject("properties").getJSONObject(it)
                 }
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun inlineInAdditionalProperties(subPart: JSONObject, copyTarget: () -> JSONObject): Boolean {
+        val properties = subPart.optJSONObject("additionalProperties")
+        if (properties != null) {
+            inlineCompositions(properties) {
+                copyTarget().getJSONObject("additionalProperties")
             }
             return true
         }
@@ -316,9 +345,9 @@ object SchemaNormalizer {
         }
     }
 
-    fun covertOrder(schema: JSONObject): JSONObject {
+    fun convertOrder(schema: JSONObject): JSONObject {
         var copy: JSONObject? = null
-        covertOrder(schema) {
+        convertOrder(schema) {
             if (copy == null) {
                 copy = createCopy(schema)
             }
@@ -327,7 +356,7 @@ object SchemaNormalizer {
         return copy ?: schema
     }
 
-    private fun covertOrder(schema: JSONObject, copyProvider: () -> JSONObject) {
+    private fun convertOrder(schema: JSONObject, copyProvider: () -> JSONObject) {
         convertOrderInProperties(schema, copyProvider)
         convertOrderInItems(schema, copyProvider)
         val target = copyOrder(schema.optJSONArray("order"))
@@ -359,7 +388,7 @@ object SchemaNormalizer {
     private fun convertOrderInProperties(subPart: JSONObject, copyTarget: () -> JSONObject) {
         val properties = subPart.optJSONObject("properties") ?: return
         properties.keySet()?.forEach {
-            covertOrder(properties.getJSONObject(it)) {
+            convertOrder(properties.getJSONObject(it)) {
                 copyTarget().getJSONObject("properties").getJSONObject(it)
             }
         }
@@ -368,12 +397,12 @@ object SchemaNormalizer {
     private fun convertOrderInItems(subPart: JSONObject, copyTarget: () -> JSONObject) {
         val arrItems = subPart.optJSONObject("items")
         if (arrItems != null) {
-            covertOrder(arrItems) {
+            convertOrder(arrItems) {
                 copyTarget().getJSONObject("items")
             }
         }
         subPart.optJSONArray("items")?.forEachIndexed { index, obj ->
-            covertOrder(obj as JSONObject) {
+            convertOrder(obj as JSONObject) {
                 copyTarget().getJSONArray("items").getJSONObject(index)
             }
         }

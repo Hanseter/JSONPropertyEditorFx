@@ -199,7 +199,7 @@ class SchemaNormalizationTest {
     }
     ]}"""
         )
-        val result = SchemaNormalizer.covertOrder(SchemaNormalizer.inlineCompositions(schema))
+        val result = SchemaNormalizer.convertOrder(SchemaNormalizer.inlineCompositions(schema))
         assertThat(result.getJSONArray("order").toList(), contains("int0", "string0", "string1", "int1"))
     }
 
@@ -219,7 +219,7 @@ class SchemaNormalizationTest {
     }
     ]}"""
         )
-        val result = SchemaNormalizer.covertOrder(SchemaNormalizer.inlineCompositions(schema))
+        val result = SchemaNormalizer.convertOrder(SchemaNormalizer.inlineCompositions(schema))
         assertThat(result.getJSONArray("order").toList(), contains("int0", "string0", "int1", "string1"))
     }
 
@@ -238,7 +238,7 @@ class SchemaNormalizationTest {
       "order": {"string1": 4,"int1": 800}
     }
     ]}""")
-        val result = SchemaNormalizer.covertOrder(SchemaNormalizer.inlineCompositions(schema))
+        val result = SchemaNormalizer.convertOrder(SchemaNormalizer.inlineCompositions(schema))
         assertThat(result.getJSONArray("order").toList(), contains("int0", "string1", "string0", "int1"))
     }
 
@@ -255,7 +255,7 @@ class SchemaNormalizationTest {
       "order": {"int0": 1,"obj0": 7}
     }""")
 
-        val result = SchemaNormalizer.covertOrder(schema)
+        val result = SchemaNormalizer.convertOrder(schema)
         assertThat(result.getJSONArray("order").toList(), contains("int0", "obj0"))
         assertThat(result.getJSONObject("properties").getJSONObject("obj0")
                 .getJSONArray("order").toList(), contains("int1", "string1"))
@@ -319,5 +319,27 @@ class SchemaNormalizationTest {
         assertThat(result.query("#/properties/foo/type"), `is`("integer"))
 
         assertThat(result.query("#/properties/bar/properties/a/type"), `is`("integer"))
+    }
+
+    @Test
+    fun refInAdditionalProperties() {
+        val uri = this::class.java.classLoader.getResource("")?.toURI()
+        val schema = JSONObject(
+                """
+{
+  "type": "object",
+  "properties": {
+    "foo": {
+      "type": "object",
+      "additionalProperties": {
+        "${'$'}ref": "ReferencedPointSchema.json"
+      }
+    }
+  }
+}
+""")
+        val result = SchemaNormalizer.resolveRefs(schema, uri)
+
+        assertThat(result.query("#/properties/foo/additionalProperties/type"), `is`("object"))
     }
 }
