@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.actions
 
 import com.github.hanseter.json.editor.PropertiesEditInput
 import com.github.hanseter.json.editor.PropertiesEditResult
+import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
@@ -25,7 +26,9 @@ object AddToArrayAction : EditorAction {
                 ?: JSONArray().also {
                     model.value = it
                 }
-        val childDefaultValue = (model.schema.baseSchema as ArraySchema).allItemSchema.defaultValue
+        val childDefaultValue = (model.schema.baseSchema as ArraySchema).allItemSchema.defaultValue?.let {
+            SchemaNormalizer.deepCopy(it)
+        }
         children.put(children.length(), childDefaultValue ?: JSONObject.NULL)
         return PropertiesEditResult(input.data)
     }

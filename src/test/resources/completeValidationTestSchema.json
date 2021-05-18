@@ -6,17 +6,27 @@
       "type": "object",
       "properties": {
         "req": {
-          "type": "string"
+          "type": "string",
+          "description": "A required String."
         },
         "nullable": {
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "description": "An optional, but explicitly nullable String."
+        },
+        "reqNullable": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "A required, but explicitly nullable String."
         },
         "minLength": {
           "type": "string",
-          "minLength": 3
+          "minLength": 3,
+          "description": "A String with a minimum length of 3."
         },
         "maxLength": {
           "type": "string",
@@ -112,7 +122,8 @@
         }
       },
       "required": [
-        "req"
+        "req",
+        "reqNullable"
       ]
     },
     "integers": {
@@ -195,6 +206,25 @@
             "type": "string",
             "minLength": 3
           }
+        }
+      }
+    },
+    "tuples": {
+      "type": "object",
+      "properties": {
+        "3ints": {
+          "type": "array",
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ]
         }
       }
     },
@@ -290,12 +320,26 @@
         "optional": {
           "type": "boolean"
         },
+        "readOnlyButNullable": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "readOnly": true
+        },
         "required": {
           "type": "boolean"
+        },
+        "requiredButNullable": {
+          "type": [
+            "boolean",
+            "null"
+          ]
         }
       },
       "required": [
-        "required"
+        "required",
+        "requiredButNullable"
       ]
     },
     "enums": {
@@ -355,6 +399,76 @@
       "required": [
         "required"
       ]
+    },
+    "withValidation": {
+      "type": "object",
+      "properties": {
+        "withNot": {
+          "styleClass": "a-style-class",
+          "type": "number",
+          "not": {
+            "const": 5.0
+          }
+        },
+        "intWithNot": {
+          "type": "integer",
+          "not": {
+            "const": 5
+          }
+        },
+        "withIf": {
+          "type": "string",
+          "if": {
+            "pattern": "^foo"
+          },
+          "then": {
+            "pattern": ".*bar.*"
+          }
+        },
+        "withComplexIf": {
+          "properties": {
+            "a": {
+              "type": "string"
+            },
+            "b": {
+              "type": "string"
+            }
+          },
+          "if": {
+            "properties": {
+              "a": {
+                "const": "foo"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "b": {
+                "pattern": ".*bar.*"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "b": {
+                "pattern": ".*baz.*"
+              }
+            }
+          }
+        },
+        "alwaysValidates": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "foo"
+            },
+            true
+          ]
+        }
+      },
+      "required": [
+        "withNot"
+      ]
     }
   },
   "required": [
@@ -362,11 +476,13 @@
     "oneOfs",
     "id-references",
     "lists",
+    "tuples",
     "integers",
     "numbers",
     "strings",
     "booleans",
-    "enums"
+    "enums",
+    "withValidation"
   ],
   "order": [
     "booleans",
@@ -375,8 +491,10 @@
     "id-references",
     "integers",
     "lists",
+    "tuples",
     "numbers",
     "oneOfs",
-    "strings"
+    "strings",
+    "withValidation"
   ]
 }

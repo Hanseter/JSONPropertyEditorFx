@@ -129,7 +129,7 @@ class ControlTreeItemData(
     override val title = typeControl.model.schema.title
 
     override val description: String?
-        get() = typeControl.model.schema.baseSchema.description
+        get() = typeControl.model.schema.description
 
     override val required: Boolean
         get() = typeControl.model.schema.required

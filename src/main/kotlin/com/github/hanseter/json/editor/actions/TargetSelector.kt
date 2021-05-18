@@ -69,7 +69,7 @@ fun interface TargetSelector {
              they want it to apply strictly or leniently.
              */
 
-            val schema = model.schema.nonSyntheticAncestor?.baseSchema?.let { getReferredSchema(it) }
+            val schema = model.schema.objectAncestor?.baseSchema?.let { getReferredSchema(it) }
 
             return (schema as? ObjectSchema)?.let {
                 model.schema.propertyName in it.requiredProperties
@@ -92,9 +92,12 @@ fun interface TargetSelector {
 
     class HasCustomField(private val fieldName: String, private val value: Any? = null) : TargetSelector {
 
+        private fun matches(schema: Schema): Boolean =
+                schema.unprocessedProperties.containsKey(fieldName)
+                        && (null == value || schema.unprocessedProperties[fieldName] == value)
+
         override fun matches(model: TypeModel<*, *>): Boolean =
-                model.schema.baseSchema.unprocessedProperties.containsKey(fieldName)
-                        && (null == value || model.schema.baseSchema.unprocessedProperties[fieldName] == value)
+                matches(model.schema.baseSchema) || matches(model.schema.schemaForValidation)
 
     }
 
