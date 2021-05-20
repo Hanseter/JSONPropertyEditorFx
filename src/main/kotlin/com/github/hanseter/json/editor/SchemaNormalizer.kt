@@ -212,6 +212,9 @@ object SchemaNormalizer {
 
     private fun resolveRefFromUrl(url: String, resolutionScope: URI?): ResolvedSchema {
         fun get(uri: URI): InputStream {
+            if (!uri.isAbsolute) {
+                throw IllegalArgumentException("""URI is not absolute: $uri""")
+            }
             val conn = uri.toURL().openConnection()
             val location = conn.getHeaderField("Location")
             return location?.let { get(URI(it)) } ?: conn.content as InputStream
