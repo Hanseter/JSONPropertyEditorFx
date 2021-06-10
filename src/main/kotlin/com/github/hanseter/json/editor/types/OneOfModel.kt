@@ -4,11 +4,14 @@ import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
+import com.github.hanseter.json.editor.merge
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.CombinedSchema
+import org.everit.json.schema.ObjectSchema
 import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
+import org.json.JSONObject
 
 class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val editorContext: EditorContext) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
     override val supportedType: SupportedType.ComplexType.OneOfType
@@ -30,6 +33,9 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
 
     var actualType: TypeControl? = null
         private set
+
+    val objectOptionData = JSONObject()
+//    val optionData = HashMap<Schema, Any>()
 
     private fun onBoundChanged(new: BindableJsonType?) {
         if (new == null) {
@@ -63,7 +69,18 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
 
     fun selectType(schema: Schema?) {
         if (schema == null) return
+        (value as? JSONObject)?.also { merge(objectOptionData, it) }
         actualType = ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
+        if (schema is ObjectSchema) {
+            val keysToRemove = this.schema.baseSchema.subschemas.filterIsInstance<ObjectSchema>().flatMap { it.propertySchemas.keys }.toSet()
+            val keysToKeep = schema.propertySchemas.keys
+            value = merge(JSONObject(), objectOptionData,keysToRemove - keysToKeep)
+        }
         bound?.also { actualType?.bindTo(it) }
+    }
+
+    private fun calcValueForOption() {
+//        val value = actualType?.model?.schema?.baseSchema?.let { optionData[it] }
+//        if (value )
     }
 }

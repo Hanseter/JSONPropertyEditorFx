@@ -9,7 +9,6 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.IOException
 import java.io.InputStream
-import java.io.InputStreamReader
 import java.io.UncheckedIOException
 import java.net.URI
 
@@ -267,6 +266,7 @@ object SchemaNormalizer {
 
         if (inlineInProperties(subPart, copyTarget)) return
         if (inlineInAdditionalProperties(subPart, copyTarget)) return
+        if (inlineInOneOf(subPart, copyTarget)) return
         if (inlineInItems(subPart, copyTarget)) return
 
         val allOf = subPart.optJSONArray("allOf") ?: return
@@ -307,6 +307,21 @@ object SchemaNormalizer {
         if (properties != null) {
             inlineCompositions(properties) {
                 copyTarget().getJSONObject("additionalProperties")
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun inlineInOneOf(subPart: JSONObject, copyTarget: () -> JSONObject): Boolean {
+        val composition = subPart.optJSONArray("oneOf")
+        if (composition != null) {
+            composition.forEachIndexed { index, obj ->
+                if (obj is JSONObject) {
+                    inlineCompositions(obj) {
+                        copyTarget().getJSONArray("oneOf").getJSONObject(index)
+                    }
+                }
             }
             return true
         }
@@ -436,31 +451,32 @@ object SchemaNormalizer {
         }
     }
 
-    private fun merge(target: JSONObject, source: JSONObject, keyBlackList: Set<String> = emptySet()): JSONObject =
-            (source.keySet() - keyBlackList).fold(target) { acc, key ->
-                val old = acc.optJSONObject(key)
-                val new = source.optJSONObject(key)
-                if (old == null || new == null) {
-                    val oldArray = acc.optJSONArray(key)
-                    val newArray = source.optJSONArray(key)
+}
 
-                    if (newArray != null) {
-                        acc.put(key, mergeArrays(oldArray, newArray))
-                    } else {
-                        acc.put(key, source.get(key))
-                    }
+fun merge(target: JSONObject, source: JSONObject, keyBlackList: Set<String> = emptySet()): JSONObject =
+        (source.keySet() - keyBlackList).fold(target) { acc, key ->
+            val old = acc.optJSONObject(key)
+            val new = source.optJSONObject(key)
+            if (old == null || new == null) {
+                val oldArray = acc.optJSONArray(key)
+                val newArray = source.optJSONArray(key)
+
+                if (newArray != null) {
+                    acc.put(key, mergeArrays(oldArray, newArray))
                 } else {
-                    val merged = merge(old, new)
-                    acc.put(key, merged)
+                    acc.put(key, source.get(key))
                 }
-                acc
+            } else {
+                val merged = merge(old, new)
+                acc.put(key, merged)
             }
-
-    private fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
-        if (target == null) return source
-        source.forEach {
-            target.put(it)
+            acc
         }
-        return target
+
+fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
+    if (target == null) return source
+    source.forEach {
+        target.put(it)
     }
+    return target
 }

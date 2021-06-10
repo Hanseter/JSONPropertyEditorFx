@@ -292,10 +292,12 @@
         "optional": {
           "oneOf": [
             {
-              "type": "string"
+              "type": "string",
+              "title": "String value"
             },
             {
-              "type": "boolean"
+              "type": "boolean",
+              "title": "Boolean value"
             }
           ]
         },
