@@ -219,7 +219,7 @@ object SchemaNormalizer {
         }
         if (resolutionScope != null) {
             try {
-                return get(resolutionScope.resolve(url))
+                return get(resolve(resolutionScope, url))
             } catch (e: IOException) {
                 //ignore exception
             }
@@ -229,7 +229,16 @@ object SchemaNormalizer {
         } catch (e: IOException) {
             throw UncheckedIOException(e)
         }
+    }
 
+    fun resolve(resolutionScope: URI, other: String): URI {
+        if ("jar" != resolutionScope.scheme) return resolutionScope.resolve(other)
+        val str = resolutionScope.toString()
+        val idx = str.indexOf('!')
+        val jarPath = str.substring(0, idx + 1)
+        val sourceEntry = str.substring(idx + 1)
+        val targetEntry: String = URI.create(sourceEntry).resolve(other).toString()
+        return URI.create(jarPath + targetEntry)
     }
 
     private fun createCopy(toCopy: JSONObject): JSONObject =
