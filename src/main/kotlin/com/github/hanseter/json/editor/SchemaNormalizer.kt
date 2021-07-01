@@ -221,8 +221,8 @@ object SchemaNormalizer {
         }
         if (resolutionScope != null) {
             try {
-                val fullUri = resolutionScope.resolve(url)
-                return ResolvedSchema(get(fullUri), fullUri.resolve("."))
+                val fullUri = resolve(resolutionScope, url)
+                return ResolvedSchema(get(resolve(resolutionScope, url)), fullUri)
             } catch (e: IOException) {
                 //ignore exception
             }
@@ -233,7 +233,16 @@ object SchemaNormalizer {
         } catch (e: IOException) {
             throw UncheckedIOException(e)
         }
+    }
 
+    fun resolve(resolutionScope: URI, other: String): URI {
+        if ("jar" != resolutionScope.scheme) return resolutionScope.resolve(other)
+        val str = resolutionScope.toString()
+        val idx = str.indexOf('!')
+        val jarPath = str.substring(0, idx + 1)
+        val sourceEntry = str.substring(idx + 1)
+        val targetEntry: String = URI.create(sourceEntry).resolve(other).toString()
+        return URI.create(jarPath + targetEntry)
     }
 
     private fun createCopy(toCopy: JSONObject): JSONObject =
@@ -270,6 +279,7 @@ object SchemaNormalizer {
 
         if (inlineInProperties(subPart, copyTarget)) return
         if (inlineInAdditionalProperties(subPart, copyTarget)) return
+        if (inlineInOneOf(subPart, copyTarget)) return
         if (inlineInItems(subPart, copyTarget)) return
 
         val allOf = subPart.optJSONArray("allOf") ?: return
@@ -310,6 +320,21 @@ object SchemaNormalizer {
         if (properties != null) {
             inlineCompositions(properties) {
                 copyTarget().getJSONObject("additionalProperties")
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun inlineInOneOf(subPart: JSONObject, copyTarget: () -> JSONObject): Boolean {
+        val composition = subPart.optJSONArray("oneOf")
+        if (composition != null) {
+            composition.forEachIndexed { index, obj ->
+                if (obj is JSONObject) {
+                    inlineCompositions(obj) {
+                        copyTarget().getJSONArray("oneOf").getJSONObject(index)
+                    }
+                }
             }
             return true
         }
@@ -439,33 +464,34 @@ object SchemaNormalizer {
         }
     }
 
-    private fun merge(target: JSONObject, source: JSONObject, keyBlackList: Set<String> = emptySet()): JSONObject =
-            (source.keySet() - keyBlackList).fold(target) { acc, key ->
-                val old = acc.optJSONObject(key)
-                val new = source.optJSONObject(key)
-                if (old == null || new == null) {
-                    val oldArray = acc.optJSONArray(key)
-                    val newArray = source.optJSONArray(key)
-
-                    if (newArray != null) {
-                        acc.put(key, mergeArrays(oldArray, newArray))
-                    } else {
-                        acc.put(key, source.get(key))
-                    }
-                } else {
-                    val merged = merge(old, new)
-                    acc.put(key, merged)
-                }
-                acc
-            }
-
-    private fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
-        if (target == null) return source
-        source.forEach {
-            target.put(it)
-        }
-        return target
-    }
-
-    data class ResolvedSchema(val inputStream: InputStream, val location: URI)
 }
+
+fun merge(target: JSONObject, source: JSONObject, keyBlackList: Set<String> = emptySet()): JSONObject =
+        (source.keySet() - keyBlackList).fold(target) { acc, key ->
+            val old = acc.optJSONObject(key)
+            val new = source.optJSONObject(key)
+            if (old == null || new == null) {
+                val oldArray = acc.optJSONArray(key)
+                val newArray = source.optJSONArray(key)
+
+                if (newArray != null) {
+                    acc.put(key, mergeArrays(oldArray, newArray))
+                } else {
+                    acc.put(key, source.get(key))
+                }
+            } else {
+                val merged = merge(old, new)
+                acc.put(key, merged)
+            }
+            acc
+        }
+
+fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
+    if (target == null) return source
+    source.forEach {
+        target.put(it)
+    }
+    return target
+}
+
+data class ResolvedSchema(val inputStream: InputStream, val location: URI)

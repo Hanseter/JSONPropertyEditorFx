@@ -5,8 +5,11 @@ import javafx.scene.control.Spinner
 import javafx.scene.control.TextField
 import javafx.stage.Stage
 import org.everit.json.schema.NumberSchema
+import org.everit.json.schema.ObjectSchema
 import org.everit.json.schema.Schema
 import org.everit.json.schema.StringSchema
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.json.JSONObject
@@ -150,4 +153,64 @@ class OneOfTest {
         assertThat(data.keySet(), containsInAnyOrder("choice"))
         assertThat(data.getInt("choice"), `is`(16))
     }
+
+    @Test
+    fun remembersDataWhenSwitchingAround() {
+        val schema = JSONObject("""{
+"type":"object",
+"properties":{
+"choice": {
+"oneOf":[
+    {"type":"object",
+      "title": "1",
+      "properties":  {
+        "name": {
+        "type": "string"
+        },
+        "shared": {
+        "type": "number"
+        }
+      }},
+    {"type":"object",
+      "title": "2",
+      "properties":  {
+        "notAName": {
+        "type": "string"
+        },
+        "shared": {
+        "type": "integer"
+        }
+      }}
+]}}}""")
+        val data = JSONObject().put("choice", JSONObject().put("name", "foo").put("keepMe", 42))
+        editor.display("1", "1", data, schema) {
+            it
+        }
+        val itemTable = editor.getItemTable()
+        val item = itemTable.root.children.first().findChildWithKey("choice")!!
+        val control = editor.getControlInTable(item.value) as ComboBox<Schema>
+
+        assertThat((control.selectionModel.selectedItem as ObjectSchema).title, `is`("1"))
+        control.selectionModel.select((control.selectionModel.selectedIndex + 1) % 2)
+
+        assertThat(data.getJSONObject("choice"), `is`(Similar(JSONObject().put("keepMe", 42))))
+
+        val sharedControl = editor.getControlInTable(item.findChildWithKeyRecursive("shared")!!.value) as Spinner<Number>
+        sharedControl.valueFactory.value = 5
+
+        assertThat(data.getJSONObject("choice"), `is`(Similar(JSONObject().put("keepMe", 42).put("shared", 5))))
+
+        control.selectionModel.select((control.selectionModel.selectedIndex + 1) % 2)
+
+        assertThat(data.getJSONObject("choice"), `is`(Similar(JSONObject().put("keepMe", 42).put("name", "foo").put("shared", 5))))
+    }
+
+    private class Similar(private val expected: JSONObject) : BaseMatcher<JSONObject>() {
+        override fun describeTo(description: Description) {
+            description.appendText(expected.toString())
+        }
+
+        override fun matches(actual: Any?): Boolean = expected.similar(actual)
+    }
+
 }
