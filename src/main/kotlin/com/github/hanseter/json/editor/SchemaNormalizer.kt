@@ -222,7 +222,7 @@ object SchemaNormalizer {
         if (resolutionScope != null) {
             try {
                 val fullUri = resolve(resolutionScope, url)
-                return ResolvedSchema(get(resolve(resolutionScope, url)), fullUri)
+                return ResolvedSchema(get(resolve(resolutionScope, url)), fullUri.resolve("."))
             } catch (e: IOException) {
                 //ignore exception
             }
