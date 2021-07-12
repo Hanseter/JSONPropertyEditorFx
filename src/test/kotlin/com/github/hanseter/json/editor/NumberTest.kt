@@ -64,10 +64,10 @@ class NumberTest {
 
     @ParameterizedTest
     @CsvSource(
-            "false, 42.5,  1, 43",
-            "false, 42.5, -2, 41",
-            "true,    42,  5, 43",
-            "true,    42, -5, 41"
+            "false, 42.5,  1, 43.5",
+            "false, 42.5, -2, 40.5",
+            "true,    42,  5, 47",
+            "true,    42, -5, 37"
     )
     fun modifyValueBySpinnerInRange(requireInt: Boolean, initialValue: Double, step: Int, result: Double) {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number",
@@ -79,9 +79,11 @@ class NumberTest {
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
+        MatcherAssert.assertThat(editor.valid.get(), `is`(true))
         numberControl.increment(step)
         val converted = numberControl.valueFactory.converter.toString(result)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
+        MatcherAssert.assertThat(editor.valid.get(), `is`(false))
     }
 
     @Test
