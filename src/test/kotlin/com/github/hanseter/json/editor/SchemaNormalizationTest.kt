@@ -283,6 +283,48 @@ class SchemaNormalizationTest {
     }
 
     @Test
+    fun testRefToDifferentDir() {
+        val uri = this::class.java.classLoader.getResource("")?.toURI()
+
+        val schema = JSONObject(
+                """
+{
+  "type": "object",
+  "properties": {
+    "foo": {
+      "${'$'}ref": "./subdir/firstSchema.json"
+    }
+  }
+}
+""")
+
+        val result = SchemaNormalizer.resolveRefs(schema, uri)
+
+        assertThat(result.query("#/properties/foo/type"), `is`("object"))
+
+        assertThat(result.query("#/properties/foo/properties/nestedRef/type"), `is`("string"))
+    }
+
+    @Test
+    fun testRefToFragmentInDifferentFile() {
+        val uri = this::class.java.classLoader.getResource("")?.toURI()
+
+        val schema = JSONObject("""
+            {
+              "properties": {
+                "a": {
+                  "${'$'}ref": "TestSchema2.json#/properties/name"
+                }
+              }
+            }
+        """.trimIndent())
+
+        val result = SchemaNormalizer.resolveRefs(schema, uri)
+
+        assertThat(result.query("#/properties/a/type"), `is`("string"))
+    }
+
+    @Test
     fun testRefInsideDefinitions() {
         val schema = JSONObject(
                 """

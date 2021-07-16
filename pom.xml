@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.hanseter</groupId>
     <artifactId>json-properties-fx</artifactId>
-    <version>0.0.0.22</version>
+    <version>0.0.0.23</version>
 
     <packaging>bundle</packaging>
     <name>JSON Properties Editor Fx</name>
@@ -65,12 +65,14 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
-                <configuration><instructions>
-                    <Include-Resource>
-                        META-INF/${artifactId}.kotlin_module=target/classes/META-INF/${artifactId}.kotlin_module,
-                        {maven-resources}
-                    </Include-Resource>
-                </instructions></configuration>
+                <configuration>
+                    <instructions>
+                        <Include-Resource>
+                            META-INF/${artifactId}.kotlin_module=target/classes/META-INF/${artifactId}.kotlin_module,
+                            {maven-resources}
+                        </Include-Resource>
+                    </instructions>
+                </configuration>
             </plugin>
         </plugins>
     </build>

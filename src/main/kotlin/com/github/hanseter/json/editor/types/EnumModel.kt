@@ -17,4 +17,19 @@ class EnumModel(override val schema: EffectiveSchema<Schema>, val enumSchema: En
         set(value) {
             bound?.setValue(schema, value)
         }
+
+    val enumDescriptions: Map<String, String?>
+        get() {
+            val descList = ((
+                    enumSchema.unprocessedProperties["enumDescriptions"]
+                            ?: schema.baseSchema.unprocessedProperties["enumDescriptions"]) as? List<*>
+                    )?.filterIsInstance<String>()
+
+            return enumSchema.possibleValuesAsList
+                    .filterIsInstance<String>()
+                    .withIndex()
+                    .associateBy({ it.value }) {
+                        descList?.getOrNull(it.index)
+                    }
+        }
 }

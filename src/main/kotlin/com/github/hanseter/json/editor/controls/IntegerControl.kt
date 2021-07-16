@@ -7,13 +7,7 @@ import javafx.util.converter.IntegerStringConverter
 import org.everit.json.schema.NumberSchema
 
 class IntegerControl(schema: NumberSchema) : ControlWithProperty<Int?> {
-    override val control = Spinner<Int>(IntegerSpinnerValueFactoryNullSafe(
-            schema.minimum?.toInt()
-                    ?: (schema.exclusiveMinimumLimit?.toInt()?.inc())
-                    ?: Int.MIN_VALUE,
-            schema.maximum?.toInt()
-                    ?: (schema.exclusiveMaximumLimit?.toInt()?.dec())
-                    ?: Int.MAX_VALUE))
+    override val control = Spinner<Int>(IntegerSpinnerValueFactoryNullSafe())
     override val property: Property<Int?>
         get() = control.valueFactory.valueProperty()
 
@@ -37,19 +31,9 @@ class IntegerControl(schema: NumberSchema) : ControlWithProperty<Int?> {
         }
     }
 
-    class IntegerSpinnerValueFactoryNullSafe(min: Int, max: Int) : SpinnerValueFactory<Int?>() {
+    class IntegerSpinnerValueFactoryNullSafe() : SpinnerValueFactory<Int?>() {
         init {
             converter = IntegerStringConverter()
-
-            valueProperty().addListener { _, _, newValue: Int? ->
-                if (newValue != null) {
-                    if (newValue < min) {
-                        value = min
-                    } else if (newValue > max) {
-                        value = max
-                    }
-                }
-            }
         }
 
         override fun increment(steps: Int) {

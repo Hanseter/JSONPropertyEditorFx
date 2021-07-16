@@ -281,11 +281,11 @@ class JsonPropertiesPane(
             val errors = ValidationEngine.validate(control, objId, data, validators).toMap()
             flattenBottomUp(root).forEach { item ->
                 (item.value as? ControlTreeItemData)?.also { data ->
-                    item.value.validationMessage = errors[listOf("#") + data.typeControl.model.schema.pointer]
+                    item.value.validationMessage = generateErrorMessage(data.typeControl.model.schema.pointer, errors)
                 }
                 item.value.updateFinished()
             }
-            treeItem.value.validationMessage = errors[listOf("#")]
+            treeItem.value.validationMessage = generateErrorMessage(listOf(), errors)
             treeItem.value.updateFinished()
             valid.set(errors.isEmpty())
         }
@@ -303,6 +303,27 @@ class JsonPropertiesPane(
         val controlItem = controlItem ?: return
 
         state.rowState.apply(controlItem)
+    }
+
+    private fun generateErrorMessage(pointer: List<String>, errorMap: Map<List<String>, String>): String? {
+        val error = errorMap[listOf("#") + pointer]
+
+        // check for "missing key" error in parent
+        if (pointer.isNotEmpty()) {
+            val thisKey = pointer.last()
+
+            errorMap[listOf("#") + pointer.dropLast(1)]?.let { parentError ->
+                // Since we just get the errors as a string, comparing the message is pretty much
+                // the best we can do. The only way it could be made more robust if we still had the
+                // original validation error exception would be comparing
+                // ValidationException#getKeyword to "required", which would be better, but not by much.
+                if ("required key [$thisKey] not found" in parentError.split('\n')) {
+                    return (error?.let { "$it\n" } ?: "") + "key is required"
+                }
+            }
+        }
+
+        return error
     }
 
 
