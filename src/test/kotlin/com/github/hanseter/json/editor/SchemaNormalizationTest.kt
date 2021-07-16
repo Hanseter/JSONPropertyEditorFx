@@ -306,6 +306,25 @@ class SchemaNormalizationTest {
     }
 
     @Test
+    fun testRefToFragmentInDifferentFile() {
+        val uri = this::class.java.classLoader.getResource("")?.toURI()
+
+        val schema = JSONObject("""
+            {
+              "properties": {
+                "a": {
+                  "${'$'}ref": "TestSchema2.json#/properties/name"
+                }
+              }
+            }
+        """.trimIndent())
+
+        val result = SchemaNormalizer.resolveRefs(schema, uri)
+
+        assertThat(result.query("#/properties/a/type"), `is`("string"))
+    }
+
+    @Test
     fun testRefInsideDefinitions() {
         val schema = JSONObject(
                 """

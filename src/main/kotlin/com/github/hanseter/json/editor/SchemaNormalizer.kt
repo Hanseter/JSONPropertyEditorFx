@@ -71,9 +71,23 @@ object SchemaNormalizer {
         } else {
             val resolvedSchema = resolveRefFromUrl(ref, resolutionScope)
 
-            resolveRefs(resolvedSchema.inputStream.use {
-                JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
-            }, resolvedSchema.location)
+            val resolvedFragment = resolvedSchema.inputStream.use {
+                val fullObject = JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
+
+                if (!resolvedSchema.fragment.isNullOrBlank()) {
+                    val queryResult: Any? = fullObject.optQuery(resolvedSchema.fragment)
+
+                    if (queryResult !is JSONObject) {
+                        throw java.lang.IllegalArgumentException("Target of fragment ${resolvedSchema.fragment} is not an object")
+                    }
+
+                    queryResult to fullObject
+                } else {
+                    fullObject to fullObject
+                }
+            }
+
+            resolveRefs(resolvedFragment.first, resolvedSchema.location, resolvedFragment.second)
         }
 
         val target = copyTarget()
@@ -222,14 +236,14 @@ object SchemaNormalizer {
         if (resolutionScope != null) {
             try {
                 val fullUri = resolve(resolutionScope, url)
-                return ResolvedSchema(get(resolve(resolutionScope, url)), fullUri.resolve("."))
+                return ResolvedSchema(get(fullUri), fullUri.resolve("."), fullUri.fragment)
             } catch (e: IOException) {
                 //ignore exception
             }
         }
         try {
             val fullUri = URI(url)
-            return ResolvedSchema(get(fullUri), fullUri.resolve("."))
+            return ResolvedSchema(get(fullUri), fullUri.resolve("."), fullUri.fragment)
         } catch (e: IOException) {
             throw UncheckedIOException(e)
         }
@@ -494,4 +508,4 @@ fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
     return target
 }
 
-data class ResolvedSchema(val inputStream: InputStream, val location: URI)
+data class ResolvedSchema(val inputStream: InputStream, val location: URI, val fragment: String?)
