@@ -71,23 +71,18 @@ object SchemaNormalizer {
         } else {
             val resolvedSchema = resolveRefFromUrl(ref, resolutionScope)
 
-            val resolvedFragment = resolvedSchema.inputStream.use {
-                val fullObject = JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
-
-                if (!resolvedSchema.fragment.isNullOrBlank()) {
-                    val queryResult: Any? = fullObject.optQuery(resolvedSchema.fragment)
-
-                    if (queryResult !is JSONObject) {
-                        throw java.lang.IllegalArgumentException("Target of fragment ${resolvedSchema.fragment} is not an object")
-                    }
-
-                    queryResult to fullObject
-                } else {
-                    fullObject to fullObject
-                }
+            val fullObject = resolvedSchema.inputStream.use {
+                JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
             }
 
-            resolveRefs(resolvedFragment.first, resolvedSchema.location, resolvedFragment.second)
+            val resolvedFragment = if (!resolvedSchema.fragment.isNullOrBlank()) {
+                fullObject.optQuery(resolvedSchema.fragment) as? JSONObject
+                        ?: throw IllegalArgumentException("Target of fragment ${resolvedSchema.fragment} is not an object")
+            } else {
+                fullObject
+            }
+
+            resolveRefs(resolvedFragment, resolvedSchema.location, fullObject)
         }
 
         val target = copyTarget()
