@@ -9,10 +9,6 @@ import java.text.DecimalFormat
 import java.text.ParsePosition
 
 class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
-    private val minInclusive = schema.minimum?.toDouble() ?: -Double.MAX_VALUE
-    private val minExclusive = schema.exclusiveMinimumLimit?.toDouble() ?: -Double.MAX_VALUE
-    private val maxInclusive = schema.maximum?.toDouble() ?: Double.MAX_VALUE
-    private val maxExclusive = schema.exclusiveMaximumLimit?.toDouble() ?: Double.MAX_VALUE
 
     private val converter = StringDoubleConverter()
 
@@ -64,7 +60,6 @@ class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
             if (value != null) {
                 inner.value = value
                 inner.decrement(steps)
-                coerceValue()
                 value = inner.value
             }
         }
@@ -73,23 +68,7 @@ class DoubleControl(schema: NumberSchema) : ControlWithProperty<Double?> {
             if (value != null) {
                 inner.value = value
                 inner.increment(steps)
-                coerceValue()
                 value = inner.value
-            }
-        }
-
-        private fun coerceValue() {
-            if (inner.value > maxInclusive) {
-                inner.value = maxInclusive
-            }
-            if (inner.value >= maxExclusive) {
-                inner.value = maxExclusive - 1
-            }
-            if (inner.value < minInclusive) {
-                inner.value = minInclusive
-            }
-            if (inner.value < minExclusive) {
-                inner.value = minExclusive + 1
             }
         }
 
