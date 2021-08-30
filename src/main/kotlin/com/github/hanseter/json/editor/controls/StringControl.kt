@@ -8,6 +8,7 @@ class StringControl : ControlWithProperty<String?> {
     override val property: Property<String?>
         get() = control.textProperty()
 
+
     override fun previewNull(b: Boolean) {
         control.promptText = if (b) TypeControl.NULL_PROMPT else ""
     }

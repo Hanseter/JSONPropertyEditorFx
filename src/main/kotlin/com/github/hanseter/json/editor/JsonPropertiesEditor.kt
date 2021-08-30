@@ -52,7 +52,7 @@ class JsonPropertiesEditor(
 
     init {
         initTreeTableView()
-        filterText.promptText = "Filter properties"
+        filterText.promptText = ""
 
         val filteredTreeItemRoot: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData("root", listOf()))
         filterText.textProperty().addListener { _, _, newValue ->

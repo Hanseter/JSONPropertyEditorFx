@@ -5,6 +5,7 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
+import com.github.hanseter.json.editor.schemaExtensions.LocalTimeFormat
 import com.github.hanseter.json.editor.schemaExtensions.synthetic
 import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.util.EditorContext
@@ -46,6 +47,8 @@ object ControlFactory {
             when (schema.baseSchema.formatValidator.formatName()) {
                 ColorFormat.formatName -> RowBasedControl({ ColorControl() }, ColorModel(schema))
                 IdReferenceFormat.formatName -> RowBasedControl({ IdReferenceControl(schema, context) }, IdReferenceModel(schema))
+                LocalTimeFormat.formatName -> RowBasedControl({LocalTimeControl()}, LocalTimeModel(schema))
+                "date" -> RowBasedControl({DateControl()}, DateModel(schema))
                 else -> RowBasedControl({ StringControl() }, StringModel(schema))
             }
 

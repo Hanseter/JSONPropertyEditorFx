@@ -58,6 +58,10 @@
               "type": "string",
               "format": "time"
             },
+            "local-time": {
+              "type": "string",
+              "format": "local-time"
+            },
             "date": {
               "type": "string",
               "format": "date"
