@@ -400,6 +400,35 @@
             null
           ],
           "default": "bar"
+        },
+        "withDesc": {
+          "type": "string",
+          "enum": [
+            "foo",
+            "bar",
+            "baz"
+          ],
+          "enumDescriptions": [
+            "the fooest of them all",
+            "the barest of them all",
+            "the bazest of them all"
+          ],
+          "default": "baz"
+        },
+        "withDescRo": {
+          "type": "string",
+          "enum": [
+            "foo",
+            "bar",
+            "baz"
+          ],
+          "enumDescriptions": [
+            "the fooest of them all",
+            "the barest of them all",
+            "the bazest of them all"
+          ],
+          "default": "baz",
+          "readOnly": true
         }
       },
       "required": [

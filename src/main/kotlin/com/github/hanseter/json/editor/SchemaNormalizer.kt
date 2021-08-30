@@ -71,12 +71,20 @@ object SchemaNormalizer {
                     resolutionScope, schema
             )
         } else {
-            resolveRefs(
-                    resolveRefFromUrl(ref, resolutionScope).use {
-                        JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
-                    },
-                    resolutionScope
-            )
+            val resolvedSchema = resolveRefFromUrl(ref, resolutionScope)
+
+            val fullObject = resolvedSchema.inputStream.use {
+                JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
+            }
+
+            val resolvedFragment = if (!resolvedSchema.fragment.isNullOrBlank()) {
+                fullObject.optQuery(resolvedSchema.fragment) as? JSONObject
+                        ?: throw IllegalArgumentException("Target of fragment ${resolvedSchema.fragment} is not an object")
+            } else {
+                fullObject
+            }
+
+            resolveRefs(resolvedFragment, resolvedSchema.location, fullObject)
         }
 
         val target = copyTarget()
@@ -213,21 +221,26 @@ object SchemaNormalizer {
     private fun queryObject(schema: JSONObject, pointer: List<String>): JSONObject =
             queryObjOrArray(schema, pointer) as JSONObject
 
-    private fun resolveRefFromUrl(url: String, resolutionScope: URI?): InputStream {
+    private fun resolveRefFromUrl(url: String, resolutionScope: URI?): ResolvedSchema {
         fun get(uri: URI): InputStream {
+            if (!uri.isAbsolute) {
+                throw IllegalArgumentException("""URI is not absolute: $uri""")
+            }
             val conn = uri.toURL().openConnection()
             val location = conn.getHeaderField("Location")
             return location?.let { get(URI(it)) } ?: conn.content as InputStream
         }
         if (resolutionScope != null) {
             try {
-                return get(resolve(resolutionScope, url))
+                val fullUri = resolve(resolutionScope, url)
+                return ResolvedSchema(get(fullUri), fullUri.resolve("."), fullUri.fragment)
             } catch (e: IOException) {
                 //ignore exception
             }
         }
         try {
-            return get(URI(url))
+            val fullUri = URI(url)
+            return ResolvedSchema(get(fullUri), fullUri.resolve("."), fullUri.fragment)
         } catch (e: IOException) {
             throw UncheckedIOException(e)
         }
@@ -491,3 +504,5 @@ fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
     }
     return target
 }
+
+data class ResolvedSchema(val inputStream: InputStream, val location: URI, val fragment: String?)

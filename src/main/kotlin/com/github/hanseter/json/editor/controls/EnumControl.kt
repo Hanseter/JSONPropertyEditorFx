@@ -5,6 +5,12 @@ import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
+import javafx.scene.control.ContentDisplay
+import javafx.scene.control.Label
+import javafx.scene.control.ListCell
+import javafx.scene.control.ListView
+import javafx.util.Callback
+import javafx.util.StringConverter
 import org.controlsfx.control.SearchableComboBox
 import org.json.JSONObject
 
@@ -15,6 +21,9 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
 
     init {
         control.minWidth = 150.0
+
+        val enumDescriptions = model.enumDescriptions
+
         control.items.setAll(model.enumSchema.possibleValuesAsList.filterNotNull().map { it.toString() })
         control.selectionModel.selectedIndexProperty()
                 .addListener { _, _, new ->
@@ -24,6 +33,49 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
                         property.addListener(this)
                     }
                 }
+
+        val cellFactory = Callback<ListView<String?>, ListCell<String?>> {
+            object : ListCell<String?>() {
+
+                private val descLabel = Label().apply {
+                    styleClass.add("enum-desc-label")
+                }
+
+                override fun updateItem(item: String?, empty: Boolean) {
+                    super.updateItem(item, empty)
+
+                    if (item == null || empty) {
+                        text = ""
+                        graphic = null
+                    } else {
+                        text = item
+                        contentDisplay = ContentDisplay.RIGHT
+                        graphic = null
+
+                        enumDescriptions[item]?.let {
+                            descLabel.text = "- $it"
+                            graphic = descLabel
+                        }
+                    }
+                }
+
+            }
+        }
+        control.buttonCell = cellFactory.call(null)
+        control.cellFactory = cellFactory
+
+        // Set the String converter because it's used by the search field.
+        // It isn't used by the cells itself, so the converted value is never visible.
+        control.converter = object : StringConverter<String?>() {
+            override fun toString(obj: String?): String {
+                return enumDescriptions[obj]?.let {
+                    "$obj $it"
+                } ?: obj.orEmpty()
+            }
+
+            override fun fromString(string: String?): String? = null
+        }
+
         property.addListener(this)
     }
 

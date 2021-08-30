@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import javafx.scene.control.DatePicker
 import javafx.scene.control.TextField
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert.assertThat
@@ -16,7 +17,6 @@ import org.testfx.util.WaitForAsyncUtils
 class StringTest {
 
     private lateinit var editor: JsonPropertiesEditor
-
 
     @Start
     fun start(stage: Stage) {
@@ -126,7 +126,7 @@ class StringTest {
         val data = JSONObject().put("string", "2018-11-13")
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
-        val stringControl = editor.getControlInTable("string") as TextField
+        val stringControl = (editor.getControlInTable("string") as DatePicker).editor as TextField
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(editor.valid.get(), `is`(true))
         stringControl.text = "bar"
