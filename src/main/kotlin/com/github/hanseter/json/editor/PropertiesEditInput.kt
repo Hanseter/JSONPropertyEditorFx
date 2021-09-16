@@ -6,11 +6,9 @@ import org.json.JSONObject
  * The data which various user-defined functions receive as input.
  *
  * It allows access to the current document data, as well as the schema.
+ * @param data The document data.
  */
 data class PropertiesEditInput(
-        /**
-         * Gets the current document data.
-         */
         val data: JSONObject,
         private val _schema: JSONObject) {
 

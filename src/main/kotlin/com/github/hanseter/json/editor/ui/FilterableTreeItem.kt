@@ -11,7 +11,6 @@ import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.event.Event
 import javafx.scene.control.TreeItem
-import java.util.function.Predicate
 
 /**
  * Creates a filterable TreeItem with children.
@@ -21,11 +20,10 @@ import java.util.function.Predicate
 
 class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
     val list: ObservableList<FilterableTreeItem<T>> = FXCollections.observableArrayList()
-    private val filteredList: FilteredList<FilterableTreeItem<T>> = FilteredList(list)
-
-    init {
-        Bindings.bindContent(super.getChildren(), filteredList)
+    private val filteredList: FilteredList<FilterableTreeItem<T>> = FilteredList(list).apply {
+        Bindings.bindContent(super.getChildren(), this)
     }
+
 
     /**
      * The children of this FilteredTreeItem. This method is called frequently, and
@@ -39,19 +37,18 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
     }
 
     /**
-     * Set the predicate of the item and also its child items. Doesn't set the predicate, if there
-     * the item has child items as only tree leads should be filtered.
+     * Set the filter of the item and also its child items. Doesn't set the filter, if
+     * the item has child items as only tree leaves should be filtered.
      *
-     * @param predicate the predicate
+     * @param filter the filter
      */
-    fun setPredicate(predicate: Predicate<T>) {
+    fun setFilter(filter: (T) -> Boolean) {
         filteredList.setPredicate { child ->
-            child.setPredicate(predicate)
-
+            child.setFilter(filter)
             if (child.children.size > 0) {
                 true
             } else {
-                predicate.test(child.value)
+                filter(child.value)
             }
         }
     }
@@ -119,11 +116,12 @@ interface TreeItemData {
 }
 
 class ControlTreeItemData(
-        val typeControl: TypeControl,
-        private val actions: List<EditorAction>,
-        private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
-        private val objId: String,
-        val validators: List<Validator>) : TreeItemData {
+    val typeControl: TypeControl,
+    private val actions: List<EditorAction>,
+    private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
+    private val objId: String,
+    val validators: List<Validator>
+) : TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 
     override val title = typeControl.model.schema.title
@@ -142,7 +140,8 @@ class ControlTreeItemData(
 
     override fun createControl(): LazyControl? = typeControl.createLazyControl()
 
-    override fun createActions(): ActionsContainer? = ActionsContainer(typeControl, actions, objId, actionHandler)
+    override fun createActions(): ActionsContainer? =
+        ActionsContainer(typeControl, actions, objId, actionHandler)
 
     override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
         changeListeners.add(listener)
@@ -157,7 +156,8 @@ class ControlTreeItemData(
     }
 }
 
-class StyledTreeItemData(override val title: String, override val cssClasses: List<String>) : TreeItemData {
+class StyledTreeItemData(override val title: String, override val cssClasses: List<String>) :
+    TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 
     override val description: String?

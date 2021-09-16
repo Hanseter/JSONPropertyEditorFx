@@ -20,17 +20,19 @@ class SchemaChangingTestApp : Application() {
 
         val customResolutionScopeProvider = object : ResolutionScopeProvider {
             override fun getResolutionScopeForElement(objId: String): URI? =
-                    this::class.java.classLoader.getResource("")?.toURI()
+                this::class.java.classLoader.getResource("")?.toURI()
         }
 
         val viewOptions = ViewOptions(
-                markRequired = true,
-                groupBy = PropertyGrouping.NONE,
-                idRefDisplayMode = IdRefDisplayMode.DESCRIPTION_ONLY
+            markRequired = true,
+            groupBy = PropertyGrouping.NONE,
+            idRefDisplayMode = IdRefDisplayMode.DESCRIPTION_ONLY,
+            numberOfInitiallyOpenedObjects = 2
         )
 
-        val propEdit = JsonPropertiesEditor(JsonPropertiesEditorTestApp.ReferenceProvider, false, 2,
-                customResolutionScopeProvider, viewOptions)
+        val propEdit = JsonPropertiesEditor(false, viewOptions)
+        propEdit.referenceProposalProvider = JsonPropertiesEditorTestApp.ReferenceProvider
+        propEdit.resolutionScopeProvider = customResolutionScopeProvider
 
         @Language("JSON")
         val schemaString = """
@@ -95,7 +97,7 @@ class SchemaChangingTestApp : Application() {
         }
 
         propEdit.display(
-                "test", "Test Object", JSONObject(), schema, callback
+            "test", "Test Object", JSONObject(), schema, callback
         )
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }

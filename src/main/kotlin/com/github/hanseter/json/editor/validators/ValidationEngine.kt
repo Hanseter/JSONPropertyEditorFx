@@ -18,14 +18,15 @@ object ValidationEngine {
 
     fun validate(elemId: String, data: JSONObject, schema: JSONObject, resolutionScope: URI?, referenceProposalProvider: IdReferenceProposalProvider)
             : List<Pair<JSONPointer, String>> {
-        val parsedSchema = SchemaNormalizer.parseSchema(schema, resolutionScope, false, referenceProposalProvider)
+        val parsedSchema = SchemaNormalizer.parseSchema(schema, resolutionScope, false)
 
         val effectiveSchema = SimpleEffectiveSchema(null, parsedSchema, null)
-        val control = ControlFactory.convert(effectiveSchema, EditorContext(referenceProposalProvider,
+        val control = ControlFactory.convert(effectiveSchema, EditorContext(
+            { referenceProposalProvider },
                 elemId, {}, IdRefDisplayMode.ID_ONLY))
         control.bindTo(RootBindableType(data))
         return validate(control, elemId, data,
-                listOf(IdReferenceValidator(referenceProposalProvider)))
+                listOf(IdReferenceValidator { referenceProposalProvider }))
     }
 
     fun validate(rootControl: TypeControl, id: String, data: JSONObject, customValidators: List<Validator>): List<Pair<JSONPointer, String>> {
@@ -40,7 +41,7 @@ object ValidationEngine {
                 val count = parentErrorCount[parentPointer] ?: 0
                 parentErrorCount[parentPointer] = count + 1
             }
-            errorMap.getOrPut(pointer, { mutableListOf() }).add(message)
+            errorMap.getOrPut(pointer) { mutableListOf() }.add(message)
         }
         validateSchema(toValidate, rootControl.model.schema, ::addError)
         return controls.mapNotNull { control ->

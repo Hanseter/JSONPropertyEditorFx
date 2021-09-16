@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.ui.TreeItemData
+import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.scene.Node
 import javafx.scene.control.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -16,7 +17,7 @@ class JsonPropertiesEditorTest {
 
     @Test
     fun expandsOnlyTheFirstElements() {
-        val editor = JsonPropertiesEditor(numberOfInitiallyOpenedObjects = 1)
+        val editor = JsonPropertiesEditor(viewOptions = ViewOptions(numberOfInitiallyOpenedObjects = 1))
         val schema = JSONObject("""{"type":"object","properties":{"foo":{"type":"string"}}}""")
         editor.display("1", "1", JSONObject(), schema) { it }
         editor.display("2", "2", JSONObject(), schema) { it }

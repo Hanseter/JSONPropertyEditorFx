@@ -22,7 +22,8 @@ class IdReferenceTest {
 
     @Start
     fun start(stage: Stage) {
-        editor = JsonPropertiesEditor(referenceProposalProvider)
+        editor = JsonPropertiesEditor()
+        editor.referenceProposalProvider = referenceProposalProvider
     }
 
     @Test

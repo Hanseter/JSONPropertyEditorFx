@@ -1,10 +1,8 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.actions.*
-import com.github.hanseter.json.editor.ui.DecoratableLabelSkin
-import com.github.hanseter.json.editor.ui.FilterableTreeItem
-import com.github.hanseter.json.editor.ui.StyledTreeItemData
-import com.github.hanseter.json.editor.ui.TreeItemData
+import com.github.hanseter.json.editor.types.TypeModel
+import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.util.ViewOptions
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
@@ -14,33 +12,51 @@ import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.control.*
-import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.util.Callback
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
 import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.json.JSONObject
 import java.net.URI
-import java.util.function.Predicate
 
 class JsonPropertiesEditor(
-        private val referenceProposalProvider: IdReferenceProposalProvider = IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
-        private val readOnly: Boolean = false,
-        private val numberOfInitiallyOpenedObjects: Int = 5,
-        private val resolutionScopeProvider: ResolutionScopeProvider = ResolutionScopeProvider.ResolutionScopeProviderEmpty,
-        viewOptions: ViewOptions = ViewOptions(),
-        actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-        private val validators: List<Validator> = listOf(IdReferenceValidator(referenceProposalProvider))
-) : VBox() {
-    private val actions = actions + PreviewAction(referenceProposalProvider, resolutionScopeProvider) + arrayActions
+    private val readOnly: Boolean = false,
+    viewOptions: ViewOptions = ViewOptions(),
+    actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
+) : StackPane() {
+    var referenceProposalProvider: IdReferenceProposalProvider =
+        IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
+    var resolutionScopeProvider: ResolutionScopeProvider =
+        ResolutionScopeProvider.ResolutionScopeProviderEmpty
+    val validators: List<Validator> =
+        listOf(IdReferenceValidator { referenceProposalProvider })
+
+    private val actions =
+        actions + PreviewAction(
+            { referenceProposalProvider },
+            { resolutionScopeProvider }) + arrayActions
+
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
-    private val scrollPane = ScrollPane().apply { id = "contentArea" }
-    private val filterText = TextField().apply { id = "searchField" }
+    private val rootItem: FilterableTreeItem<TreeItemData> =
+        FilterableTreeItem(StyledTreeItemData("root", listOf()))
     private val treeTableView = TreeTableView<TreeItemData>().apply {
         id = "itemTable"
+        rowFactory = Callback { TreeItemDataRow() }
+
+        stylesheets.add(this@JsonPropertiesEditor.javaClass.getResource("TreeTableView.css")!!.toExternalForm())
+        columns.addAll(createKeyColumn(), createControlColumn(), createActionColumn())
+        isShowRoot = false
+        columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
+        root = rootItem
     }
+    private val scrollPane = ScrollPane().apply {
+        id = "contentArea"
+        content = treeTableView
+        isFitToHeight = true
+        isFitToWidth = true
+    }
+
     private val _valid = SimpleBooleanProperty(true)
     val valid: ReadOnlyBooleanProperty
         get() = _valid
@@ -50,36 +66,18 @@ class JsonPropertiesEditor(
             idsToPanes.values.forEach { it.viewOptions = value }
         }
 
+    private val filters = mutableListOf<ItemFilter>()
+
     init {
-        initTreeTableView()
-        filterText.promptText = ""
-
-        val filteredTreeItemRoot: FilterableTreeItem<TreeItemData> = FilterableTreeItem(StyledTreeItemData("root", listOf()))
-        filterText.textProperty().addListener { _, _, newValue ->
-            filteredTreeItemRoot.setPredicate(
-                    if (newValue.isEmpty()) {
-                        Predicate { true }
-                    } else {
-                        Predicate { it.title.contains(newValue) }
-                    })
-        }
-
-        treeTableView.root = filteredTreeItemRoot
-        scrollPane.content = treeTableView
-        scrollPane.isFitToHeight = true
-        scrollPane.isFitToWidth = true
-        val stackPane = StackPane(scrollPane)
-        this.children.addAll(filterText, stackPane)
-        setVgrow(stackPane, Priority.ALWAYS)
-        setVgrow(this, Priority.ALWAYS)
+        this.children.addAll(scrollPane)
     }
 
     fun display(
-            objId: String,
-            title: String,
-            obj: JSONObject,
-            schema: JSONObject,
-            callback: OnEditCallback
+        objId: String,
+        title: String,
+        obj: JSONObject,
+        schema: JSONObject,
+        callback: OnEditCallback
     ) {
         if (idsToPanes.contains(objId)) {
             updateObject(objId, obj)
@@ -89,24 +87,24 @@ class JsonPropertiesEditor(
         val resolutionScope = resolutionScopeProvider.getResolutionScopeForElement(objId)
 
         val pane = createTitledPaneForSchema(
-                title, objId, obj,
-                schema,
-                readOnly,
-                resolutionScope, callback
+            title, objId, obj,
+            schema,
+            readOnly,
+            resolutionScope, callback
         )
         pane.fillData(obj)
         idsToPanes[objId] = pane
         (treeTableView.root as FilterableTreeItem).add(pane.treeItem)
-        pane.treeItem.isExpanded = idsToPanes.size <= numberOfInitiallyOpenedObjects
+        pane.treeItem.isExpanded = idsToPanes.size <= viewOptions.numberOfInitiallyOpenedObjects
         rebindValidProperty()
     }
 
     fun display(
-            objId: String,
-            title: String,
-            obj: JSONObject,
-            schema: JSONObject,
-            callback: (JSONObject) -> JSONObject
+        objId: String,
+        title: String,
+        obj: JSONObject,
+        schema: JSONObject,
+        callback: (JSONObject) -> JSONObject
     ) {
         display(objId, title, obj, schema) { it: PropertiesEditInput ->
             PropertiesEditResult(callback(it.data))
@@ -114,21 +112,24 @@ class JsonPropertiesEditor(
     }
 
     fun updateObject(
-            objId: String,
-            obj: JSONObject
+        objId: String,
+        obj: JSONObject
     ) {
         val pane = idsToPanes[objId] ?: return
         pane.fillData(obj)
     }
 
     fun removeObject(objId: String) {
-        (idsToPanes.remove(objId)?.treeItem)?.also { (treeTableView.root as FilterableTreeItem).remove(it) }
+        (idsToPanes.remove(objId)?.treeItem)?.also {
+            (treeTableView.root as FilterableTreeItem).remove(
+                it
+            )
+        }
         rebindValidProperty()
     }
 
     fun clear() {
         idsToPanes.clear()
-        filterText.clear()
         (treeTableView.root as FilterableTreeItem).clear()
         rebindValidProperty()
     }
@@ -138,41 +139,39 @@ class JsonPropertiesEditor(
             _valid.unbind()
             _valid.set(true)
         } else {
-            _valid.bind(idsToPanes.values.map { it.valid as ObservableBooleanValue }.reduce { a, b -> Bindings.and(a, b) })
+            _valid.bind(idsToPanes.values.map { it.valid as ObservableBooleanValue }
+                .reduce { a, b -> Bindings.and(a, b) })
         }
     }
 
 
     private fun createTitledPaneForSchema(
-            title: String, objId: String, data: JSONObject,
-            rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?, callback: OnEditCallback
+        title: String, objId: String, data: JSONObject,
+        rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?, callback: OnEditCallback
     ): JsonPropertiesPane =
-            JsonPropertiesPane(title, objId, data, rawSchema, readOnly, resolutionScope, referenceProposalProvider, actions, validators, viewOptions, callback)
-
-    private fun initTreeTableView() {
-        val keyColumn = createKeyColumn()
-        val controlColumn = createControlColumn()
-        val actionColumn = createActionColumn()
-
-        treeTableView.rowFactory = Callback { TreeItemDataRow() }
-
-        treeTableView.also {
-            it.stylesheets.add(javaClass.getResource("TreeTableView.css").toExternalForm())
-            it.columns.addAll(keyColumn, controlColumn, actionColumn)
-            it.isShowRoot = false
-            it.columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
-        }
-    }
+        JsonPropertiesPane(
+            title,
+            objId,
+            data,
+            rawSchema,
+            readOnly,
+            resolutionScope,
+            { referenceProposalProvider },
+            actions,
+            validators,
+            viewOptions,
+            callback
+        )
 
     private fun createKeyColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
-            TreeTableColumn<TreeItemData, TreeItemData>().apply {
-                text = "Key"
-                cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { KeyCell() }
-                styleClass.add("key-cell")
-                minWidth = 150.0
-                isSortable = false
-            }
+        TreeTableColumn<TreeItemData, TreeItemData>().apply {
+            text = "Key"
+            cellValueFactory = Callback { it.value.valueProperty() }
+            cellFactory = Callback { KeyCell() }
+            styleClass.add("key-cell")
+            minWidth = 150.0
+            isSortable = false
+        }
 
     private inner class KeyCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateValidation
@@ -182,7 +181,8 @@ class JsonPropertiesEditor(
 
             val node = item?.let { dataItem ->
                 Label().apply {
-                    text = dataItem.title + if (viewOptions.markRequired && dataItem.required) " *" else ""
+                    text =
+                        dataItem.title + if (viewOptions.markRequired && dataItem.required) " *" else ""
                     tooltip = dataItem.description?.let { Tooltip(it) }
                     skin = DecoratableLabelSkin(this)
                 }
@@ -200,17 +200,23 @@ class JsonPropertiesEditor(
         fun updateValidation(treeItemData: TreeItemData) {
             (graphic as? Control)?.also { label ->
                 DECORATOR.removeDecorations(label)
-                createValidationMessage(label, treeItemData.validationMessage)?.also(DECORATOR::applyValidationDecoration)
+                createValidationMessage(
+                    label,
+                    treeItemData.validationMessage
+                )?.also(DECORATOR::applyValidationDecoration)
             }
         }
 
-        private fun createValidationMessage(label: Control, msg: String?): SimpleValidationMessage? =
-                msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
+        private fun createValidationMessage(
+            label: Control,
+            msg: String?
+        ): SimpleValidationMessage? =
+            msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
 
         private inner class SimpleValidationMessage(
-                private val target: Control,
-                private val text: String,
-                private val severity: Severity
+            private val target: Control,
+            private val text: String,
+            private val severity: Severity
         ) : ValidationMessage {
             override fun getTarget(): Control = target
             override fun getText(): String = text
@@ -219,14 +225,14 @@ class JsonPropertiesEditor(
     }
 
     private fun createControlColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
-            TreeTableColumn<TreeItemData, TreeItemData>().apply {
-                text = "Value"
-                cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { ValueCell() }
-                minWidth = 150.0
-                styleClass.add("control-cell")
-                isSortable = false
-            }
+        TreeTableColumn<TreeItemData, TreeItemData>().apply {
+            text = "Value"
+            cellValueFactory = Callback { it.value.valueProperty() }
+            cellFactory = Callback { ValueCell() }
+            minWidth = 150.0
+            styleClass.add("control-cell")
+            isSortable = false
+        }
 
     class ValueCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateControl
@@ -253,21 +259,63 @@ class JsonPropertiesEditor(
     }
 
     private fun createActionColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
-            TreeTableColumn<TreeItemData, TreeItemData>().apply {
-                text = "Action"
-                cellValueFactory = Callback { it.value.valueProperty() }
-                cellFactory = Callback { ActionCell() }
-                minWidth = 100.0
-                prefWidth = 100.0
-                styleClass.add("action-cell")
-                style = "-fx-alignment: CENTER"
-                isSortable = false
+        TreeTableColumn<TreeItemData, TreeItemData>().apply {
+            text = "Action"
+            cellValueFactory = Callback { it.value.valueProperty() }
+            cellFactory = Callback { ActionCell() }
+            minWidth = 100.0
+            prefWidth = 100.0
+            styleClass.add("action-cell")
+            style = "-fx-alignment: CENTER"
+            isSortable = false
+        }
+
+    fun addFilter(filter: ItemFilter) {
+        filters.add(filter)
+        refreshFilter()
+    }
+
+    fun removeFilter(filter: ItemFilter) {
+        filters.remove(filter)
+        refreshFilter()
+    }
+
+    fun replaceFilter(
+        oldFilter: ItemFilter?,
+        newFilter: ItemFilter?
+    ) {
+        if (oldFilter != null) {
+            filters.remove(oldFilter)
+        }
+        if (newFilter != null) {
+            filters.add(newFilter)
+        }
+        refreshFilter()
+    }
+
+    private fun refreshFilter() {
+        if (filters.isEmpty()) {
+            rootItem.setFilter { true }
+        } else {
+            rootItem.setFilter { item ->
+                (item as? ControlTreeItemData)?.let {
+                    filters.any { !it(item.typeControl.model, item.validationMessage) }
+                } ?: true
             }
+        }
 
-    fun interface OnEditCallback {
+    }
 
-        operator fun invoke(data: PropertiesEditInput): PropertiesEditResult
+    /**
+     * The callback that is being executed after the user changed something.
+     */
+    fun interface OnEditCallback : (PropertiesEditInput) -> PropertiesEditResult
 
+    /**
+     * A filter that can be used to filter the displayed objects and fields.
+     */
+    fun interface ItemFilter : (TypeModel<*, *>, String?) -> Boolean {
+        override fun invoke(model: TypeModel<*, *>, validationMessage: String?): Boolean
     }
 
     class ActionCell : TreeTableCell<TreeItemData, TreeItemData>() {

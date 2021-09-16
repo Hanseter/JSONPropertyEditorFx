@@ -22,8 +22,8 @@ class AllOfTest {
 
     @Start
     fun start(stage: Stage) {
-        editor = JsonPropertiesEditor(resolutionScopeProvider = { this::class.java.classLoader.getResource("")?.toURI() },
-                viewOptions = ViewOptions(groupBy = PropertyGrouping.NONE))
+        editor = JsonPropertiesEditor(viewOptions = ViewOptions(groupBy = PropertyGrouping.NONE))
+        editor.resolutionScopeProvider = ResolutionScopeProvider{ this::class.java.classLoader.getResource("")?.toURI() }
     }
 
     @Test

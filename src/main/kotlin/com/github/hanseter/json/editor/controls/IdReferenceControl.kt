@@ -35,13 +35,13 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
         property.addListener { _, _, new ->
             if (internalChange) return@addListener
             idChanged(new?.let {
-                Preview(new, context.refProvider.getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                Preview(new, context.refProvider.get().getReferenceDescription(new, context.editorObjId, schema.baseSchema))
             })
         }
         control.textProperty().addListener { _, _, new ->
             internalChange = true
             idChanged(new?.let {
-                Preview(new, context.refProvider.getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                Preview(new, context.refProvider.get().getReferenceDescription(new, context.editorObjId, schema.baseSchema))
             })
             internalChange = false
         }
@@ -51,11 +51,11 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
             when (context.idRefDisplayMode) {
                 IdRefDisplayMode.ID_ONLY -> proposals.map { Preview(it, "") }
                 else -> proposals
-                        .map { Preview(it, context.refProvider.getReferenceDescription(it, context.editorObjId, schema.baseSchema)) }
+                        .map { Preview(it, context.refProvider.get().getReferenceDescription(it, context.editorObjId, schema.baseSchema)) }
             }
 
     private fun getValidProposals(request: AutoCompletionBinding.ISuggestionRequest, regex: Pattern?): Stream<String> {
-        val proposals = context.refProvider.calcCompletionProposals(request.userText, context.editorObjId, schema.baseSchema, context.idRefDisplayMode)
+        val proposals = context.refProvider.get().calcCompletionProposals(request.userText, context.editorObjId, schema.baseSchema, context.idRefDisplayMode)
         return if (regex != null) proposals.filter { regex.matcher(it).matches() }
         else proposals
     }

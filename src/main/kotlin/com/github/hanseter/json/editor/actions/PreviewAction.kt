@@ -18,17 +18,25 @@ import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import org.controlsfx.control.PopOver
 import org.everit.json.schema.StringSchema
+import java.util.function.Supplier
 
-class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposalProvider,
-                    private val resolutionScopeProvider: ResolutionScopeProvider) : EditorAction {
+class PreviewAction(
+    private val idReferenceProposalProvider: Supplier<IdReferenceProposalProvider>,
+    private val resolutionScopeProvider: Supplier<ResolutionScopeProvider>
+) : EditorAction {
     override val text: String = "⤴"
     override val description: String = "Open Preview for Reference Target"
-    override val selector: TargetSelector = TargetSelector.SchemaType(SupportedType.SimpleType.IdReferenceType)
+    override val selector: TargetSelector =
+        TargetSelector.SchemaType(SupportedType.SimpleType.IdReferenceType)
 
-    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult? {
+    override fun apply(
+        input: PropertiesEditInput,
+        model: TypeModel<*, *>,
+        mouseEvent: Event?
+    ): PropertiesEditResult? {
         val value = (model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value
         if (value != null) {
-            val dataAndSchema = idReferenceProposalProvider.getDataAndSchema(value)
+            val dataAndSchema = idReferenceProposalProvider.get().getDataAndSchema(value)
             if (dataAndSchema != null && mouseEvent != null) {
                 showPreviewPopup(dataAndSchema, value, mouseEvent?.target as? Node)
             }
@@ -37,14 +45,21 @@ class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposal
     }
 
     override fun shouldBeDisabled(model: TypeModel<*, *>, objId: String): Boolean =
-            !idReferenceProposalProvider.isValidReference(
-                    (model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value,
-                    objId,
-                    model.schema.baseSchema as StringSchema)
+        !idReferenceProposalProvider.get().isValidReference(
+            (model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value,
+            objId,
+            model.schema.baseSchema as StringSchema
+        )
 
-    private fun showPreviewPopup(dataAndSchema: IdReferenceProposalProvider.DataWithSchema, value: String, parent: Node?) {
+    private fun showPreviewPopup(
+        dataAndSchema: IdReferenceProposalProvider.DataWithSchema,
+        value: String,
+        parent: Node?
+    ) {
         val (data, previewSchema) = dataAndSchema
-        val preview = JsonPropertiesEditor(idReferenceProposalProvider, true, 1, resolutionScopeProvider)
+        val preview = JsonPropertiesEditor(true)
+        preview.referenceProposalProvider = idReferenceProposalProvider.get()
+        preview.resolutionScopeProvider = resolutionScopeProvider.get()
         preview.display(value, value, data, previewSchema) { it }
         val scrollPane = ScrollPane(preview)
         scrollPane.maxHeight = 500.0
@@ -75,22 +90,29 @@ class PreviewAction(private val idReferenceProposalProvider: IdReferenceProposal
                 isDetachable = true
                 title = value
                 isAnimated = false
-                root.stylesheets.add(IdReferenceControl::class.java.classLoader.getResource("unblurText.css")!!.toExternalForm())
+                root.stylesheets.add(
+                    IdReferenceControl::class.java.classLoader.getResource("unblurText.css")!!
+                        .toExternalForm()
+                )
             }.show(parent)
         }
     }
 
-    private fun addOpenButtonIfWanted(hideCallback: () -> Unit, refId: String, refPane: ScrollPane) =
-            if (idReferenceProposalProvider.isOpenable(refId)) {
-                val openButton = Button("🖉")
-                openButton.setOnAction {
-                    idReferenceProposalProvider.openElement(refId)
-                    hideCallback()
-                }
-                val row = HBox(openButton)
-                row.alignment = Pos.CENTER
-                VBox(row, refPane)
-            } else {
-                refPane
+    private fun addOpenButtonIfWanted(
+        hideCallback: () -> Unit,
+        refId: String,
+        refPane: ScrollPane
+    ) =
+        if (idReferenceProposalProvider.get().isOpenable(refId)) {
+            val openButton = Button("🖉")
+            openButton.setOnAction {
+                idReferenceProposalProvider.get().openElement(refId)
+                hideCallback()
             }
+            val row = HBox(openButton)
+            row.alignment = Pos.CENTER
+            VBox(row, refPane)
+        } else {
+            refPane
+        }
 }

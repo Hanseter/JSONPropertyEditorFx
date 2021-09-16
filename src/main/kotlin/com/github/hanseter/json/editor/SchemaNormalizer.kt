@@ -12,19 +12,19 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.UncheckedIOException
 import java.net.URI
+import java.util.function.Supplier
 
 object SchemaNormalizer {
 
     fun parseSchema(
         schema: JSONObject,
         resolutionScope: URI?,
-        readOnly: Boolean,
-        referenceProposalProvider: IdReferenceProposalProvider
+        readOnly: Boolean
     ): Schema = SchemaLoader.builder()
         .useDefaults(true)
         .draftV7Support()
         .addFormatValidator(ColorFormat.Validator)
-        .addFormatValidator(IdReferenceFormat.Validator(referenceProposalProvider))
+        .addFormatValidator(IdReferenceFormat.Validator())
         .addFormatValidator(LocalTimeFormat.Validator)
         .schemaJson(normalizeSchema(schema, resolutionScope))
         .build().load().readOnly(readOnly).build()

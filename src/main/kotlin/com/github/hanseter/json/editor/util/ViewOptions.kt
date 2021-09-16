@@ -7,10 +7,13 @@ package com.github.hanseter.json.editor.util
  * @param groupBy The grouping mechanism for the properties of an object.
  * @param collapseThreshold The amount of children a complex control can have until it will be automatically collapsed when created.
  */
-data class ViewOptions(val markRequired: Boolean = false,
-                       val groupBy: PropertyGrouping = PropertyGrouping.REQUIRED,
-                       val collapseThreshold: Int = 5,
-                       val idRefDisplayMode: IdRefDisplayMode = IdRefDisplayMode.ID_WITH_DESCRIPTION)
+data class ViewOptions(
+    val markRequired: Boolean = false,
+    val groupBy: PropertyGrouping = PropertyGrouping.REQUIRED,
+    val numberOfInitiallyOpenedObjects: Int = 5,
+    val collapseThreshold: Int = 5,
+    val idRefDisplayMode: IdRefDisplayMode = IdRefDisplayMode.ID_WITH_DESCRIPTION
+)
 
 /**
  * The data that will be displayed in the id reference control.
