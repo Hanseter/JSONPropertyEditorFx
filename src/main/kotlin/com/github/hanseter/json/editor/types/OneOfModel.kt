@@ -13,7 +13,10 @@ import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
 import org.json.JSONObject
 
-class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val editorContext: EditorContext) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
+open class OneOfModel(
+    override val schema: EffectiveSchema<CombinedSchema>,
+    val editorContext: EditorContext
+) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
     override val supportedType: SupportedType.ComplexType.OneOfType
         get() = SupportedType.ComplexType.OneOfType
     override var bound: BindableJsonType? = null
@@ -32,7 +35,7 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
         }
 
     var actualType: TypeControl? = null
-        private set
+        protected set
 
     val objectOptionData = JSONObject()
 //    val optionData = HashMap<Schema, Any>()
@@ -53,30 +56,47 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
     }
 
     private fun isValid(schema: Schema, data: Any): Boolean =
-            try {
-                schema.validate(data)
-                true
-            } catch (e: ValidationException) {
-                false
-            }
+        try {
+            schema.validate(data)
+            true
+        } catch (e: ValidationException) {
+            false
+        }
 
-    private fun tryGuessActualType(): TypeControl? {
+    protected open fun tryGuessActualType(): TypeControl? {
         val data = value ?: return null
         return schema.baseSchema.subschemas.find { isValid(it, data) }?.let {
-            ControlFactory.convert(EffectiveSchemaOfCombination(schema, it), editorContext)
+            createActualControl(it)
         }
     }
+
+    protected fun createActualControl(subSchema: Schema): TypeControl = ControlFactory.convert(
+        EffectiveSchemaOfCombination(schema, subSchema),
+        editorContext
+    )
 
     fun selectType(schema: Schema?) {
         if (schema == null) return
         (value as? JSONObject)?.also { merge(objectOptionData, it) }
-        actualType = ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
+        actualType =
+            ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
         if (schema is ObjectSchema) {
-            val keysToRemove = this.schema.baseSchema.subschemas.filterIsInstance<ObjectSchema>().flatMap { it.propertySchemas.keys }.toSet()
+            val keysToRemove = this.schema.baseSchema.subschemas
+                .filterIsInstance<ObjectSchema>()
+                .flatMap { it.propertySchemas.keys }
+                .toSet()
             val keysToKeep = schema.propertySchemas.keys
-            value = merge(JSONObject(), objectOptionData,keysToRemove - keysToKeep)
+            value = produceValueForNewType(schema, keysToRemove, keysToKeep)
         }
         bound?.also { actualType?.bindTo(it) }
+    }
+
+    protected open fun produceValueForNewType(
+        schema: ObjectSchema,
+        keysToRemove: Set<String>,
+        keysToKeep: Set<String>
+    ): JSONObject? {
+        return merge(JSONObject(), objectOptionData, keysToRemove - keysToKeep)
     }
 
     private fun calcValueForOption() {
