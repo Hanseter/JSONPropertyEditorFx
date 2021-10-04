@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.controls.*
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.extensions.ForceReadOnlyEffectiveSchema
 import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
@@ -27,6 +28,7 @@ object ControlFactory {
                 schema as EffectiveSchema<CombinedSchema>,
                 context
             )
+            is ConstSchema -> createConstControl(schema as EffectiveSchema<ConstSchema>)
             else -> UnsupportedTypeControl(UnsupportedTypeModel(schema))
         }
 
@@ -133,32 +135,34 @@ object ControlFactory {
         schema: EffectiveSchema<CombinedSchema>,
         context: EditorContext
     ): TypeControl {
-        schema.baseSchema.subschemas.firstOrNull()?.let { firstSchema ->
+        schema.baseSchema.subschemas.firstOrNull()?.let discriminated@{ firstSchema ->
+            // Create a Discriminated Union model under the following conditions:
+            // - every subschema is an object
+            // - a given discriminator property with a const value is present in every subschema
+            // - the const value for that discriminator is different in every subschema
+
             if (firstSchema is ObjectSchema) {
                 val discriminator = firstSchema.propertySchemas.firstNotNullOfOrNull {
                     if (
                         DiscriminatedOneOfModel.getDiscriminatorSchema(firstSchema, it.key) != null
                     ) it.key else null
+                } ?: return@discriminated
+
+                val constSchemas = schema.baseSchema.subschemas.map {
+                    DiscriminatedOneOfModel.getDiscriminatorSchema(it, discriminator)
+                        ?: return@discriminated
                 }
 
-                if (discriminator != null
-                    && schema.baseSchema.subschemas.all {
-                        DiscriminatedOneOfModel.getDiscriminatorSchema(it, discriminator) != null
-                    }
-                ) {
-
-                    val constSchemas = schema.baseSchema.subschemas.map {
-                        DiscriminatedOneOfModel.getDiscriminatorSchema(it, discriminator)!!
-                    }
-
-                    val constValues = constSchemas.distinctBy { it.permittedValue }
-
-                    if (constSchemas.size == constValues.size) {
-                        return OneOfControl(DiscriminatedOneOfModel(schema, context, discriminator))
-                    }
+                if (constSchemas.size == constSchemas.distinctBy { it.permittedValue }.size) {
+                    return OneOfControl(
+                        DiscriminatedOneOfModel(
+                            schema,
+                            context,
+                            discriminator
+                        )
+                    )
                 }
             }
-            val foo = true
         }
 
         return OneOfControl(OneOfModel(schema, context))
@@ -175,10 +179,26 @@ object ControlFactory {
         return UnsupportedTypeControl(UnsupportedTypeModel(schema))
     }
 
+    private fun createConstControl(schema: EffectiveSchema<ConstSchema>): TypeControl {
+        return RowBasedControl({ ConstControl() }, UnsupportedTypeModel(schema))
+    }
+
     private fun getSingleUiSchema(schema: EffectiveSchema<CombinedSchema>): EffectiveSchema<*>? {
-        val onlySchema = schema.baseSchema.subschemas.singleOrNull {
+        val uiSchemas = schema.baseSchema.subschemas.filter {
             !(it is NotSchema || it is ConditionalSchema || it is TrueSchema || it is NullSchema)
-        } ?: return null
+        }
+
+        if (uiSchemas.size == 2) {
+            val constSchema = uiSchemas.firstOrNull { it is ConstSchema }
+            val nonConstSchema = uiSchemas.firstOrNull { it !is ConstSchema }
+
+            if (constSchema != null && nonConstSchema != null) {
+                return ForceReadOnlyEffectiveSchema(PartialEffectiveSchema(schema, nonConstSchema))
+            }
+        }
+
+        val onlySchema = uiSchemas.singleOrNull() ?: return null
+
 
         return PartialEffectiveSchema(schema, onlySchema)
     }

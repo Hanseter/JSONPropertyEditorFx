@@ -175,11 +175,11 @@ class StyledTreeItemData(override val title: String, override val cssClasses: Li
     override fun createActions(): ActionsContainer? = null
 
     override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
-        changeListeners.forEach { it(this) }
+        changeListeners.add(listener)
     }
 
     override fun removeChangeListener(listener: (TreeItemData) -> Unit) {
-        changeListeners.forEach { it(this) }
+        changeListeners.remove(listener)
     }
 
     override fun updateFinished() {

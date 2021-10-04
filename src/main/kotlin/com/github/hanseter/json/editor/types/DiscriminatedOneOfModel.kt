@@ -44,6 +44,14 @@ class DiscriminatedOneOfModel(
         }
     }
 
+    override fun isValid(schema: Schema, data: Any): Boolean {
+        val descSchema = getDiscriminatorSchema(schema) ?: return false
+
+        val descValue = (data as? JSONObject)?.opt(discriminatorKey) ?: return false
+
+        return descSchema.permittedValue == descValue
+    }
+
     private fun getDiscriminatorSchema(schema: Schema): ConstSchema? {
         return Companion.getDiscriminatorSchema(schema, discriminatorKey)
     }

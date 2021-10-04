@@ -35,7 +35,7 @@ open class OneOfModel(
         }
 
     var actualType: TypeControl? = null
-        protected set
+        private set
 
     val objectOptionData = JSONObject()
 //    val optionData = HashMap<Schema, Any>()
@@ -55,7 +55,7 @@ open class OneOfModel(
         }
     }
 
-    private fun isValid(schema: Schema, data: Any): Boolean =
+    protected open fun isValid(schema: Schema, data: Any): Boolean =
         try {
             schema.validate(data)
             true
