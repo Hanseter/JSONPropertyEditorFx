@@ -6,7 +6,6 @@ import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.controls.TupleControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
-import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.PropertyGrouping
@@ -19,7 +18,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
 import org.json.JSONObject
 import java.net.URI
-import java.util.function.Predicate
 import java.util.function.Supplier
 
 class JsonPropertiesPane(
@@ -196,21 +194,8 @@ class JsonPropertiesPane(
 
     private fun updateTreeAfterChildChange(control: TypeControl) {
         val item = findInTree(treeItem, control) ?: return
-        val iterNewChilds = control.childControls.listIterator()
-        val iterOldChilds = item.list.listIterator()
-        while (iterNewChilds.hasNext() && iterOldChilds.hasNext()) {
-            val newChild = iterNewChilds.next()
-            val oldChild = iterOldChilds.next()
-            if (newChild::class != oldChild::class) {
-                iterOldChilds.set(wrapControlInTreeItem(newChild))
-            }
-        }
-        iterNewChilds.forEachRemaining {
-            iterOldChilds.add(wrapControlInTreeItem(it))
-        }
-        while (iterOldChilds.hasNext()) {
-            iterOldChilds.remove()
-        }
+
+        item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
     }
 
     private fun findInTree(

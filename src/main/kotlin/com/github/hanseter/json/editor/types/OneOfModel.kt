@@ -40,19 +40,32 @@ open class OneOfModel(
     val objectOptionData = JSONObject()
 //    val optionData = HashMap<Schema, Any>()
 
+    /**
+     * Whether the current actualType was set manually by the user. In that case, it should not be
+     * changed even if the data does not validate.
+     */
+    private var typeSetManually = false
+
     private fun onBoundChanged(new: BindableJsonType?) {
         if (new == null) {
             actualType = null
             return
         }
+        if (new.getValue(schema) == null) {
+            actualType = null
+            return
+        }
         val value = value ?: return
-        if (actualType == null || !isValid(actualType!!.model.schema.baseSchema, value)) {
+        if (!typeSetManually
+            && (actualType == null || !isValid(actualType!!.model.schema.baseSchema, value))
+        ) {
             val possibleNewType = tryGuessActualType()
             if (possibleNewType != null) {
                 actualType = possibleNewType
                 possibleNewType.bindTo(new)
             }
         }
+        typeSetManually = false
     }
 
     protected open fun isValid(schema: Schema, data: Any): Boolean =
@@ -80,6 +93,7 @@ open class OneOfModel(
         (value as? JSONObject)?.also { merge(objectOptionData, it) }
         actualType =
             ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
+        typeSetManually = true
         if (schema is ObjectSchema) {
             val keysToRemove = this.schema.baseSchema.subschemas
                 .filterIsInstance<ObjectSchema>()

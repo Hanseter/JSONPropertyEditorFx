@@ -15,9 +15,10 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
 
     override fun bindTo(type: BindableJsonType) {
         val child = model.actualType
+        val grandChildren = child?.childControls?.toList().orEmpty()
         model.bound = type
         val newChild = model.actualType
-        if (newChild !== child) {
+        if (newChild !== child || newChild?.childControls.orEmpty() != grandChildren) {
             model.editorContext.childrenChangedCallback(this)
         }
     }
@@ -25,10 +26,11 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
     override fun createLazyControl(): LazyControl = OneOfLazyControl()
 
     private inner class OneOfLazyControl : LazyControl {
-        private val selectionListener: ChangeListener<Schema?> = ChangeListener<Schema?> { _, _, selected ->
-            model.selectType(selected)
-            model.editorContext.childrenChangedCallback(this@OneOfControl)
-        }
+        private val selectionListener: ChangeListener<Schema?> =
+            ChangeListener<Schema?> { _, _, selected ->
+                model.selectType(selected)
+                model.editorContext.childrenChangedCallback(this@OneOfControl)
+            }
         override val control: ComboBox<Schema> = ComboBox<Schema>().apply {
             items.addAll(model.schema.baseSchema.subschemas)
             converter = SchemaTitleStringConverter
@@ -47,7 +49,7 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
 
     private object SchemaTitleStringConverter : StringConverter<Schema>() {
         override fun toString(obj: Schema?): String? =
-                obj?.let { SimpleEffectiveSchema.calcSchemaTitle(it) }
+            obj?.let { SimpleEffectiveSchema.calcSchemaTitle(it) }
 
         override fun fromString(string: String?): Schema? = null
     }
