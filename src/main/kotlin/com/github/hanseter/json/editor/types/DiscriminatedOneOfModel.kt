@@ -58,18 +58,24 @@ class DiscriminatedOneOfModel(
 
     companion object {
         fun getDiscriminatorSchema(schema: Schema, key: String): ConstSchema? {
-            val subSchema = (schema as? ObjectSchema)?.propertySchemas?.get(key)
+            val objectSchema = schema as? ObjectSchema ?: return null
 
-            if (subSchema is ConstSchema) {
-                return subSchema
+            if (key !in objectSchema.requiredProperties) {
+                return null
             }
-            if (subSchema is CombinedSchema && subSchema.criterion == CombinedSchema.ALL_CRITERION && subSchema.synthetic) {
-                return subSchema.subschemas.firstNotNullOf {
-                    it as? ConstSchema
+
+            val subSchema = objectSchema.propertySchemas[key]
+
+            return when {
+                subSchema is ConstSchema -> subSchema
+                subSchema is CombinedSchema && subSchema.criterion == CombinedSchema.ALL_CRITERION && subSchema.synthetic -> {
+                    subSchema.subschemas.firstNotNullOf {
+                        it as? ConstSchema
+                    }
                 }
+                else -> null
             }
 
-            return null
         }
     }
 

@@ -138,29 +138,25 @@ object ControlFactory {
         schema.baseSchema.subschemas.firstOrNull()?.let discriminated@{ firstSchema ->
             // Create a Discriminated Union model under the following conditions:
             // - every subschema is an object
-            // - a given discriminator property with a const value is present in every subschema
+            // - a given discriminator property with a const value is present and required in every subschema
             // - the const value for that discriminator is different in every subschema
 
             if (firstSchema is ObjectSchema) {
-                val discriminator = firstSchema.propertySchemas.firstNotNullOfOrNull {
+                firstSchema.propertySchemas.mapNotNull {
                     if (
                         DiscriminatedOneOfModel.getDiscriminatorSchema(firstSchema, it.key) != null
                     ) it.key else null
-                } ?: return@discriminated
+                }.forEach { discriminator ->
+                    val constSchemas = schema.baseSchema.subschemas.map {
+                        DiscriminatedOneOfModel.getDiscriminatorSchema(it, discriminator)
+                            ?: return@discriminated
+                    }
 
-                val constSchemas = schema.baseSchema.subschemas.map {
-                    DiscriminatedOneOfModel.getDiscriminatorSchema(it, discriminator)
-                        ?: return@discriminated
-                }
-
-                if (constSchemas.size == constSchemas.distinctBy { it.permittedValue }.size) {
-                    return OneOfControl(
-                        DiscriminatedOneOfModel(
-                            schema,
-                            context,
-                            discriminator
+                    if (constSchemas.size == constSchemas.distinctBy { it.permittedValue }.size) {
+                        return OneOfControl(
+                            DiscriminatedOneOfModel(schema, context, discriminator)
                         )
-                    )
+                    }
                 }
             }
         }
