@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "noUnion": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "val": {
+              "type": "string",
+              "minLength": 2
+            }
+          },
+          "required": [
+            "val"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "val": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "val"
+          ]
+        }
+      ]
+    },
+    "union": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "option": {
+              "const": 42
+            },
+            "val": {
+              "type": "string",
+              "minLength": 2
+            }
+          },
+          "required": [
+            "option",
+            "val"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "option": {
+              "const": "bool"
+            },
+            "val": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "option",
+            "val"
+          ]
+        }
+      ]
+    },
+    "unionWithTypes": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "option": {
+              "type": "string",
+              "const": "str"
+            },
+            "val": {
+              "type": "string",
+              "minLength": 2
+            }
+          },
+          "required": [
+            "option",
+            "val"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "option": {
+              "type": "string",
+              "const": "bool"
+            },
+            "val": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "option",
+            "val"
+          ]
+        }
+      ]
+    },
+    "scalar": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    },
+    "justObj": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
