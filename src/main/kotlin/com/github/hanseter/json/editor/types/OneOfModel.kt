@@ -13,7 +13,10 @@ import org.everit.json.schema.Schema
 import org.everit.json.schema.ValidationException
 import org.json.JSONObject
 
-class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val editorContext: EditorContext) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
+open class OneOfModel(
+    override val schema: EffectiveSchema<CombinedSchema>,
+    val editorContext: EditorContext
+) : TypeModel<Any?, SupportedType.ComplexType.OneOfType> {
     override val supportedType: SupportedType.ComplexType.OneOfType
         get() = SupportedType.ComplexType.OneOfType
     override var bound: BindableJsonType? = null
@@ -37,46 +40,77 @@ class OneOfModel(override val schema: EffectiveSchema<CombinedSchema>, val edito
     val objectOptionData = JSONObject()
 //    val optionData = HashMap<Schema, Any>()
 
+    /**
+     * Whether the current actualType was set manually by the user. In that case, it should not be
+     * changed even if the data does not validate.
+     */
+    private var typeSetManually = false
+
     private fun onBoundChanged(new: BindableJsonType?) {
         if (new == null) {
             actualType = null
             return
         }
+        if (new.getValue(schema) == null) {
+            actualType = null
+            return
+        }
         val value = value ?: return
-        if (actualType == null || !isValid(actualType!!.model.schema.baseSchema, value)) {
+        if (!typeSetManually
+            && (actualType == null || !isValid(actualType!!.model.schema.baseSchema, value))
+        ) {
             val possibleNewType = tryGuessActualType()
             if (possibleNewType != null) {
                 actualType = possibleNewType
                 possibleNewType.bindTo(new)
             }
         }
+        typeSetManually = false
     }
 
-    private fun isValid(schema: Schema, data: Any): Boolean =
-            try {
-                schema.validate(data)
-                true
-            } catch (e: ValidationException) {
-                false
-            }
+    protected open fun isValid(schema: Schema, data: Any): Boolean =
+        try {
+            schema.validate(data)
+            true
+        } catch (e: ValidationException) {
+            false
+        }
 
-    private fun tryGuessActualType(): TypeControl? {
+    protected open fun tryGuessActualType(): TypeControl? {
         val data = value ?: return null
         return schema.baseSchema.subschemas.find { isValid(it, data) }?.let {
-            ControlFactory.convert(EffectiveSchemaOfCombination(schema, it), editorContext)
+            createActualControl(it)
         }
     }
+
+    protected fun createActualControl(subSchema: Schema): TypeControl = ControlFactory.convert(
+        EffectiveSchemaOfCombination(schema, subSchema),
+        editorContext
+    )
 
     fun selectType(schema: Schema?) {
         if (schema == null) return
         (value as? JSONObject)?.also { merge(objectOptionData, it) }
-        actualType = ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
+        actualType =
+            ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
+        typeSetManually = true
         if (schema is ObjectSchema) {
-            val keysToRemove = this.schema.baseSchema.subschemas.filterIsInstance<ObjectSchema>().flatMap { it.propertySchemas.keys }.toSet()
+            val keysToRemove = this.schema.baseSchema.subschemas
+                .filterIsInstance<ObjectSchema>()
+                .flatMap { it.propertySchemas.keys }
+                .toSet()
             val keysToKeep = schema.propertySchemas.keys
-            value = merge(JSONObject(), objectOptionData,keysToRemove - keysToKeep)
+            value = produceValueForNewType(schema, keysToRemove, keysToKeep)
         }
         bound?.also { actualType?.bindTo(it) }
+    }
+
+    protected open fun produceValueForNewType(
+        schema: ObjectSchema,
+        keysToRemove: Set<String>,
+        keysToKeep: Set<String>
+    ): JSONObject? {
+        return merge(JSONObject(), objectOptionData, keysToRemove - keysToKeep)
     }
 
     private fun calcValueForOption() {

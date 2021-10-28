@@ -195,21 +195,8 @@ class JsonPropertiesPane(
 
     private fun updateTreeAfterChildChange(control: TypeControl) {
         val item = findInTree(treeItem, control) ?: return
-        val iterNewChilds = control.childControls.listIterator()
-        val iterOldChilds = item.list.listIterator()
-        while (iterNewChilds.hasNext() && iterOldChilds.hasNext()) {
-            val newChild = iterNewChilds.next()
-            val oldChild = iterOldChilds.next()
-            if (newChild::class != oldChild::class) {
-                iterOldChilds.set(wrapControlInTreeItem(newChild))
-            }
-        }
-        iterNewChilds.forEachRemaining {
-            iterOldChilds.add(wrapControlInTreeItem(it))
-        }
-        while (iterOldChilds.hasNext()) {
-            iterOldChilds.remove()
-        }
+
+        item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
     }
 
     private fun findInTree(
