@@ -6,12 +6,12 @@ import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.controls.TupleControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
-import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.RootBindableType
 import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.validators.JSONPointer
 import com.github.hanseter.json.editor.validators.ValidationEngine
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
@@ -19,7 +19,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
 import org.json.JSONObject
 import java.net.URI
-import java.util.function.Predicate
 import java.util.function.Supplier
 
 class JsonPropertiesPane(
@@ -368,10 +367,10 @@ class JsonPropertiesPane(
     }
 
     private fun generateErrorMessage(
-        pointer: List<String>,
-        errorMap: Map<List<String>, String>
+        pointer: JSONPointer,
+        errorMap: Map<JSONPointer, List<String>>
     ): String? {
-        val error = errorMap[listOf("#") + pointer]
+        val error = errorMap[listOf("#") + pointer] ?: return null
 
         // check for "missing key" error in parent
         if (pointer.isNotEmpty()) {
@@ -382,13 +381,13 @@ class JsonPropertiesPane(
                 // the best we can do. The only way it could be made more robust if we still had the
                 // original validation error exception would be comparing
                 // ValidationException#getKeyword to "required", which would be better, but not by much.
-                if ("required key [$thisKey] not found" in parentError.split('\n')) {
-                    return (error?.let { "$it\n" } ?: "") + "key is required"
+                if ("required key [$thisKey] not found" in parentError) {
+                    return (error + listOf("key is required")).joinToString("\n")
                 }
             }
         }
 
-        return error
+        return error.joinToString("\n")
     }
 
 

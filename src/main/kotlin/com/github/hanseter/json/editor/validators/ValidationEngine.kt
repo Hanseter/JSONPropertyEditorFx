@@ -16,20 +16,32 @@ import java.net.URI
 
 object ValidationEngine {
 
-    fun validate(elemId: String, data: JSONObject, schema: JSONObject, resolutionScope: URI?, referenceProposalProvider: IdReferenceProposalProvider)
-            : List<Pair<JSONPointer, String>> {
+    fun validate(
+        elemId: String,
+        data: JSONObject,
+        schema: JSONObject,
+        resolutionScope: URI?,
+        referenceProposalProvider: IdReferenceProposalProvider
+    ): List<Pair<JSONPointer, List<String>>> {
         val parsedSchema = SchemaNormalizer.parseSchema(schema, resolutionScope, false)
 
         val effectiveSchema = SimpleEffectiveSchema(null, parsedSchema, null)
-        val control = ControlFactory.convert(effectiveSchema, EditorContext(
-            { referenceProposalProvider },
-                elemId, {}, IdRefDisplayMode.ID_ONLY))
+        val control = ControlFactory.convert(
+            effectiveSchema,
+            EditorContext({ referenceProposalProvider }, elemId, {}, IdRefDisplayMode.ID_ONLY)
+        )
         control.bindTo(RootBindableType(data))
-        return validate(control, elemId, data,
-                listOf(IdReferenceValidator { referenceProposalProvider }))
+        return validate(
+            control, elemId, data, listOf(IdReferenceValidator { referenceProposalProvider })
+        )
     }
 
-    fun validate(rootControl: TypeControl, id: String, data: JSONObject, customValidators: List<Validator>): List<Pair<JSONPointer, String>> {
+    fun validate(
+        rootControl: TypeControl,
+        id: String,
+        data: JSONObject,
+        customValidators: List<Validator>
+    ): List<Pair<JSONPointer, List<String>>> {
         val controls = flattenControl(rootControl).toList()
         val toValidate = prepareForValidation(controls.asSequence().map { it.model.schema }, data)
 
@@ -47,21 +59,25 @@ object ValidationEngine {
         return controls.mapNotNull { control ->
             val pointer = listOf("#") + control.model.schema.pointer
             validateCustomValidator(control, pointer, customValidators, id, ::addError)
-            createErrorMessage(parentErrorCount[pointer]
-                    ?: 0, errorMap[pointer])?.let { pointer to it }
+            createErrorMessage(parentErrorCount[pointer] ?: 0, errorMap[pointer])
+                ?.let { pointer to it }
         }
     }
 
     private fun flattenControl(toFlatten: TypeControl): Sequence<TypeControl> =
-            toFlatten.childControls.asSequence().flatMap { flattenControl(it) } + sequenceOf(toFlatten)
+        toFlatten.childControls.asSequence().flatMap { flattenControl(it) } + sequenceOf(toFlatten)
 
-    private fun prepareForValidation(schemas: Sequence<EffectiveSchema<*>>, data: JSONObject): JSONObject {
+    private fun prepareForValidation(
+        schemas: Sequence<EffectiveSchema<*>>,
+        data: JSONObject
+    ): JSONObject {
         val copy = deepCopyForJson(data)
         schemas.forEach { schema ->
             val defaultValue = schema.defaultValue
             if (defaultValue != null) {
                 val pointer = schema.pointer
-                val parent = org.json.JSONPointer(pointer.dropLast(1)).queryFrom(copy) as? JSONObject
+                val parent =
+                    org.json.JSONPointer(pointer.dropLast(1)).queryFrom(copy) as? JSONObject
                 if (parent != null && !parent.has(pointer.last())) {
                     parent.put(pointer.last(), schema.defaultValue)
                 }
@@ -70,7 +86,11 @@ object ValidationEngine {
         return copy
     }
 
-    private fun validateSchema(data: JSONObject, schema: EffectiveSchema<*>, errorCollector: (JSONPointer, String) -> Unit) {
+    private fun validateSchema(
+        data: JSONObject,
+        schema: EffectiveSchema<*>,
+        errorCollector: (JSONPointer, String) -> Unit
+    ) {
         try {
             schema.schemaForValidation.validate(data)
         } catch (e: ValidationException) {
@@ -78,39 +98,39 @@ object ValidationEngine {
         }
     }
 
-    private fun mapPointerToError(ex: ValidationException, errorCollector: (JSONPointer, String) -> Unit) {
+    private fun mapPointerToError(
+        ex: ValidationException,
+        errorCollector: (JSONPointer, String) -> Unit
+    ) {
         fun flatten(ex: ValidationException): Sequence<ValidationException> =
-                if (ex.causingExceptions.isEmpty()) sequenceOf(ex)
-                else ex.causingExceptions.asSequence().flatMap { flatten(it) }
+            if (ex.causingExceptions.isEmpty()) sequenceOf(ex)
+            else ex.causingExceptions.asSequence().flatMap { flatten(it) }
 
         flatten(ex).forEach { validationError ->
-            errorCollector(validationError.pointerToViolation.split('/'), validationError.errorMessage)
+            errorCollector(
+                validationError.pointerToViolation.split('/'),
+                validationError.errorMessage
+            )
         }
     }
 
     private fun validateCustomValidator(
-            control: TypeControl,
-            pointer: JSONPointer,
-            customValidators: List<Validator>,
-            id: String,
-            errorCollector: (JSONPointer, String) -> Unit
+        control: TypeControl,
+        pointer: JSONPointer,
+        customValidators: List<Validator>,
+        id: String,
+        errorCollector: (JSONPointer, String) -> Unit
     ) {
         customValidators.filter { it.selector.matches(control.model) }.forEach { validator ->
             validator.validate(control.model, id).forEach { errorCollector(pointer, it) }
         }
     }
 
-    private fun createErrorMessage(subErrors: Int, errors: List<String>?): String? {
-        val subErrorMessage = if (subErrors > 0) {
-            "$subErrors sub-error" + if (subErrors > 1) "s" else ""
-        } else null
-        val errorMessage = errors?.joinToString("\n")
-        return when {
-            subErrorMessage != null && errorMessage != null -> subErrorMessage + "\n" + errorMessage
-            errorMessage != null -> errorMessage
-            subErrorMessage != null -> subErrorMessage
-            else -> null
-        }
+    private fun createErrorMessage(subErrors: Int, errors: List<String>?): List<String>? {
+        if (subErrors < 1) return errors
+        val subErrorMessage = listOf("$subErrors sub-error" + if (subErrors > 1) "s" else "")
+        return if (errors == null) subErrorMessage
+        else subErrorMessage + errors
     }
 }
 
