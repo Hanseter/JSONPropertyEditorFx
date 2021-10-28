@@ -357,7 +357,7 @@ class JsonPropertiesPane(
         pointer: JSONPointer,
         errorMap: Map<JSONPointer, List<String>>
     ): String? {
-        val error = errorMap[listOf("#") + pointer] ?: return null
+        val error = errorMap[listOf("#") + pointer]?.joinToString("\n")
 
         // check for "missing key" error in parent
         if (pointer.isNotEmpty()) {
@@ -369,12 +369,12 @@ class JsonPropertiesPane(
                 // original validation error exception would be comparing
                 // ValidationException#getKeyword to "required", which would be better, but not by much.
                 if ("required key [$thisKey] not found" in parentError) {
-                    return (error + listOf("key is required")).joinToString("\n")
+                    return error?.let { "$it\nkey is required" } ?: "key is required"
                 }
             }
         }
 
-        return error.joinToString("\n")
+        return error
     }
 
 
