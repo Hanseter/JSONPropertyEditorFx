@@ -44,7 +44,11 @@ class JsonPropertiesEditor(
         id = "itemTable"
         rowFactory = Callback { TreeItemDataRow() }
 
-        stylesheets.add(this@JsonPropertiesEditor.javaClass.getResource("TreeTableView.css")!!.toExternalForm())
+        stylesheets.add(
+            this@JsonPropertiesEditor.javaClass
+                .getResource("TreeTableView.css")!!
+                .toExternalForm()
+        )
         columns.addAll(createKeyColumn(), createControlColumn(), createActionColumn())
         isShowRoot = false
         columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
@@ -174,7 +178,7 @@ class JsonPropertiesEditor(
         }
 
     private inner class KeyCell : TreeTableCell<TreeItemData, TreeItemData>() {
-        private var changeListener: ((TreeItemData) -> Unit) = this::updateValidation
+        private var changeListener: ((TreeItemData) -> Unit) = this::updateUi
         override fun updateItem(item: TreeItemData?, empty: Boolean) {
             getItem()?.removeChangeListener(changeListener)
             super.updateItem(item, empty)
@@ -183,7 +187,9 @@ class JsonPropertiesEditor(
                 Label().apply {
                     text =
                         dataItem.title + if (viewOptions.markRequired && dataItem.required) " *" else ""
-                    tooltip = dataItem.description?.let { Tooltip(it) }
+
+                    updateTooltip(dataItem)
+
                     skin = DecoratableLabelSkin(this)
                 }
             }
@@ -194,6 +200,33 @@ class JsonPropertiesEditor(
                 graphic = node
                 updateValidation(item)
                 item.registerChangeListener(changeListener)
+            }
+        }
+
+        fun updateUi(treeItemData: TreeItemData) {
+            updateValidation(treeItemData)
+            updateTooltip(treeItemData)
+        }
+
+        fun updateTooltip(treeItemData: TreeItemData) {
+            val desc = treeItemData.description
+            val validationMessage = treeItemData.validationMessage
+
+            if (desc != null) {
+                tooltip = Tooltip().apply {
+                    styleClass.add("json-props-editor-tooltip")
+                    contentDisplay = ContentDisplay.BOTTOM
+
+                    text = desc
+
+                    validationMessage?.let {
+                        graphic = Label(it).apply {
+                            styleClass.add("error-display")
+                        }
+                    }
+                }
+            } else {
+                tooltip = null
             }
         }
 
