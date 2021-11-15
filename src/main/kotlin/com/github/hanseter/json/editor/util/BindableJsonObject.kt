@@ -5,9 +5,10 @@ import org.json.JSONObject
 
 class BindableJsonObject(parent: BindableJsonType?, val obj: JSONObject) : BindableJsonType(parent) {
     override fun setValueInternal(schema: EffectiveSchema<*>, value: Any?) {
-        val key = schema.propertyName
-        obj.put(key, value)
+        obj.put(schema.propertyName, value)
     }
 
     override fun getValue(schema: EffectiveSchema<*>): Any? = obj.opt(schema.propertyName)
+
+    override fun getValue(): JSONObject = obj
 }

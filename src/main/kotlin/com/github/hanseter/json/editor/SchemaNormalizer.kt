@@ -274,9 +274,9 @@ object SchemaNormalizer {
         acc.put(deepCopy(it))
     }
 
-    fun deepCopy(toCopy: Any): Any = when (toCopy) {
-        is JSONObject -> createCopy(toCopy)
-        is JSONArray -> createCopy(toCopy)
+    fun <T> deepCopy(toCopy: T): T = when (toCopy) {
+        is JSONObject -> createCopy(toCopy) as T
+        is JSONArray -> createCopy(toCopy) as T
         else -> toCopy
     }
 

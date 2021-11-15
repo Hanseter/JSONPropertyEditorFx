@@ -26,7 +26,7 @@ interface ObjectControl : TypeControl {
         }
 
         private fun updateLabel() {
-            if (objectControl.model.rawValue == JSONObject.NULL || objectControl.model.rawValue == null) {
+            if (objectControl.model.rawValue == JSONObject.NULL || (objectControl.model.rawValue == null && objectControl.model.defaultValue == null)) {
                 control.displayNull()
             } else {
                 val size = objectControl.requiredChildren.size + objectControl.optionalChildren.size

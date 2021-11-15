@@ -4,19 +4,21 @@ import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.types.ArrayModel
+import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.*
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
 
 
-class ArrayControl(override val model: ArrayModel, private val context: EditorContext) : TypeControl {
+class ArrayControl(override val model: ArrayModel, private val context: EditorContext) :
+    TypeControl {
     override val childControls = mutableListOf<TypeControl>()
     private var subArray: BindableJsonArray? = null
 
     override fun bindTo(type: BindableJsonType) {
         model.bound = type
-        subArray = createSubArray(type, model.schema)
+        subArray = createSubArray(type, model.schema, model)
         valuesChanged()
     }
 
@@ -33,7 +35,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
         }
 
         private fun updateLabel() {
-            if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
+            if (model.rawValue == JSONObject.NULL || (model.rawValue == null && model.defaultValue == null)) {
                 control.displayNull()
             } else {
                 control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")
@@ -54,7 +56,8 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
         fun addChildControls(values: JSONArray) {
             while (childControls.size < values.length()) {
                 val currentChildIndex = childControls.size
-                val childSchema = EffectiveSchemaInArray(model.schema, model.contentSchema, currentChildIndex)
+                val childSchema =
+                    EffectiveSchemaInArray(model.schema, model.contentSchema, currentChildIndex)
 
                 childControls.add(ControlFactory.convert(childSchema, context))
             }
@@ -80,15 +83,17 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
     }
 }
 
-fun createSubArray(parent: BindableJsonType, schema: EffectiveSchema<ArraySchema>): BindableJsonArray? {
+fun createSubArray(
+    parent: BindableJsonType,
+    schema: EffectiveSchema<ArraySchema>,
+    model: TypeModel<JSONArray?, *>
+): BindableJsonArray? {
     val rawArr = parent.getValue(schema)
 
-    if (rawArr == JSONObject.NULL || (rawArr == null && !schema.required)) {
-        return null
-    }
-
-    var arr = rawArr as? JSONArray
+    if (rawArr == JSONObject.NULL) return null
+    var arr = rawArr as? JSONArray ?: model.defaultValue
     if (arr == null) {
+        if (!schema.required) return null
         arr = JSONArray()
         parent.setValue(schema, arr)
     }

@@ -39,57 +39,9 @@ class JsonPropertiesEditorTestApp : Application() {
         val propEdit = JsonPropertiesEditor(false, viewOptions)
         propEdit.referenceProposalProvider = ReferenceProvider
         propEdit.resolutionScopeProvider = customResolutionScopeProvider
-        val resettableTestData = JSONObject(
-            """
-{
-  "reqBool": true,
-  "reqInt": 5,
-  "reqDouble": 42.24
-}
-"""
-        )
 
-        val nestedSchemaTestData = JSONObject(
-            """
-            {
-             "additional": 312,
-             "x": 12,
-             "name": "MyName",
-             "y": 42
-            }
-        """
-        )
 
-        val completeValidationInvalidData = JSONObject(
-            """
-{
-  "strings": {
-    "maxLength": "abcdefghi",
-    "minLength": "a"
-  },
-  "lists": {
-    "minItems": ["foo"],
-    "uniqueItems": ["d", "d"]
-  },
-  "id-references": {
-    "pattern": "H"
-  }
-}
-        """
-        )
-
-//        "nestedCompositeSchema.json"
-//                "resettableSchema.json"
-//                "deepSchema.json"
-//                "completeValidationTestSchema.json"
-//        "StringSchema.json"
-
-        display(propEdit, "completeValidationTestSchema.json", JSONObject())
-//        displayElementWithOneOf(propEdit)
-//        val schema =
-//            JSONObject("""{"definitions": {"test": {"type":"string"}},
-//                "type":"object","properties":{"string":{"${'$'}ref": "#/definitions/test"}}}""")
-//        propEdit.display("1", "1", JSONObject().put("string", "foobar"), schema) { it }
+        display(propEdit, "DefaultObjectsSchema.json", JSONObject())
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)
@@ -106,23 +58,6 @@ class JsonPropertiesEditorTestApp : Application() {
 
     private fun loadSchema(schemaName: String) =
         JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(schemaName)))
-
-    private fun displayElementWithOneOf(editor: JsonPropertiesEditor) {
-        val schema = JSONObject(
-            """{
-"type":"object",
-"properties":{
-"choice": {
-"oneOf":[
-    {"type":"string"},
-    {"type":"number"}
-]}}}"""
-        )
-        editor.display("1", "1", JSONObject().put("choice", JSONObject.NULL), schema) {
-            println(it.toString(1))
-            it
-        }
-    }
 
     private fun buildUi(propEdit: JsonPropertiesEditor): Parent {
 

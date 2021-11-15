@@ -9,5 +9,8 @@ class BindableJsonArrayEntry(private val parentArr: BindableJsonArray, private v
 		parentArr.setValueInternal(index, value)
 
 	override fun getValue(schema: EffectiveSchema<*>): Any? =
+		getValue()
+
+	override fun getValue(): Any? =
 		parentArr.getValue(index)
 }

@@ -24,5 +24,7 @@ class BindableJsonArray(parent: BindableJsonType?, private val arr: JSONArray) :
         return ret
     }
 
+    override fun getValue(): JSONArray = arr
+
     fun getSize(): Int = arr.length()
 }

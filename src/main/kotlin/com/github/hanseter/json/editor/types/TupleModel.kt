@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.types
 
+import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.ArraySchema
@@ -11,7 +12,7 @@ class TupleModel(override val schema: EffectiveSchema<ArraySchema>, val contentS
         get() = SupportedType.ComplexType.TupleType
     override var bound: BindableJsonType? = null
     override val defaultValue: JSONArray?
-        get() = schema.defaultValue as? JSONArray
+        get() = (schema.defaultValue as? JSONArray)?.let { SchemaNormalizer.deepCopy(it)}
 
     override var value: JSONArray?
         get() = bound?.let { BindableJsonType.convertValue(it.getValue(schema), schema, CONVERTER) }

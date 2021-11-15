@@ -7,15 +7,15 @@ import com.github.hanseter.json.editor.util.LazyControl
 import org.json.JSONArray
 import org.json.JSONObject
 
-class TupleControl(override val model: TupleModel, context: EditorContext)
-    : TypeControl {
+class TupleControl(override val model: TupleModel, context: EditorContext) : TypeControl {
 
-    private val childControlsNotNull: List<TypeControl> = createTypeControlsFromSchemas(model.schema, model.contentSchemas, context)
+    private val childControlsNotNull: List<TypeControl> =
+        createTypeControlsFromSchemas(model.schema, model.contentSchemas, context)
     override val childControls: MutableList<TypeControl> = childControlsNotNull.toMutableList()
 
 
     override fun bindTo(type: BindableJsonType) {
-        val subType = createSubArray(type, model.schema)
+        val subType = createSubArray(type, model.schema, model)
         if (subType != null) {
             if (childControls.isEmpty()) {
                 childControls.addAll(childControlsNotNull)
@@ -33,7 +33,7 @@ class TupleControl(override val model: TupleModel, context: EditorContext)
         override val control = TypeWithChildrenStatusControl("Create") { model.value = JSONArray() }
 
         override fun updateDisplayedValue() {
-            if (model.rawValue == JSONObject.NULL || model.rawValue == null) {
+            if (model.rawValue == JSONObject.NULL || (model.rawValue == null && model.defaultValue == null)) {
                 control.displayNull()
             } else {
                 control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")

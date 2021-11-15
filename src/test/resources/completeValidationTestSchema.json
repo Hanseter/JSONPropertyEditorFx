@@ -210,6 +210,18 @@
             "type": "string",
             "minLength": 3
           }
+        },
+        "requiredNestedObjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "oo": {
+                "type": "string"
+              }
+            },
+            "default": {}
+          }
         }
       }
     },
@@ -510,7 +522,6 @@
     "allOfs",
     "oneOfs",
     "id-references",
-    "lists",
     "tuples",
     "integers",
     "numbers",
