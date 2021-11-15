@@ -349,6 +349,7 @@
           "type": "boolean"
         },
         "requiredButNullable": {
+          "description": "This field is required, but also nullable.",
           "type": [
             "boolean",
             "null"
