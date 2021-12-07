@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor
 
 import javafx.scene.control.Button
+import javafx.scene.control.TextField
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
@@ -17,6 +18,21 @@ class ArrayTest {
     @Start
     fun start(stage: Stage) {
         editor = JsonPropertiesEditor()
+    }
+
+    @Test
+    fun updateArrayValue() {
+        val schema = JSONObject("""{"type":"object","properties":{"bar":{"type":"array",
+            "items":{"type":"string"}
+            }}}""")
+        val json = JSONObject("""{"bar":["hello", "world"]}""")
+        editor.display("1", "1", json, schema) { it }
+        val itemTable = editor.getItemTable()
+        val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
+        val textField = arrayEntry.children.first().value.createControl()!!.control as TextField
+        assertThat(textField.text, `is`("hello"))
+        textField.text = "bye bye"
+        assertThat(json.getJSONArray("bar").getString(0), `is`("bye bye"))
     }
 
     @Test

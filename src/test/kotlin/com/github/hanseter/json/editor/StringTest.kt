@@ -27,7 +27,6 @@ class StringTest {
     fun displayExistingValue() {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
         editor.display("1", "1", JSONObject().put("string", "foobar"), schema) { it }
-        val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         assertThat(stringControl.text, `is`("foobar"))
     }
@@ -37,7 +36,6 @@ class StringTest {
         val schema = JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
         val data = JSONObject().put("string", "foobar")
         editor.display("1", "1", data, schema) { it }
-        val itemTable = editor.getItemTable()
         val stringControl = editor.getControlInTable("string") as TextField
         stringControl.text = "something"
         assertThat(data.getString("string"), `is`("something"))
