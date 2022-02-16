@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.util
 
+import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import org.json.JSONObject
 
@@ -32,7 +33,7 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
     companion object {
         fun <T> convertValue(value: Any?, schema: EffectiveSchema<*>, converter: (Any) -> T?): T? =
                 when (value) {
-                    null -> schema.baseSchema.defaultValue?.let(converter)
+                    null -> schema.baseSchema.defaultValue?.let {SchemaNormalizer.deepCopy(converter(it))}
                     JSONObject.NULL -> null
                     else -> {
                         val converted = converter(value)
