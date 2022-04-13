@@ -16,4 +16,4 @@ jobs:
           java-package: jdk+fx
           cache: maven
       - name: Run Maven Tests
-        run: mvn --batch-mode --update-snapshots verify
+        run: mvn --batch-mode --update-snapshots verify -Dtestfx.robot=glass -Dtestfx.headless=true -Dglass.platform=Monocle -Dmonocle.platform=Headless -Dprism.order=sw -Dheadless.geometry=1000x1000-32
