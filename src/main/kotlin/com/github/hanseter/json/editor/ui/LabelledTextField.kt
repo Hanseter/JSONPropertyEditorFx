@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.ui
 
+import com.sun.javafx.scene.control.behavior.TextFieldBehavior
 import com.sun.javafx.scene.control.skin.TextFieldSkin
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
@@ -29,7 +30,12 @@ class LabelledTextField(text: String) : TextField(text) {
     }
 }
 
-class LabelledTextFieldSkin(private val textField: LabelledTextField) : TextFieldSkin(textField) {
+class LabelledTextFieldSkin(
+    private val textField: LabelledTextField,
+    textFieldBehavior: TextFieldBehavior
+) : TextFieldSkin(textField, textFieldBehavior) {
+
+    constructor(textField: LabelledTextField) : this(textField, TextFieldBehavior(textField))
 
     companion object {
         const val LABEL_SEPARATOR_WIDTH = 5.0
