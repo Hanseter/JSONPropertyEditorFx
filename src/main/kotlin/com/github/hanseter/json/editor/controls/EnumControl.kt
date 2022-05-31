@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.EnumModel
+import javafx.beans.binding.Bindings
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
@@ -9,6 +10,7 @@ import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
+import javafx.scene.shape.Rectangle
 import javafx.util.Callback
 import javafx.util.StringConverter
 import org.controlsfx.control.SearchableComboBox
@@ -39,10 +41,26 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
 
                 private val descLabel = Label().apply {
                     styleClass.add("enum-desc-label")
+
+                    val descClip = Rectangle().also {
+
+                        it.widthProperty().bind(widthProperty())
+                        it.heightProperty().bind(heightProperty())
+
+                        // if the label is wider than the space available, its layoutX will be negative
+                        // and it will be rendered outside the combobox cell (on the left side)
+                        // with this, we clip it to be always contained within it
+                        it.layoutXProperty().bind(Bindings.max(0, layoutXProperty().negate()))
+                        it.layoutYProperty().bind(layoutYProperty())
+                    }
+
+                    clip = descClip
                 }
 
                 override fun updateItem(item: String?, empty: Boolean) {
                     super.updateItem(item, empty)
+
+
 
                     if (item == null || empty) {
                         text = ""
