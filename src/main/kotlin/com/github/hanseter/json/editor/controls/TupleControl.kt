@@ -30,7 +30,10 @@ class TupleControl(override val model: TupleModel, context: EditorContext) : Typ
     override fun createLazyControl(): LazyControl = TupleLazyControl()
 
     private inner class TupleLazyControl : LazyControl {
-        override val control = TypeWithChildrenStatusControl("Create") { model.value = JSONArray() }
+        override val control =
+            TypeWithChildrenStatusControl("Create") { model.value = JSONArray() }.apply {
+                isDisable = model.schema.readOnly
+            }
 
         override fun updateDisplayedValue() {
             if (model.rawValue == JSONObject.NULL || (model.rawValue == null && model.defaultValue == null)) {

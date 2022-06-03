@@ -19,6 +19,8 @@ interface ObjectControl : TypeControl {
     class LazyObjectControl(private val objectControl: ObjectControl) : LazyControl {
         override val control = TypeWithChildrenStatusControl("Create") {
             objectControl.model.value = JSONObject()
+        }.apply {
+            isDisable = objectControl.model.schema.readOnly
         }
 
         override fun updateDisplayedValue() {
