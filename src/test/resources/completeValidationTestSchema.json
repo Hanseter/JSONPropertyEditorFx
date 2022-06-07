@@ -222,6 +222,34 @@
             },
             "default": {}
           }
+        },
+        "nullableSubItems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "subObj": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "subProp": {
+                    "type": "string"
+                  }
+                }
+              },
+              "subArr": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     },
