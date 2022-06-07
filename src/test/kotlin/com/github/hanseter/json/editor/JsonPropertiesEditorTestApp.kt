@@ -41,7 +41,7 @@ class JsonPropertiesEditorTestApp : Application() {
         propEdit.resolutionScopeProvider = customResolutionScopeProvider
 
 
-        display(propEdit, "DefaultObjectsSchema.json", JSONObject())
+        display(propEdit, "completeValidationTestSchema.json", JSONObject())
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)

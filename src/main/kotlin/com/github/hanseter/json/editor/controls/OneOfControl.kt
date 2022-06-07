@@ -35,6 +35,8 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
             items.addAll(model.schema.baseSchema.subschemas)
             converter = SchemaTitleStringConverter
             selectionModel.selectedItemProperty().addListener(selectionListener)
+
+            isDisable = model.schema.readOnly
         }
 
         override fun updateDisplayedValue() {

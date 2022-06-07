@@ -28,6 +28,8 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
         override val control = TypeWithChildrenStatusControl("To Empty List") {
             model.value = JSONArray()
             valuesChanged()
+        }.apply {
+            isDisable = model.schema.readOnly
         }
 
         override fun updateDisplayedValue() {
