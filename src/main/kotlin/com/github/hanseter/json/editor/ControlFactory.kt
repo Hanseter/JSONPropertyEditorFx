@@ -142,10 +142,8 @@ object ControlFactory {
             // - the const value for that discriminator is different in every subschema
 
             if (firstSchema is ObjectSchema) {
-                firstSchema.propertySchemas.mapNotNull {
-                    if (
-                        DiscriminatedOneOfModel.getDiscriminatorSchema(firstSchema, it.key) != null
-                    ) it.key else null
+                firstSchema.propertySchemas.keys.filter {
+                    DiscriminatedOneOfModel.getDiscriminatorSchema(firstSchema, it) != null
                 }.forEach { discriminator ->
                     val constSchemas = schema.baseSchema.subschemas.map {
                         DiscriminatedOneOfModel.getDiscriminatorSchema(it, discriminator)

@@ -237,7 +237,7 @@ object SchemaNormalizer {
             }
             val conn = uri.toURL().openConnection()
             val location = conn.getHeaderField("Location")
-            return location?.let { get(URI(it)) } ?: conn.content as InputStream
+            return location?.let { get(URI(it)) } ?: conn.getInputStream()
         }
         if (resolutionScope != null) {
             try {

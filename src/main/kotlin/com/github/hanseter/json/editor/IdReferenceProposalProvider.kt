@@ -24,7 +24,7 @@ interface IdReferenceProposalProvider {
      * Returns a descriptive string for the element referenced by the provided reference.
      * If there is no element referenced by the reference or there is no description an empty string shall be returned.
      * @param reference The typed reference id
-     * @return A desciptive string for the element identified by the preference.
+     * @return A descriptive string for the element identified by the preference.
      */
     fun getReferenceDescription(reference: String?, editedElement: String, editedSchema: StringSchema): String
 
