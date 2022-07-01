@@ -86,7 +86,7 @@ fun TreeItem<TreeItemData>.findChildWithKey(key: String): TreeItem<TreeItemData>
 
 fun TreeItem<TreeItemData>.findChildWithKeyRecursive(key: String): TreeItem<TreeItemData>? =
         findChildWithKey(key)
-                ?: children.asSequence().map { it.findChildWithKeyRecursive(key) }.firstOrNull()
+                ?: children.firstNotNullOfOrNull { it.findChildWithKeyRecursive(key) }
 
 fun JsonPropertiesEditor.getControlInTable(key: String): Node =
         getControlInTable(getItemTable().root.findChildWithKeyRecursive(key)?.value)

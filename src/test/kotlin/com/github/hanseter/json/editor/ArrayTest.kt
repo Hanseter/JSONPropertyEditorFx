@@ -1,11 +1,14 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.controls.TypeWithChildrenStatusControl
 import javafx.scene.control.Button
 import javafx.scene.control.TextField
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
+import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONTokener
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
@@ -33,6 +36,18 @@ class ArrayTest {
         assertThat(textField.text, `is`("hello"))
         textField.text = "bye bye"
         assertThat(json.getJSONArray("bar").getString(0), `is`("bye bye"))
+    }
+
+    @Test
+    fun nullableNestedArray() {
+        val schema = JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("NullArraySchema.json")))
+        val json = JSONObject().put("nested", JSONObject())
+        editor.display("1", "1", json, schema) { it }
+        val itemTable = editor.getItemTable()
+        val arrayEntry = itemTable.root.children[0].findChildWithKeyRecursive("array")!!
+        val initButton = (arrayEntry.value.createControl()!!.control as TypeWithChildrenStatusControl).button
+        initButton.fire()
+        assertThat(json.similar(JSONObject().put("nested", JSONObject().put("array", JSONArray()))), `is`(true))
     }
 
     @Test

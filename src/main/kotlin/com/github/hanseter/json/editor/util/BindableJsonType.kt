@@ -17,7 +17,7 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
     }
 
     open fun updateFromChild(child: BindableJsonType, schema: EffectiveSchema<*>) {
-        setValue(schema.parent!!, child.getValue())
+        setValue(schema.nonSyntheticAncestor!!, child.getValue())
     }
 
     protected abstract fun setValueInternal(schema: EffectiveSchema<*>, value: Any?)

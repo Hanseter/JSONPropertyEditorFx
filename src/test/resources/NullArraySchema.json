@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "string": {
+      "type": "string"
+    },
+    "nested": {
+      "type": "object",
+      "properties": {
+        "array": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "string": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "string": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
