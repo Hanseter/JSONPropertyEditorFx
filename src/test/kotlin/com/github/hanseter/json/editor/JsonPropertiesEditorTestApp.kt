@@ -33,7 +33,8 @@ class JsonPropertiesEditorTestApp : Application() {
             markRequired = true,
             groupBy = PropertyGrouping.NONE,
             idRefDisplayMode = IdRefDisplayMode.DESCRIPTION_ONLY,
-            numberOfInitiallyOpenedObjects = 2
+            numberOfInitiallyOpenedObjects = 2,
+            applySingleSuggestionImmediately = true,
         )
 
         val propEdit = JsonPropertiesEditor(false, viewOptions)
@@ -41,7 +42,7 @@ class JsonPropertiesEditorTestApp : Application() {
         propEdit.resolutionScopeProvider = customResolutionScopeProvider
 
 
-        display(propEdit, "NullArraySchema.json", JSONObject())
+        display(propEdit, "TestSchema2.json", JSONObject())
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)

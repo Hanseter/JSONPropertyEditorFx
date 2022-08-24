@@ -72,7 +72,8 @@ class JsonPropertiesPane(
                 refProvider,
                 objId,
                 ::updateTreeAfterChildChange,
-                viewOptions.idRefDisplayMode
+                viewOptions.idRefDisplayMode,
+                viewOptions.applySingleSuggestionImmediately,
             )
         )
         createControlTree()
