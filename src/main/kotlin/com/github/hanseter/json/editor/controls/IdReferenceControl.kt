@@ -7,8 +7,6 @@ import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import javafx.application.Platform
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
 import org.controlsfx.control.textfield.AutoCompletionBinding
 import org.controlsfx.control.textfield.TextFields
 import org.everit.json.schema.StringSchema
