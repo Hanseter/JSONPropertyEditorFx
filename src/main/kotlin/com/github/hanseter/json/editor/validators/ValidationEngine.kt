@@ -28,7 +28,7 @@ object ValidationEngine {
         val effectiveSchema = SimpleEffectiveSchema(null, parsedSchema, null)
         val control = ControlFactory.convert(
             effectiveSchema,
-            EditorContext({ referenceProposalProvider }, elemId, {}, IdRefDisplayMode.ID_ONLY,false)
+            EditorContext({ referenceProposalProvider }, elemId, {}, IdRefDisplayMode.ID_ONLY)
         )
         control.bindTo(RootBindableType(data))
         return validate(

@@ -13,7 +13,6 @@ data class ViewOptions(
     val numberOfInitiallyOpenedObjects: Int = 5,
     val collapseThreshold: Int = 5,
     val idRefDisplayMode: IdRefDisplayMode = IdRefDisplayMode.ID_WITH_DESCRIPTION,
-    val applySingleSuggestionImmediately:Boolean = false,
 )
 
 /**

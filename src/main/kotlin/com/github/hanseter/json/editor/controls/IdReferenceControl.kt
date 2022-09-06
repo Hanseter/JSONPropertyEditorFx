@@ -7,6 +7,8 @@ import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import javafx.application.Platform
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import org.controlsfx.control.textfield.AutoCompletionBinding
 import org.controlsfx.control.textfield.TextFields
 import org.everit.json.schema.StringSchema
@@ -28,7 +30,7 @@ class IdReferenceControl(
             val proposals = mapProposals(getValidProposals(request, regex))
                 .filter { it.matchesInput(request.userText) }
                 .limit(30).collect(Collectors.toList())
-            if (context.applySingleSuggestionImmediately && proposals.size == 1) {
+            if (canProposalsAutoApplied(request, proposals)) {
                 Platform.runLater {
                     idChanged(proposals.single())
                 }
@@ -64,6 +66,12 @@ class IdReferenceControl(
             internalChange = false
         }
     }
+
+    private fun canProposalsAutoApplied(
+        request: AutoCompletionBinding.ISuggestionRequest,
+        proposals: List<Preview>,
+    ) = proposals.size == 1 && proposals.single()
+        .equalsInput(request.userText)
 
     private fun mapProposals(proposals: Stream<String>): Stream<Preview> =
         when (context.idRefDisplayMode) {
@@ -143,6 +151,9 @@ class IdReferenceControl(
 
         fun matchesInput(input: String) =
             id.startsWith(input) || description?.startsWith(input) ?: false
+
+        fun equalsInput(input: String) =
+            id == input || description?.equals(input) ?: false
 
         override fun toString(): String = when (context.idRefDisplayMode) {
             IdRefDisplayMode.ID_ONLY -> id

@@ -9,6 +9,5 @@ class EditorContext(
     val editorObjId: String,
     val childrenChangedCallback: (TypeControl) -> Unit,
     val idRefDisplayMode: IdRefDisplayMode,
-    val applySingleSuggestionImmediately: Boolean,
 )
 
