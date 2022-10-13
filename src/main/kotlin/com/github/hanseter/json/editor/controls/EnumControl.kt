@@ -1,24 +1,24 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.EnumModel
+import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin
+import impl.org.controlsfx.skin.SearchableComboBoxSkin
 import javafx.beans.binding.Bindings
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
-import javafx.scene.control.ContentDisplay
-import javafx.scene.control.Label
-import javafx.scene.control.ListCell
-import javafx.scene.control.ListView
+import javafx.event.EventHandler
+import javafx.scene.control.*
+import javafx.scene.input.MouseEvent
 import javafx.scene.shape.Rectangle
 import javafx.util.Callback
 import javafx.util.StringConverter
-import org.controlsfx.control.SearchableComboBox
 import org.json.JSONObject
 
 //TODO this control makes every enum a string, even if it is something else. This needs to be improved.
 class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, ChangeListener<String?> {
-    override val control = SearchableComboBox<String?>()
+    override val control = JitSearchableCombobox<String?>()
     override val property: Property<String?> = SimpleObjectProperty<String?>(null)
 
     init {
@@ -113,6 +113,39 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
                     else -> model.defaultValue
                 }
         )
+    }
+
+    class JitSearchableCombobox<T> : ComboBox<T>() {
+        init {
+            var handler: EventHandler<MouseEvent>? = null
+            var listener : ChangeListener<Boolean>? =null
+            handler = EventHandler<MouseEvent> {
+                skin = SearchableComboBoxSkin(this)
+                removeEventHandler(MouseEvent.MOUSE_ENTERED, handler)
+                focusedProperty().removeListener(listener)
+            }
+            listener = ChangeListener { _, _, focused ->
+                if (focused) {
+                    skin = SearchableComboBoxSkin(this)
+                    focusedProperty().removeListener(listener)
+                    removeEventHandler(MouseEvent.MOUSE_ENTERED, handler)
+                }
+            }
+            addEventHandler(MouseEvent.MOUSE_ENTERED, handler)
+            focusedProperty().addListener(listener)
+        }
+
+        override fun createDefaultSkin(): Skin<*> {
+            return object : ComboBoxListViewSkin<T>(this) {
+                override fun getEditor(): TextField? {
+                    return if (skinnable?.isEditable == true) (skinnable as ComboBox<*>).editor else null
+                }
+
+                override fun focusLost() {
+                    skinnable?.hide()
+                }
+            }
+        }
     }
 
 }
