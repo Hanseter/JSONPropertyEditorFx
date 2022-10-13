@@ -32,8 +32,8 @@ class JsonPropertiesEditorTestApp : Application() {
         val viewOptions = ViewOptions(
             markRequired = true,
             groupBy = PropertyGrouping.NONE,
-            idRefDisplayMode = IdRefDisplayMode.DESCRIPTION_ONLY,
-            numberOfInitiallyOpenedObjects = 2
+            idRefDisplayMode = IdRefDisplayMode.ID_WITH_DESCRIPTION,
+            numberOfInitiallyOpenedObjects = 2,
         )
 
         val propEdit = JsonPropertiesEditor(false, viewOptions)
@@ -103,6 +103,18 @@ class JsonPropertiesEditorTestApp : Application() {
                 ),
                 "Foo" to IdReferenceProposalProvider.DataWithSchema(
                     JSONObject().put("name", "Bar"),
+                    JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                ),
+                "some/first" to IdReferenceProposalProvider.DataWithSchema(
+                    JSONObject().put("name", "1"),
+                    JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                ),
+                "some/second" to IdReferenceProposalProvider.DataWithSchema(
+                    JSONObject().put("name", "2"),
+                    JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
+                ),
+                "some/third" to IdReferenceProposalProvider.DataWithSchema(
+                    JSONObject().put("name", "3"),
                     JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream("TestSchema2.json")))
                 ),
                 "Complex" to IdReferenceProposalProvider.DataWithSchema(

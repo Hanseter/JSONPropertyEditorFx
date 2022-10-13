@@ -4,6 +4,7 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.ui.LabelledTextField
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
+import javafx.application.Platform
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
 import org.controlsfx.control.textfield.AutoCompletionBinding
@@ -13,7 +14,10 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, private val context: EditorContext) : ControlWithProperty<String?> {
+class IdReferenceControl(
+    private val schema: EffectiveSchema<StringSchema>,
+    private val context: EditorContext,
+) : ControlWithProperty<String?> {
     override val control = LabelledTextField()
     override val property: Property<String?> = SimpleStringProperty("")//control.textProperty()
 
@@ -21,9 +25,15 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
         val regex = schema.baseSchema.pattern
         var internalChange = false
         val completionBinding = TextFields.bindAutoCompletion(control) { request ->
-            mapProposals(getValidProposals(request, regex))
-                    .filter { it.matchesInput(request.userText) }
-                    .limit(30).collect(Collectors.toList())
+            val proposals = mapProposals(getValidProposals(request, regex))
+                .filter { it.matchesInput(request.userText) }
+                .limit(30).collect(Collectors.toList())
+            if (canProposalsAutoApplied(request, proposals)) {
+                Platform.runLater {
+                    idChanged(proposals.single())
+                }
+                emptyList()
+            } else proposals
         }
         completionBinding.setOnAutoCompleted {
             it.consume()
@@ -35,27 +45,55 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
         property.addListener { _, _, new ->
             if (internalChange) return@addListener
             idChanged(new?.let {
-                Preview(new, context.refProvider.get().getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                Preview(
+                    new,
+                    context.refProvider.get()
+                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
+                )
             })
         }
         control.textProperty().addListener { _, _, new ->
             internalChange = true
             idChanged(new?.let {
-                Preview(new, context.refProvider.get().getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                Preview(
+                    new,
+                    context.refProvider.get()
+                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
+                )
             })
             internalChange = false
         }
     }
 
-    private fun mapProposals(proposals: Stream<String>): Stream<Preview> =
-            when (context.idRefDisplayMode) {
-                IdRefDisplayMode.ID_ONLY -> proposals.map { Preview(it, "") }
-                else -> proposals
-                        .map { Preview(it, context.refProvider.get().getReferenceDescription(it, context.editorObjId, schema.baseSchema)) }
-            }
+    private fun canProposalsAutoApplied(
+        request: AutoCompletionBinding.ISuggestionRequest,
+        proposals: List<Preview>,
+    ) = proposals.size == 1 && proposals.single()
+        .equalsInput(request.userText)
 
-    private fun getValidProposals(request: AutoCompletionBinding.ISuggestionRequest, regex: Pattern?): Stream<String> {
-        val proposals = context.refProvider.get().calcCompletionProposals(request.userText, context.editorObjId, schema.baseSchema, context.idRefDisplayMode)
+    private fun mapProposals(proposals: Stream<String>): Stream<Preview> =
+        when (context.idRefDisplayMode) {
+            IdRefDisplayMode.ID_ONLY -> proposals.map { Preview(it, "") }
+            else -> proposals
+                .map {
+                    Preview(
+                        it,
+                        context.refProvider.get()
+                            .getReferenceDescription(it, context.editorObjId, schema.baseSchema)
+                    )
+                }
+        }
+
+    private fun getValidProposals(
+        request: AutoCompletionBinding.ISuggestionRequest,
+        regex: Pattern?,
+    ): Stream<String> {
+        val proposals = context.refProvider.get().calcCompletionProposals(
+            request.userText,
+            context.editorObjId,
+            schema.baseSchema,
+            context.idRefDisplayMode
+        )
         return if (regex != null) proposals.filter { regex.matcher(it).matches() }
         else proposals
     }
@@ -70,6 +108,7 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
                 control.text = id.id
                 property.value = id.id
             }
+
             IdRefDisplayMode.DESCRIPTION_ONLY -> {
                 if (id.description == null) {
                     control.text = id.id
@@ -79,11 +118,13 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
                     property.value = id.id
                 }
             }
+
             IdRefDisplayMode.ID_WITH_DESCRIPTION -> {
                 control.text = id.id
                 control.label = id.description ?: ""
                 property.value = id.id
             }
+
             IdRefDisplayMode.DESCRIPTION_WITH_ID -> {
                 if (id.description == null) {
                     control.label = ""
@@ -106,7 +147,11 @@ class IdReferenceControl(private val schema: EffectiveSchema<StringSchema>, priv
         val description: String? = if (description.isBlank()) null
         else description
 
-        fun matchesInput(input: String) = id.startsWith(input) || description?.startsWith(input) ?: false
+        fun matchesInput(input: String) =
+            id.startsWith(input) || description?.startsWith(input) ?: false
+
+        fun equalsInput(input: String) =
+            id == input || description?.equals(input) ?: false
 
         override fun toString(): String = when (context.idRefDisplayMode) {
             IdRefDisplayMode.ID_ONLY -> id

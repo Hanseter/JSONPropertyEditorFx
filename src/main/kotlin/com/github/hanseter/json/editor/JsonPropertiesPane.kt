@@ -72,7 +72,7 @@ class JsonPropertiesPane(
                 refProvider,
                 objId,
                 ::updateTreeAfterChildChange,
-                viewOptions.idRefDisplayMode
+                viewOptions.idRefDisplayMode,
             )
         )
         createControlTree()

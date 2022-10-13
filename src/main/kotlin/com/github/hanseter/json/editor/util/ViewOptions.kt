@@ -12,7 +12,7 @@ data class ViewOptions(
     val groupBy: PropertyGrouping = PropertyGrouping.REQUIRED,
     val numberOfInitiallyOpenedObjects: Int = 5,
     val collapseThreshold: Int = 5,
-    val idRefDisplayMode: IdRefDisplayMode = IdRefDisplayMode.ID_WITH_DESCRIPTION
+    val idRefDisplayMode: IdRefDisplayMode = IdRefDisplayMode.ID_WITH_DESCRIPTION,
 )
 
 /**
