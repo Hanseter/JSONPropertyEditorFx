@@ -98,3 +98,14 @@ fun JsonPropertiesEditor.getControlInTable(itemData: TreeItemData?): Node {
     cell.updateItem(itemData, false)
     return cell.graphic
 }
+
+fun JsonPropertiesEditor.getKeyCellInTable(key: String): JsonPropertiesEditor.KeyCell =
+    getKeyCellInTable(getItemTable().root.findChildWithKeyRecursive(key)?.value)
+
+fun JsonPropertiesEditor.getKeyCellInTable(itemData: TreeItemData?): JsonPropertiesEditor.KeyCell {
+    val table = getItemTable()
+    val column = table.columns[0] as TreeTableColumn<TreeItemData, TreeItemData>
+    val cell = column.cellFactory.call(column) as JsonPropertiesEditor.KeyCell
+    cell.updateItem(itemData, false)
+    return cell
+}

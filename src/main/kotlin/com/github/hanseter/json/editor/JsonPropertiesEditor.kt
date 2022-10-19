@@ -186,7 +186,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             isSortable = false
         }
 
-    private inner class KeyCell : TreeTableCell<TreeItemData, TreeItemData>() {
+    inner class KeyCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateUi
 
         init {

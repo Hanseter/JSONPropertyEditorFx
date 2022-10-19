@@ -180,14 +180,14 @@ class JsonPropertiesEditorTestApp : Application() {
 
 class TestCustomizationObject : CustomizationObject {
 
-    override fun getTitle(model: TypeModel<*, *>): String? {
+    override fun getTitle(model: TypeModel<*, *>, defaultTitle: String): String {
         if (model.schema.pointer == listOf("combined object", "b")) {
             return "not b (${model.value})"
         }
         if (model.schema.pointer == listOf("combined object")) {
             return "combined object (${(model.value as? JSONObject)?.optString("a")})"
         }
-        return null
+        return defaultTitle
     }
 
 }
