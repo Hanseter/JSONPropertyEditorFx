@@ -26,7 +26,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private val readOnly: Boolean = false,
     viewOptions: ViewOptions = ViewOptions(),
     actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-    private val customizationObject: CustomizationObject? = null
+    private val customizationObject: CustomizationObject = DefaultCustomizationObject
 ) : StackPane() {
     var referenceProposalProvider: IdReferenceProposalProvider =
         IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
@@ -158,7 +158,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private fun createTitledPaneForSchema(
         title: String, objId: String, data: JSONObject,
         rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?,
-        customizationObject: CustomizationObject?,
+        customizationObject: CustomizationObject,
         callback: OnEditCallback
     ): JsonPropertiesPane =
         JsonPropertiesPane(
@@ -172,7 +172,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             actions,
             validators,
             viewOptions,
-            customizationObject ?: DefaultCustomizationObject,
+            customizationObject,
             callback
         )
 

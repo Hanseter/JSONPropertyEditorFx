@@ -14,6 +14,13 @@ interface CustomizationObject {
         return defaultTitle
     }
 
+    /**
+     * Gets the description for a given element.
+     */
+    fun getDescription(model: TypeModel<*, *>, defaultDescription: String?): String? {
+        return defaultDescription
+    }
+
 }
 
 object DefaultCustomizationObject : CustomizationObject

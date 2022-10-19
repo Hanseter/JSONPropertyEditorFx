@@ -68,4 +68,41 @@ class CustomizationObjectTest {
         MatcherAssert.assertThat((notFooCell.graphic as Labeled).text, Matchers.`is`("notFoo"))
     }
 
+    @Test
+    fun testDescriptionCustomization() {
+        val schema = JSONObject("""
+{
+    "type":"object",
+    "properties": {
+        "foo": {
+            "type": "string"
+        }
+    }
+}""")
+        val editor = JsonPropertiesEditor(
+            customizationObject = object : CustomizationObject {
+
+                override fun getDescription(
+                    model: TypeModel<*, *>,
+                    defaultDescription: String?
+                ): String? {
+                    if (model.schema.pointer == listOf("foo")) {
+                        return "fooDesc"
+                    }
+                    return defaultDescription
+                }
+
+            }
+        )
+
+        val json = JSONObject("""{"foo":""}""")
+        editor.display("1", "1", json, schema) { it }
+
+        val fooCell = editor.getKeyCellInTable("foo")
+
+        MatcherAssert.assertThat(fooCell.tooltip, Matchers.notNullValue())
+        MatcherAssert.assertThat(fooCell.tooltip.text, Matchers.`is`("fooDesc"))
+
+    }
+
 }
