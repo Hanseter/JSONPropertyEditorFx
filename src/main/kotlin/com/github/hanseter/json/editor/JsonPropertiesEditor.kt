@@ -4,6 +4,7 @@ import com.github.hanseter.json.editor.actions.*
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.CustomizationObject
+import com.github.hanseter.json.editor.util.DefaultCustomizationObject
 import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.util.ViewOptions
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
@@ -171,7 +172,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             actions,
             validators,
             viewOptions,
-            customizationObject,
+            customizationObject ?: DefaultCustomizationObject,
             callback
         )
 

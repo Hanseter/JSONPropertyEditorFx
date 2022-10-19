@@ -29,7 +29,7 @@ class JsonPropertiesPane(
     private val actions: List<EditorAction>,
     private val validators: List<Validator>,
     viewOptions: ViewOptions,
-    private val customizationObject: CustomizationObject?,
+    private val customizationObject: CustomizationObject,
     private val changeListener: JsonPropertiesEditor.OnEditCallback
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> =

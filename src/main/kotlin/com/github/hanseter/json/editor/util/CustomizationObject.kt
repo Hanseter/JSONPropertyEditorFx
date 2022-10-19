@@ -9,11 +9,11 @@ interface CustomizationObject {
 
     /**
      * Gets the title for a given element.
-     *
-     * If `null` is returned (the default), the title from the schema is used instead.
      */
-    fun getTitle(model: TypeModel<*, *>): String? {
-        return null
+    fun getTitle(model: TypeModel<*, *>, defaultTitle: String): String {
+        return defaultTitle
     }
 
 }
+
+object DefaultCustomizationObject : CustomizationObject
