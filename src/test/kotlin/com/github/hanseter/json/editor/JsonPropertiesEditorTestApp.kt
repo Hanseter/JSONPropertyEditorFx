@@ -1,6 +1,8 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.PropertiesEditorToolbar
+import com.github.hanseter.json.editor.util.CustomizationObject
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.ViewOptions
@@ -36,7 +38,7 @@ class JsonPropertiesEditorTestApp : Application() {
             numberOfInitiallyOpenedObjects = 2,
         )
 
-        val propEdit = JsonPropertiesEditor(false, viewOptions)
+        val propEdit = JsonPropertiesEditor(false, viewOptions, customizationObject = TestCustomizationObject())
         propEdit.referenceProposalProvider = ReferenceProvider
         propEdit.resolutionScopeProvider = customResolutionScopeProvider
 
@@ -174,4 +176,18 @@ class JsonPropertiesEditorTestApp : Application() {
             println("Request to open $id")
         }
     }
+}
+
+class TestCustomizationObject : CustomizationObject {
+
+    override fun getTitle(model: TypeModel<*, *>): String? {
+        if (model.schema.pointer == listOf("combined object", "b")) {
+            return "not b (${model.value})"
+        }
+        if (model.schema.pointer == listOf("combined object")) {
+            return "combined object (${(model.value as? JSONObject)?.optString("a")})"
+        }
+        return null
+    }
+
 }

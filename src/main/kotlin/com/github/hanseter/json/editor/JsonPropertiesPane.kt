@@ -7,10 +7,7 @@ import com.github.hanseter.json.editor.controls.TupleControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
 import com.github.hanseter.json.editor.ui.*
-import com.github.hanseter.json.editor.util.EditorContext
-import com.github.hanseter.json.editor.util.PropertyGrouping
-import com.github.hanseter.json.editor.util.RootBindableType
-import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.util.*
 import com.github.hanseter.json.editor.validators.JSONPointer
 import com.github.hanseter.json.editor.validators.ValidationEngine
 import com.github.hanseter.json.editor.validators.Validator
@@ -32,6 +29,7 @@ class JsonPropertiesPane(
     private val actions: List<EditorAction>,
     private val validators: List<Validator>,
     viewOptions: ViewOptions,
+    private val customizationObject: CustomizationObject?,
     private val changeListener: JsonPropertiesEditor.OnEditCallback
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> =
@@ -143,7 +141,9 @@ class JsonPropertiesPane(
                     actions,
                     actionHandler,
                     objId,
-                    validators.filter { it.selector.matches(control.model) })
+                    validators.filter { it.selector.matches(control.model) },
+                    customizationObject
+                )
             )
         if (control is ObjectControl) {
             addObjectControlChildren(item, control)

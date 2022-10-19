@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.actions.*
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
+import com.github.hanseter.json.editor.util.CustomizationObject
 import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.util.ViewOptions
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
@@ -20,10 +21,11 @@ import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.json.JSONObject
 import java.net.URI
 
-class JsonPropertiesEditor(
+class JsonPropertiesEditor @JvmOverloads constructor(
     private val readOnly: Boolean = false,
     viewOptions: ViewOptions = ViewOptions(),
     actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
+    private val customizationObject: CustomizationObject? = null
 ) : StackPane() {
     var referenceProposalProvider: IdReferenceProposalProvider =
         IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
@@ -40,6 +42,9 @@ class JsonPropertiesEditor(
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
     private val rootItem: FilterableTreeItem<TreeItemData> =
         FilterableTreeItem(StyledTreeItemData("root", listOf()))
+
+    private val keyColumn = createKeyColumn()
+
     private val treeTableView = TreeTableView<TreeItemData>().apply {
         id = "itemTable"
         rowFactory = Callback { TreeItemDataRow() }
@@ -49,7 +54,7 @@ class JsonPropertiesEditor(
                 .getResource("TreeTableView.css")!!
                 .toExternalForm()
         )
-        columns.addAll(createKeyColumn(), createControlColumn(), createActionColumn())
+        columns.addAll(keyColumn, createControlColumn(), createActionColumn())
         isShowRoot = false
         columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
         root = rootItem
@@ -94,7 +99,7 @@ class JsonPropertiesEditor(
             title, objId, obj,
             schema,
             readOnly,
-            resolutionScope, callback
+            resolutionScope, customizationObject, callback
         )
         pane.fillData(obj)
         idsToPanes[objId] = pane
@@ -151,7 +156,9 @@ class JsonPropertiesEditor(
 
     private fun createTitledPaneForSchema(
         title: String, objId: String, data: JSONObject,
-        rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?, callback: OnEditCallback
+        rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?,
+        customizationObject: CustomizationObject?,
+        callback: OnEditCallback
     ): JsonPropertiesPane =
         JsonPropertiesPane(
             title,
@@ -164,6 +171,7 @@ class JsonPropertiesEditor(
             actions,
             validators,
             viewOptions,
+            customizationObject,
             callback
         )
 
@@ -179,33 +187,37 @@ class JsonPropertiesEditor(
 
     private inner class KeyCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateUi
-        override fun updateItem(item: TreeItemData?, empty: Boolean) {
+
+        init {
+            styleClass.add("key-cell")
+        }
+
+        public override fun updateItem(item: TreeItemData?, empty: Boolean) {
             getItem()?.removeChangeListener(changeListener)
             super.updateItem(item, empty)
 
-            val node = item?.let { dataItem ->
-                Label().apply {
-                    text =
-                        dataItem.title + if (viewOptions.markRequired && dataItem.required) " *" else ""
-
-                    updateTooltip(dataItem)
-
-                    skin = DecoratableLabelSkin(this)
-                }
-            }
-            if (node == null || empty) {
+            if (item == null || empty) {
                 text = null
                 graphic = null
             } else {
-                graphic = node
-                updateValidation(item)
+                updateUi(item)
                 item.registerChangeListener(changeListener)
             }
         }
 
         fun updateUi(treeItemData: TreeItemData) {
+            updateLabel(treeItemData)
             updateValidation(treeItemData)
             updateTooltip(treeItemData)
+        }
+
+        fun updateLabel(treeItemData: TreeItemData) {
+            graphic = Label().apply {
+                text =
+                    treeItemData.title + if (viewOptions.markRequired && treeItemData.required) " *" else ""
+
+                skin = DecoratableLabelSkin(this)
+            }
         }
 
         fun updateTooltip(treeItemData: TreeItemData) {
