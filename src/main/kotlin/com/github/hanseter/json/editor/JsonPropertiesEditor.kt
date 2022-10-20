@@ -132,6 +132,38 @@ class JsonPropertiesEditor(
         rebindValidProperty()
     }
 
+    /**
+     * Expands the part of the element identified by [id].
+     * Specifically the subtrees identified by the [pointers].
+     * An empty pointer will expand the root element.
+     */
+    fun expand(id: String, pointers: Set<List<String>>) {
+        idsToPanes[id]?.expand(pointers)
+    }
+
+    /**
+     * Expands all TreeItems of the element identified by [id].
+     */
+    fun expandAll(id: String) {
+        idsToPanes[id]?.expandAll()
+    }
+
+    /**
+     * Collapses the part of the element identified by [id].
+     * Specifically the subtree identified by the [pointers].
+     * An empty pointer will collapse the root element.
+     */
+    fun collapse(id: String, pointers: Set<List<String>>) {
+        idsToPanes[id]?.collapse(pointers)
+    }
+
+    /**
+     * Collapses all TreeItems of the element identified by [id].
+     */
+    fun collapseAll(id: String) {
+        idsToPanes[id]?.collapseAll()
+    }
+
     fun clear() {
         idsToPanes.clear()
         (treeTableView.root as FilterableTreeItem).clear()

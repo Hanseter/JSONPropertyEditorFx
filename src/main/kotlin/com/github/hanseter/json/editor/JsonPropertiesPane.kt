@@ -381,6 +381,37 @@ class JsonPropertiesPane(
     private fun <T> flattenBottomUp(item: FilterableTreeItem<T>): Sequence<FilterableTreeItem<T>> =
         item.list.asSequence().flatMap { flattenBottomUp(it) } + sequenceOf(item)
 
+    fun expand(pointers: Set<List<String>>) {
+        updateExpandedState(pointers, true)
+    }
+
+    fun expandAll() {
+        flattenBottomUp(treeItem).forEach { it.isExpanded = true }
+    }
+
+    fun collapse(pointers: Set<List<String>>) {
+        updateExpandedState(pointers, false)
+    }
+
+    fun collapseAll() {
+        flattenBottomUp(treeItem).forEach { it.isExpanded = false }
+    }
+
+    private fun updateExpandedState(pointers: Set<List<String>>, toSet: Boolean) {
+        if (pointers.isEmpty()) return
+        if (pointers.contains(emptyList())) {
+            treeItem.isExpanded = toSet
+        }
+        flattenBottomUp(treeItem).forEach {
+            val value = it.value
+            if (value is ControlTreeItemData) {
+                if (value.typeControl.model.schema.pointer in pointers) {
+                    it.isExpanded = toSet
+                }
+            }
+        }
+    }
+
     private inner class ContentHandler(var data: JSONObject) {
         private var dataDirty = true
 
