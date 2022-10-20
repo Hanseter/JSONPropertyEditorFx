@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.hanseter</groupId>
     <artifactId>json-properties-fx</artifactId>
-    <version>0.0.36</version>
+    <version>0.0.37</version>
 
     <packaging>bundle</packaging>
     <name>JSON Properties Editor Fx</name>

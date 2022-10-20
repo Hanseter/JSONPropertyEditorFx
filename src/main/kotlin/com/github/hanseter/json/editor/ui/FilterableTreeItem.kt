@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor.ui
 import com.github.hanseter.json.editor.actions.ActionsContainer
 import com.github.hanseter.json.editor.actions.EditorAction
 import com.github.hanseter.json.editor.controls.TypeControl
+import com.github.hanseter.json.editor.util.CustomizationObject
 import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
@@ -120,14 +121,16 @@ class ControlTreeItemData(
     private val actions: List<EditorAction>,
     private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
     private val objId: String,
-    val validators: List<Validator>
+    val validators: List<Validator>,
+    private val customizationObject: CustomizationObject
 ) : TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 
-    override val title = typeControl.model.schema.title
+    override val title: String
+        get() = customizationObject.getTitle(typeControl.model, typeControl.model.schema.title)
 
     override val description: String?
-        get() = typeControl.model.schema.description
+        get() = customizationObject.getDescription(typeControl.model, typeControl.model.schema.description)
 
     override val required: Boolean
         get() = typeControl.model.schema.required
