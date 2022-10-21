@@ -395,6 +395,7 @@ class JsonPropertiesPane(
 
     fun collapseAll() {
         flattenBottomUp(treeItem).forEach { it.isExpanded = false }
+        treeItem.isExpanded = true
     }
 
     private fun updateExpandedState(pointers: Set<List<String>>, toSet: Boolean) {
