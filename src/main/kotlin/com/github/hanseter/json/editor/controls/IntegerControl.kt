@@ -13,25 +13,18 @@ class IntegerControl(schema: NumberSchema) : ControlWithProperty<Int?> {
 
     init {
         control.isEditable = true
-        control.editor.textProperty().addListener { _, _, new ->
-            if (new.isEmpty()) {
-                control.increment(0)
-            } else if (new.isNotEmpty() && new != "-") {
-                try {
-                    control.increment(0) // won't change value, but will commit editor
-                } catch (e: NumberFormatException) {
-                    control.editor.text = control.valueFactory.value?.toString() ?: "0"
-                }
-            }
-        }
         control.focusedProperty().addListener { _, _, new ->
             if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
-                control.editor.text = control.valueFactory.value?.toString() ?: ""
+                control.editor.text =
+                    control.valueFactory.converter.toString(property.value)
             }
+        }
+        control.editor.textProperty().addListener { _,_,_ ->
+            DoubleControl.updateValueAfterTextChange(control)
         }
     }
 
-    class IntegerSpinnerValueFactoryNullSafe() : SpinnerValueFactory<Int?>() {
+    class IntegerSpinnerValueFactoryNullSafe : SpinnerValueFactory<Int?>() {
         init {
             converter = IntegerStringConverter()
         }
