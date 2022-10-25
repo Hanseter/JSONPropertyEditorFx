@@ -6,22 +6,15 @@ import javafx.scene.control.SpinnerValueFactory
 import javafx.util.converter.IntegerStringConverter
 import org.everit.json.schema.NumberSchema
 
-class IntegerControl(schema: NumberSchema) : ControlWithProperty<Int?> {
-    override val control = Spinner<Int>(IntegerSpinnerValueFactoryNullSafe())
-    override val property: Property<Int?>
-        get() = control.valueFactory.valueProperty()
+class IntegerControl : NumberControl<Int?>() {
+
+    override val control: Spinner<Int?> =
+        Spinner<Int?>(IntegerSpinnerValueFactoryNullSafe()).apply {
+            isEditable = true
+        }
 
     init {
-        control.isEditable = true
-        control.focusedProperty().addListener { _, _, new ->
-            if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
-                control.editor.text =
-                    control.valueFactory.converter.toString(property.value)
-            }
-        }
-        control.editor.textProperty().addListener { _,_,_ ->
-            DoubleControl.updateValueAfterTextChange(control)
-        }
+        initControl()
     }
 
     class IntegerSpinnerValueFactoryNullSafe : SpinnerValueFactory<Int?>() {
@@ -36,9 +29,5 @@ class IntegerControl(schema: NumberSchema) : ControlWithProperty<Int?> {
         override fun decrement(steps: Int) {
             value = value?.minus(steps)
         }
-    }
-
-    override fun previewNull(b: Boolean) {
-        control.editor.promptText = if (b) TypeControl.NULL_PROMPT else ""
     }
 }

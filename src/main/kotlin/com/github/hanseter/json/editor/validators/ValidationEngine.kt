@@ -13,6 +13,7 @@ import org.everit.json.schema.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URI
+import java.text.DecimalFormat
 
 object ValidationEngine {
 
@@ -28,7 +29,13 @@ object ValidationEngine {
         val effectiveSchema = SimpleEffectiveSchema(null, parsedSchema, null)
         val control = ControlFactory.convert(
             effectiveSchema,
-            EditorContext({ referenceProposalProvider }, elemId, {}, IdRefDisplayMode.ID_ONLY)
+            EditorContext(
+                { referenceProposalProvider },
+                elemId,
+                {},
+                IdRefDisplayMode.ID_ONLY,
+                DecimalFormat().decimalFormatSymbols
+            )
         )
         control.bindTo(RootBindableType(data))
         return validate(
@@ -146,9 +153,11 @@ private fun <T> deepCopyForJson(obj: T): T = when (obj) {
     is JSONObject -> obj.keySet().fold(JSONObject()) { acc, it ->
         acc.put(it, deepCopyForJson(obj.get(it)))
     } as T
+
     is JSONArray -> obj.fold(JSONArray()) { acc, it ->
         acc.put(deepCopyForJson(it))
     } as T
+
     else -> obj
 }
 
