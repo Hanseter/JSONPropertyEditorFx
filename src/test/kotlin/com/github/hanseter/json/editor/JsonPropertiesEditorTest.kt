@@ -10,6 +10,7 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
+import org.testfx.util.WaitForAsyncUtils
 
 
 @ExtendWith(ApplicationExtension::class)
@@ -58,6 +59,7 @@ class JsonPropertiesEditorTest {
         assertThat(updateCount, `is`(1))
         val numberControl = (editor.getControlInTable("num") as Spinner<Number>)
         numberControl.editor.text = "1573"
+        WaitForAsyncUtils.waitForFxEvents()
         assertThat(data.similar(JSONObject().put("str", "foobar").put("num", 1573.0)), `is`(true))
         assertThat(updateCount, `is`(2))
     }

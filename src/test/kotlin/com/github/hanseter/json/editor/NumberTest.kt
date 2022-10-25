@@ -42,46 +42,61 @@ class NumberTest {
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(500.36)
         numberControl.editor.text = converted
+        WaitForAsyncUtils.waitForFxEvents()
         MatcherAssert.assertThat(data.getDouble("num"), `is`(500.36))
     }
 
     @ParameterizedTest
     @CsvSource(
-            "false, 723.168,  1, 724.168",
-            "false, 723.168, -1, 722.168",
-            "true,       42,  1, 43",
-            "true,       42, -1, 41"
+        "false, 723.168,  1, 724.168",
+        "false, 723.168, -1, 722.168",
+        "true,       42,  1, 43",
+        "true,       42, -1, 41"
     )
     fun modifyValueBySpinner(requireInt: Boolean, initialValue: Double, step: Int, result: Double) {
-        val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number","requireInt":"$requireInt"}}}""")
+        val schema =
+            JSONObject("""{"type":"object","properties":{"num":{"type":"number","requireInt":"$requireInt"}}}""")
         val data = JSONObject().put("num", initialValue)
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
-        numberControl.increment(step)
+        WaitForAsyncUtils.waitForAsync(10000) {
+            numberControl.increment(step)
+        }
+        WaitForAsyncUtils.waitForFxEvents()
         val converted = numberControl.valueFactory.converter.toString(result)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
     }
 
     @ParameterizedTest
     @CsvSource(
-            "false, 42.5,  1, 43.5",
-            "false, 42.5, -2, 40.5",
-            "true,    42,  5, 47",
-            "true,    42, -5, 37"
+        "false, 42.5,  1, 43.5",
+        "false, 42.5, -2, 40.5",
+        "true,    42,  5, 47",
+        "true,    42, -5, 37"
     )
-    fun modifyValueBySpinnerInRange(requireInt: Boolean, initialValue: Double, step: Int, result: Double) {
-        val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number",
+    fun modifyValueBySpinnerInRange(
+        requireInt: Boolean,
+        initialValue: Double,
+        step: Int,
+        result: Double
+    ) {
+        val schema = JSONObject(
+            """{"type":"object","properties":{"num":{"type":"number",
             "requireInt":"$requireInt",
             "minimum":41,
             "maximum":43
-}}}""")
+}}}"""
+        )
         val data = JSONObject().put("num", initialValue)
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         MatcherAssert.assertThat(editor.valid.get(), `is`(true))
-        numberControl.increment(step)
+        WaitForAsyncUtils.waitForAsync(10000) {
+            numberControl.increment(step)
+        }
+        WaitForAsyncUtils.waitForFxEvents()
         val converted = numberControl.valueFactory.converter.toString(result)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
         MatcherAssert.assertThat(editor.valid.get(), `is`(false))
@@ -89,7 +104,8 @@ class NumberTest {
 
     @Test
     fun displaysCorrectDefaultValue() {
-        val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number","default":723.168}}}""")
+        val schema =
+            JSONObject("""{"type":"object","properties":{"num":{"type":"number","default":723.168}}}""")
         editor.display("1", "1", JSONObject(), schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>

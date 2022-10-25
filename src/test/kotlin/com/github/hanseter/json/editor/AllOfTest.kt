@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
+import org.testfx.util.WaitForAsyncUtils
 
 @ExtendWith(ApplicationExtension::class)
 class AllOfTest {
@@ -70,6 +71,7 @@ class AllOfTest {
         (editor.getControlInTable("hello") as TextField).text = "Foobar"
         val numberControl = editor.getControlInTable("x") as Spinner<Number>
         numberControl.editor.text = numberControl.valueFactory.converter.toString(500.0)
+        WaitForAsyncUtils.waitForFxEvents()
         assertThat(data.keySet(), contains("notRoot"))
         val nestedData = data.getJSONObject("notRoot")
         assertThat(nestedData.keySet(), containsInAnyOrder("hello", "x"))
