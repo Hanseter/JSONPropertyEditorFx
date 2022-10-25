@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.scene.control.Spinner
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert
@@ -8,10 +9,16 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.ArgumentsSource
+import org.junit.jupiter.params.provider.ArgumentsSources
 import org.junit.jupiter.params.provider.CsvSource
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
 import org.testfx.util.WaitForAsyncUtils
+import java.text.DecimalFormatSymbols
+import kotlin.math.log10
+import kotlin.math.pow
 
 @ExtendWith(ApplicationExtension::class)
 class NumberTest {
@@ -20,7 +27,13 @@ class NumberTest {
 
     @Start
     fun start(stage: Stage) {
-        editor = JsonPropertiesEditor()
+        editor = JsonPropertiesEditor(
+            viewOptions = ViewOptions(
+                decimalFormatSymbols = DecimalFormatSymbols().apply {
+                    decimalSeparator = '.'
+                    groupingSeparator = ' '
+                })
+        )
     }
 
     @Test
@@ -60,6 +73,7 @@ class NumberTest {
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
+        WaitForAsyncUtils.waitForFxEvents()
         WaitForAsyncUtils.waitForAsync(10000) {
             numberControl.increment(step)
         }
@@ -92,6 +106,7 @@ class NumberTest {
         editor.display("1", "1", data, schema) { it }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
+        WaitForAsyncUtils.waitForFxEvents()
         MatcherAssert.assertThat(editor.valid.get(), `is`(true))
         WaitForAsyncUtils.waitForAsync(10000) {
             numberControl.increment(step)
@@ -111,6 +126,54 @@ class NumberTest {
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(723.168)
         MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        delimiter = ';', value = [
+            "0; 0; 123; 124",
+            "0.0; 0; 123; 124.0",
+            "0.00; 0; 123; 124.00",
+            "0.000; 0; 123; 124.000",
+            "0.000; 1; 1234; 124.400",
+            "0.000; 2; 12345; 124.450",
+            "0.000; 3; 123456; 124.456",
+            "0,000.000; 3; 1234567; 1 235.567",
+        ]
+    )
+    fun displaysFormattedInteger(
+        pattern: String,
+        precision: Int,
+        initialValue: Int,
+        expectedText: String
+    ) {
+        val schema = JSONObject()
+            .put("type", "object")
+            .put(
+                "properties", JSONObject()
+                    .put(
+                        "num", JSONObject()
+                            .put("type", "integer")
+                            .put(
+                                "int-format", JSONObject()
+                                    .put("pattern", pattern)
+                                    .put("precision", precision)
+                            )
+                    )
+            )
+        val multiplier = 10.0.pow(precision).toInt()
+        editor.display("1", "1", JSONObject().put("num", initialValue), schema) { it }
+        val itemTable = editor.getItemTable()
+        val numberControl = editor.getControlInTable("num") as Spinner<Int?>
+        WaitForAsyncUtils.waitForFxEvents()
+        WaitForAsyncUtils.waitForAsync(10000) {
+            numberControl.increment()
+        }
+        WaitForAsyncUtils.waitForFxEvents()
+        val converted =
+            numberControl.valueFactory.converter.toString(initialValue + multiplier)
+        MatcherAssert.assertThat(numberControl.editor.text, `is`(converted))
+        MatcherAssert.assertThat(numberControl.editor.text, `is`(expectedText))
     }
 
 }
