@@ -48,6 +48,13 @@ class FormattedIntegerControl(schema: NumberSchema, decimalFormatSymbols: Decima
 
     init {
         initControl()
+        control.focusedProperty().addListener { _,_,new->
+            //apply formatted value on focus lost
+            if(!new){
+                val formatted=control.valueFactory.converter.toString(control.value)
+                control.editor.text=formatted
+            }
+        }
     }
 
     private class FormattedIntegerSpinnerValueFactoryNullSafe(intFormat: IntFormat) :
