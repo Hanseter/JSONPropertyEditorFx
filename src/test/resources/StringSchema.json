@@ -98,6 +98,16 @@
       "minimum": 0,
       "exclusiveMaximum": 100
     },
+    "int_double": {
+      "type": "integer",
+      "default": 1234567,
+      "int-format": {
+        "pattern": "0.000",
+        "precision": 3
+      },
+      "minimum": 0,
+      "exclusiveMaximum": 10000000
+    },
     "number": {
       "type": "number",
       "default": 42.01,

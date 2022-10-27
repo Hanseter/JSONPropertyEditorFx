@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.controls.*
+import com.github.hanseter.json.editor.controls.FormattedIntegerControl.Companion.INT_FORMAT
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.ForceReadOnlyEffectiveSchema
 import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
@@ -22,12 +23,13 @@ object ControlFactory {
             is ArraySchema -> createArrayControl(schema as EffectiveSchema<ArraySchema>, context)
             is BooleanSchema -> createBooleanControl(schema as EffectiveSchema<BooleanSchema>)
             is StringSchema -> createStringControl(schema as EffectiveSchema<StringSchema>, context)
-            is NumberSchema -> createNumberControl(schema as EffectiveSchema<NumberSchema>)
+            is NumberSchema -> createNumberControl(schema as EffectiveSchema<NumberSchema>,context)
             is EnumSchema -> createEnumControl(schema, actualSchema)
             is CombinedSchema -> createCombinedControl(
                 schema as EffectiveSchema<CombinedSchema>,
                 context
             )
+
             is ConstSchema -> createConstControl(schema as EffectiveSchema<ConstSchema>)
             else -> UnsupportedTypeControl(UnsupportedTypeModel(schema))
         }
@@ -41,12 +43,14 @@ object ControlFactory {
                 ArrayModel(schema, schema.baseSchema.allItemSchema),
                 context
             )
+
             schema.baseSchema.itemSchemas != null -> TupleControl(
                 TupleModel(
                     schema,
                     schema.baseSchema.itemSchemas
                 ), context
             )
+
             else -> throw IllegalArgumentException("Only lists which contain the same type or tuples are supported. Check schema ${schema.baseSchema.schemaLocation}")
         }
 
@@ -63,19 +67,23 @@ object ControlFactory {
                 { IdReferenceControl(schema, context) },
                 IdReferenceModel(schema)
             )
+
             LocalTimeFormat.formatName -> RowBasedControl(
                 { LocalTimeControl() },
                 LocalTimeModel(schema)
             )
+
             "date" -> RowBasedControl({ DateControl() }, DateModel(schema))
             else -> RowBasedControl({ StringControl() }, StringModel(schema))
         }
 
-    private fun createNumberControl(schema: EffectiveSchema<NumberSchema>): TypeControl =
+    private fun createNumberControl(schema: EffectiveSchema<NumberSchema>, context: EditorContext): TypeControl =
         if (schema.baseSchema.requiresInteger()) {
-            RowBasedControl({ IntegerControl(schema.baseSchema) }, IntegerModel(schema))
+            if (schema.baseSchema.unprocessedProperties.keys.contains(INT_FORMAT)) {
+                RowBasedControl({ FormattedIntegerControl(schema.baseSchema,context.decimalFormatSymbols) }, IntegerModel(schema))
+            } else RowBasedControl({ IntegerControl() }, IntegerModel(schema))
         } else {
-            RowBasedControl({ DoubleControl(schema.baseSchema) }, DoubleModel(schema))
+            RowBasedControl({ DoubleControl(context.decimalFormatSymbols) }, DoubleModel(schema))
         }
 
     @Suppress("UNCHECKED_CAST")

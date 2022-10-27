@@ -18,6 +18,7 @@ import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.net.URI
+import java.text.DecimalFormatSymbols
 import java.util.stream.Stream
 
 fun main(args: Array<String>) {
