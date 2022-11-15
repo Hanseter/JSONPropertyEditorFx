@@ -14,11 +14,14 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
+import org.controlsfx.control.SearchableComboBox
 import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.net.URI
-import java.text.DecimalFormatSymbols
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.stream.Collectors
 import java.util.stream.Stream
 
 fun main(args: Array<String>) {
@@ -39,12 +42,13 @@ class JsonPropertiesEditorTestApp : Application() {
             numberOfInitiallyOpenedObjects = 2,
         )
 
-        val propEdit = JsonPropertiesEditor(false, viewOptions, customizationObject = TestCustomizationObject())
+        val propEdit = JsonPropertiesEditor(
+            false,
+            viewOptions,
+            customizationObject = TestCustomizationObject()
+        )
         propEdit.referenceProposalProvider = ReferenceProvider
         propEdit.resolutionScopeProvider = customResolutionScopeProvider
-
-
-        display(propEdit, "StringSchema.json", JSONObject())
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)
@@ -52,6 +56,7 @@ class JsonPropertiesEditorTestApp : Application() {
     }
 
     private fun display(editor: JsonPropertiesEditor, schemaName: String, data: JSONObject) {
+        editor.clear()
         editor.display("test", "isRoot 1 2 3 4 5 long text", data, loadSchema(schemaName)) {
             println(it.toString(1))
             editor.lookup("c2")
@@ -62,6 +67,14 @@ class JsonPropertiesEditorTestApp : Application() {
     private fun loadSchema(schemaName: String) =
         JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(schemaName)))
 
+    private fun getAllSchemas() :List<String> {
+        val basePath=Paths.get(this::class.java.classLoader.getResource("").toURI())?:return emptyList()
+        return Files.walk(basePath)
+            .filter { Files.isRegularFile(it) && it.toFile().extension == "json" }
+            .map { basePath.relativize(it).toString() }.collect(Collectors.toList())
+    }
+
+
     private fun buildUi(propEdit: JsonPropertiesEditor): Parent {
 
 
@@ -70,6 +83,16 @@ class JsonPropertiesEditorTestApp : Application() {
         val groupBy = ComboBox<PropertyGrouping>().apply {
             items.addAll(PropertyGrouping.values())
             selectionModel.select(0)
+        }
+
+        val schemas=SearchableComboBox<String>().apply {
+            items.addAll(getAllSchemas())
+            this.valueProperty().addListener { _, _, newValue ->
+                if(newValue!=null){
+                    display(propEdit, newValue, JSONObject())
+                }
+            }
+            selectionModel.selectFirst()
         }
 
         val updateViewOptions = { _: Any? ->
@@ -86,11 +109,12 @@ class JsonPropertiesEditorTestApp : Application() {
         return VBox(
             HBox(
                 showStars,
-                groupBy
-            ),
+                groupBy,
+                schemas,
+            ).apply { spacing=10.0 },
             PropertiesEditorToolbar(propEdit).node,
             propEdit
-        )
+        ).apply { spacing=10.0 }
     }
 
     object ReferenceProvider : IdReferenceProposalProvider {

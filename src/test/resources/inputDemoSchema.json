@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "a": {
+      "type": "string"
+    },
+    "b": {
+      "type": "integer"
+    },
+    "c": {
+      "type": "boolean"
+    },
+    "d": {
+      "type": "string",
+      "enum": [
+        "first",
+        "second",
+        "third"
+      ]
+    },
+    "e": {
+      "type": "object",
+      "properties": {
+        "ea": {
+          "type": "string"
+        },
+        "eb": {
+          "type": "integer"
+        },
+        "ec": {
+          "type": "boolean"
+        },
+        "ef": {
+          "type": "string",
+          "enum": [
+            "first",
+            "second",
+            "third"
+          ]
+        }
+      },
+      "default": {}
+    },
+    "f": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "",
+        "",
+        ""
+      ]
+    }
+  }
+}
