@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.base.TestUtils.getAllSchemas
+import com.github.hanseter.json.editor.base.TestUtils.loadSchema
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.PropertiesEditorToolbar
 import com.github.hanseter.json.editor.util.CustomizationObject
@@ -62,16 +64,6 @@ class JsonPropertiesEditorTestApp : Application() {
             editor.lookup("c2")
             it
         }
-    }
-
-    private fun loadSchema(schemaName: String) =
-        JSONObject(JSONTokener(this::class.java.classLoader.getResourceAsStream(schemaName)))
-
-    private fun getAllSchemas() :List<String> {
-        val basePath=Paths.get(this::class.java.classLoader.getResource("").toURI())?:return emptyList()
-        return Files.walk(basePath)
-            .filter { Files.isRegularFile(it) && it.toFile().extension == "json" }
-            .map { basePath.relativize(it).toString() }.collect(Collectors.toList())
     }
 
 

@@ -5,10 +5,12 @@
  */
 package com.github.hanseter.json.editor.ui.skins
 
+import com.sun.javafx.scene.control.skin.CheckBoxSkin
 import javafx.application.Application
 import javafx.geometry.Pos
 import javafx.scene.Scene
 import javafx.scene.control.CheckBox
+import javafx.scene.control.Skin
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
 
@@ -29,40 +31,63 @@ class ToggleSwitchSkinTestApp : Application() {
     }
 
     override fun start(primaryStage: Stage) {
-        val checkBoxNoLabelTrue = CheckBox().withToggleSkin().apply {
-            isSelected = true
-        }
-        val checkBoxNoLabelFalse = CheckBox().withToggleSkin().apply {
-            isSelected = false
-        }
-        val checkBoxNoLabelNull = CheckBox().withToggleSkin().apply {
-            isIndeterminate = true
-        }
-        val checkBoxTrue = CheckBox("true").withToggleSkin().apply {
-            isSelected = true
-        }
-        val checkBoxFalse = CheckBox("false").withToggleSkin().apply {
-            isSelected = false
-        }
-        val checkBoxNull = CheckBox("Null").withToggleSkin().apply {
-            isIndeterminate = true
-        }
-        val checkBoxDisabled = CheckBox("Disabled").withToggleSkin().apply {
-            isIndeterminate = true
-            isDisable = true
-        }
         val root = GridPane().apply {
             vgap = 10.0
             hgap = 10.0
             alignment = Pos.CENTER
-            addRow(0, checkBoxNoLabelTrue, checkBoxNoLabelFalse, checkBoxNoLabelNull)
-            addRow(1, checkBoxTrue, checkBoxFalse, checkBoxNull)
-            addRow(2, checkBoxDisabled)
-            addRow(3, CheckBox(), CheckBox("default"))
+
+            createCheckBoxes().forEachIndexed { row, checkBoxes ->
+                checkBoxes.forEach {
+                    addRow(row, it.apply { it.withToggleSkin() })
+                }
+            }
+            createCheckBoxes().forEachIndexed { row, checkBoxes ->
+                checkBoxes.forEach {
+                    addRow(row, it)
+                }
+            }
         }
         primaryStage.scene = Scene(root, 400.0, 400.0)
 
         primaryStage.show()
 
+    }
+
+    fun createCheckBoxes(): List<List<CheckBox>> {
+        val checkBoxNoLabelTrue = CheckBox().apply {
+            isSelected = true
+        }
+        val checkBoxNoLabelFalse = CheckBox().apply {
+            isSelected = false
+        }
+        val checkBoxNoLabelNull = CheckBox().apply {
+            isIndeterminate = true
+        }
+        val checkBoxTrue = CheckBox("true").apply {
+            isSelected = true
+        }
+        val checkBoxFalse = CheckBox("false").apply {
+            isSelected = false
+        }
+        val checkBoxNull = CheckBox("Null").apply {
+            isIndeterminate = true
+        }
+        val checkBoxDisabledTrue = CheckBox("true").apply {
+            isSelected = true
+            isDisable = true
+        }
+        val checkBoxDisabledFalse = CheckBox("false").apply {
+            isSelected = false
+            isDisable = true
+        }
+        val checkBoxDisabledNull = CheckBox("Null").apply {
+            isIndeterminate = true
+            isDisable = true
+        }
+        return listOf(
+            listOf(checkBoxNoLabelTrue, checkBoxNoLabelFalse, checkBoxNoLabelNull),
+            listOf(checkBoxTrue, checkBoxFalse, checkBoxNull),
+            listOf(checkBoxDisabledTrue, checkBoxDisabledFalse, checkBoxDisabledNull),
+        )
     }
 }
