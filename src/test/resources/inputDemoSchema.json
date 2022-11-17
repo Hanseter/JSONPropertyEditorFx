@@ -9,7 +9,10 @@
       "type": "integer"
     },
     "c": {
-      "type": "boolean"
+      "type": [
+        "boolean",
+        "null"
+      ]
     },
     "d": {
       "type": "string",

@@ -1,8 +1,8 @@
 package com.github.hanseter.json.editor
 
+import javafx.scene.control.CheckBox
 import javafx.scene.control.Control
 import javafx.scene.control.TextField
-import org.controlsfx.control.ToggleSwitch
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.json.JSONArray
@@ -23,7 +23,7 @@ class PrimitivesNullDefaultTest {
     }
 
     private val testData = listOf(
-            TestData("boolean", true) { (it as ToggleSwitch).isSelected },
+            TestData("boolean", true) { (it as CheckBox).isSelected },
             TestData("string", "default") { (it as TextField).text }
     )
 

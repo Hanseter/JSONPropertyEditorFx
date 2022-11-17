@@ -2,7 +2,6 @@ package com.github.hanseter.json.editor.util
 
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.controls.TypeControl
-import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.function.Supplier
 

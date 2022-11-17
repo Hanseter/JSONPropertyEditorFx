@@ -7,7 +7,6 @@ package com.github.hanseter.json.editor.controls
 
 import javafx.application.Platform
 import javafx.beans.property.Property
-import javafx.scene.control.Control
 import javafx.scene.control.Spinner
 
 /**

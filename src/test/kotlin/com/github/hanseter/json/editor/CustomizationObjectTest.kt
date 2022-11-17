@@ -2,7 +2,6 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.CustomizationObject
-import javafx.scene.control.Label
 import javafx.scene.control.Labeled
 import javafx.scene.control.TextField
 import javafx.stage.Stage

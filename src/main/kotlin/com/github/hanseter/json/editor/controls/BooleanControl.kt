@@ -1,43 +1,39 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.ui.skins.ToggleSwitchSkin
-import javafx.beans.binding.Bindings
-import javafx.beans.property.Property
-import javafx.beans.property.SimpleBooleanProperty
+import com.github.hanseter.json.editor.ui.skins.setNullableBoolean
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
-import javafx.beans.value.WeakChangeListener
+import javafx.beans.value.ObservableValue
 import javafx.scene.control.CheckBox
-import org.controlsfx.control.ToggleSwitch
 
-class BooleanControl : ControlWithProperty<Boolean?> {
+class BooleanControl : ControlWithProperty<Boolean?>, ChangeListener<Boolean?> {
     override val control: CheckBox = CheckBox().apply {
         skin = ToggleSwitchSkin(this)
-        isIndeterminate = true
+        isIndeterminate=true
     }
 
-    private val nullableProperty = SimpleObjectProperty<Boolean?>().apply {
-        addListener{ _, _, newValue ->
-            control.setValue(newValue)
+    override val property = SimpleObjectProperty<Boolean?>(null)
+
+    init {
+        property.addListener(this)
+        control.selectedProperty().addListener { _, _, new ->
+            property.removeListener(this)
+            property.value = new
+            property.addListener(this)
         }
     }
-    override val property: Property<Boolean?>
-        get() = control.selectedProperty()
 
     override fun previewNull(b: Boolean) {
         control.text = if (b) TypeControl.NULL_PROMPT else ""
     }
 
-    private fun CheckBox.setValue(newValue: Boolean?) {
-        when (newValue) {
-            true -> {
-                selectedProperty().value=true
-            }
-            false -> {
-                selectedProperty().value=false
-            }
-            null -> isIndeterminate = true
-        }
+    override fun changed(
+        observable: ObservableValue<out Boolean?>?,
+        oldValue: Boolean?,
+        newValue: Boolean?
+    ) {
+        control.setNullableBoolean(newValue)
     }
 }
 

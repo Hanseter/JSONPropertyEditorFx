@@ -213,3 +213,30 @@ class ToggleSwitchSkin(checkBox: CheckBox) :
         }
     }
 }
+
+fun CheckBox.setNullableBoolean(newValue: Boolean?) {
+    when (newValue) {
+        true -> {
+            isSelected = true
+            isIndeterminate = false
+        }
+
+        false -> {
+            isSelected = false
+            isIndeterminate = false
+        }
+
+        null -> {
+            isIndeterminate = true
+            isSelected = false
+        }
+    }
+}
+
+fun CheckBox.getNullableBoolean(): Boolean? {
+    return when {
+        isSelected && !isIndeterminate -> true
+        !isSelected && !isIndeterminate -> false
+        else -> null
+    }
+}
