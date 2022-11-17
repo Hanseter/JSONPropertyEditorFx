@@ -5,6 +5,7 @@
  */
 package com.github.hanseter.json.editor.ui
 
+import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeTableView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -39,6 +40,34 @@ class CustomTreeTableView<S> : TreeTableView<S>() {
                     else -> {}
                 }
             }
+        }
+        addEventFilter(KeyEvent.KEY_PRESSED) {
+            if (it.isConsumed) return@addEventFilter
+            if (it.code in FOLD_KEYS && it.isAltDown) {
+                it.consume()
+                when (it.code) {
+                    in EXPAND_KEYS -> expandSelectedCell()
+                    in COLLAPSE_KEYS -> collapseSelectedCell()
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun getSelected() = this.selectionModel.selectedCells.firstOrNull()?.treeItem
+    private fun expandSelectedCell() = getSelected()?.also {
+        if (!it.isLeaf) {
+            it.setExpanedTreeItem(true)
+        }
+    }
+
+    private fun collapseSelectedCell() = getSelected()?.also {
+        if (it.isLeaf) {
+            it.parent?.also { parent ->
+                parent.setExpanedTreeItem(false)
+            }
+        } else {
+            it.setExpanedTreeItem(false)
         }
     }
 
@@ -81,9 +110,16 @@ class CustomTreeTableView<S> : TreeTableView<S>() {
             selectionModel.selectRightCell()
         }
 
+        private fun TreeItem<*>.setExpanedTreeItem(expanded: Boolean) {
+            isExpanded = expanded
+        }
+
         private val UP_KEYS = setOf(KeyCode.UP, KeyCode.KP_UP)
         private val DOWN_KEYS = setOf(KeyCode.DOWN, KeyCode.KP_DOWN)
         private val LEFT_KEYS = setOf(KeyCode.LEFT, KeyCode.KP_LEFT)
         private val RIGHT_KEYS = setOf(KeyCode.RIGHT, KeyCode.KP_RIGHT)
+        private val EXPAND_KEYS = setOf(KeyCode.PLUS, KeyCode.ADD)
+        private val COLLAPSE_KEYS = setOf(KeyCode.MINUS, KeyCode.SUBTRACT)
+        private val FOLD_KEYS = EXPAND_KEYS + COLLAPSE_KEYS
     }
 }

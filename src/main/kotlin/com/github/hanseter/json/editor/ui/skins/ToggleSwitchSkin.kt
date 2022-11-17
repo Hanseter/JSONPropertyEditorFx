@@ -33,7 +33,7 @@ class ToggleSwitchSkin(checkBox: CheckBox) :
     }
 
     init {
-        checkBox.stylesheets.add(CSS)
+        checkBox.stylesheets.setAll(CSS)
     }
 
     override fun getCssMetaData(): MutableList<CssMetaData<out Styleable, *>> {
