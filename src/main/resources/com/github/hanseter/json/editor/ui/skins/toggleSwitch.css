@@ -1,0 +1,49 @@
+/*******************************************************************************
+ *                                                                             *
+ * ToggleSwitch                                                                *
+ *                                                                             *
+ ******************************************************************************/
+.check-box .thumb {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 1.0em; /* large value to make sure this remains circular */
+    -fx-padding: 0.75em;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;
+    -fx-border-color: transparent;
+    -fx-border-radius: 1em;
+}
+.check-box:hover .thumb{
+    -fx-color: -fx-hover-base
+}
+
+.check-box .thumb-area{
+    -fx-background-radius: 1em;
+    -fx-background-color: -fx-outer-border, -fx-inner-border, #FE8389;
+    -fx-background-insets: 0, 1;
+    -fx-padding: 0.75em 1.333333em 0.75em 1.333333em; /* 7 16 7 16 */
+    -fx-border-color: transparent;
+    -fx-border-radius: 1em;
+    -fx-border-insets: 0, 1;
+}
+
+.check-box:selected .thumb-area{
+    -fx-background-color: -fx-outer-border, -fx-inner-border,#00bedc
+}
+
+.check-box:indeterminate .thumb-area{
+    -fx-background-color:  -fx-outer-border, -fx-inner-border, #f5f5f5;
+}
+
+.check-box:focused .thumb-area{
+    -fx-border-color: -fx-focus-color;
+}
+
+.check-box:focused .thumb{
+    -fx-border-color: -fx-focus-color;
+}
+
+.check-box:disabled
+{
+    -fx-opacity: 0.4;
+}
