@@ -87,8 +87,9 @@
     -fx-text-fill: gray;
 }
 
-
-
+.tree-table-cell:focused {
+   -fx-background-color: #0096c9;
+}
 /**
  DATA REFERENCE FIELDS
  */
