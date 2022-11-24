@@ -16,12 +16,6 @@ import javafx.scene.input.KeyEvent
  */
 class CustomTreeTableView<S> : TreeTableView<S>() {
     init {
-        addEventFilter(KeyEvent.KEY_PRESSED) {
-            if (it.code == KeyCode.TAB) {
-                it.consume()
-                selectNext()
-            }
-        }
         addEventHandler(KeyEvent.KEY_PRESSED) {
             if (!(it.isAltDown && it.code.isArrowKey)) {
                 it.consume()
@@ -29,6 +23,11 @@ class CustomTreeTableView<S> : TreeTableView<S>() {
         }
         addEventFilter(KeyEvent.KEY_PRESSED) {
             if (it.isConsumed) return@addEventFilter
+
+            if (it.code == KeyCode.TAB) {
+                it.consume()
+                selectNext()
+            }
 
             if (it.code.isArrowKey && it.isAltDown) {
                 it.consume()
@@ -51,6 +50,11 @@ class CustomTreeTableView<S> : TreeTableView<S>() {
                     else -> {}
                 }
             }
+        }
+        addEventFilter(KeyEvent.KEY_PRESSED) {
+            if (it.isConsumed) return@addEventFilter
+            val a=this
+            val b=0
         }
     }
 
