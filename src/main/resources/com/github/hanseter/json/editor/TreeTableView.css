@@ -90,6 +90,14 @@
 .tree-table-cell:focused {
    -fx-background-color: #0096c9;
 }
+
+.tree-table-view {
+   -fx-background-color: transparent;
+}
+
+.tree-table-view:focused {
+   -fx-background-color: transparent;
+}
 /**
  DATA REFERENCE FIELDS
  */
