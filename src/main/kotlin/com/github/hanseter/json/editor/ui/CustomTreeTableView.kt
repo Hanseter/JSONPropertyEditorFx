@@ -51,11 +51,6 @@ class CustomTreeTableView<S> : TreeTableView<S>() {
                 }
             }
         }
-        addEventFilter(KeyEvent.KEY_PRESSED) {
-            if (it.isConsumed) return@addEventFilter
-            val a=this
-            val b=0
-        }
     }
 
     private fun getSelected() = this.selectionModel.selectedCells.firstOrNull()?.treeItem
