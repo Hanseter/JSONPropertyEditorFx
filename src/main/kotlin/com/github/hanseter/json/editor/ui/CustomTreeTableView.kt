@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.ui
 
 import javafx.scene.control.TreeItem
@@ -10,10 +5,6 @@ import javafx.scene.control.TreeTableView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class CustomTreeTableView<S> : TreeTableView<S>() {
     init {
         addEventHandler(KeyEvent.KEY_PRESSED) {

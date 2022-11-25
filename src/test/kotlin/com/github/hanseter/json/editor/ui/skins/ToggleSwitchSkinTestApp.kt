@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.ui.skins
 
 import com.sun.javafx.scene.control.skin.CheckBoxSkin
@@ -13,11 +8,6 @@ import javafx.scene.control.CheckBox
 import javafx.scene.control.Skin
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
-
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class ToggleSwitchSkinTestApp : Application() {
     companion object {
         @JvmStatic

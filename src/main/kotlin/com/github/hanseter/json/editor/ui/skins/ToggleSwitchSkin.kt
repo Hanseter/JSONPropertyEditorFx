@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.ui.skins
 
 import com.sun.javafx.scene.control.behavior.ButtonBehavior
@@ -20,10 +15,6 @@ import javafx.util.Duration
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class ToggleSwitchSkin(checkBox: CheckBox) :
     LabeledSkinBase<CheckBox, ButtonBehavior<CheckBox>>(checkBox, ButtonBehavior(checkBox)) {
 

@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.base
 
 import com.github.hanseter.json.editor.JsonPropertiesEditor
@@ -20,10 +15,6 @@ import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
 import org.testfx.util.WaitForAsyncUtils
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 @ExtendWith(ApplicationExtension::class)
 open class EditorTestBase {
 

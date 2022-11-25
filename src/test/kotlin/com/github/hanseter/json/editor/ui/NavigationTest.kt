@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.ui
 
 import com.github.hanseter.json.editor.base.EditorTestBase
@@ -16,10 +11,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.testfx.framework.junit5.Start
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class NavigationTest : EditorTestBase() {
 
     @Start

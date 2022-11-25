@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.controls
 
 import javafx.scene.control.Spinner
@@ -15,10 +10,6 @@ import java.text.ParsePosition
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class FormattedIntegerControl(schema: NumberSchema, decimalFormatSymbols: DecimalFormatSymbols) :
     NumberControl<Int?>() {
 
