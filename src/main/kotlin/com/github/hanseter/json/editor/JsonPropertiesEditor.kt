@@ -48,7 +48,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
     private val keyColumn = createKeyColumn()
 
-    private val treeTableView = CustomTreeTableView<TreeItemData>().apply {
+    private val treeTableView = TreeTableView<TreeItemData>().apply {
         id = "itemTable"
         rowFactory = Callback { TreeItemDataRow() }
 
@@ -62,7 +62,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
         root = rootItem
         this.selectionModel.isCellSelectionEnabled = true
+        TreeTableNavigation.addNavigationToTreeTableView(this)
     }
+
     private val scrollPane = ScrollPane().apply {
         id = "contentArea"
         content = treeTableView

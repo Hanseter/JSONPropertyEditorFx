@@ -1,7 +1,6 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.ui.skins.ToggleSwitchSkin
-import com.github.hanseter.json.editor.ui.skins.setNullableBoolean
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
@@ -33,7 +32,26 @@ class BooleanControl : ControlWithProperty<Boolean?>, ChangeListener<Boolean?> {
         oldValue: Boolean?,
         newValue: Boolean?
     ) {
-        control.setNullableBoolean(newValue)
+        setNullableBoolean(newValue)
+    }
+
+    private fun setNullableBoolean(newValue: Boolean?) {
+        when (newValue) {
+            true -> {
+                control.isSelected = true
+                control.isIndeterminate = false
+            }
+
+            false -> {
+                control.isSelected = false
+                control.isIndeterminate = false
+            }
+
+            null -> {
+                control.isIndeterminate = true
+                control.isSelected = false
+            }
+        }
     }
 }
 

@@ -27,15 +27,11 @@ class ToggleSwitchSkin(checkBox: CheckBox) :
         checkBox.stylesheets.setAll(CSS)
     }
 
-    override fun getCssMetaData(): MutableList<CssMetaData<out Styleable, *>> {
-        return super.getCssMetaData()
-    }
-
     private val thumb = StackPane()
     private val thumbArea = StackPane()
     private val transition = TranslateTransition(Duration.millis(200.0), thumb)
 
-    val box = StackPane().apply {
+    private val box = StackPane().apply {
         thumbArea.apply {
             styleClass.setAll("thumb-area")
         }
@@ -134,7 +130,7 @@ class ToggleSwitchSkin(checkBox: CheckBox) :
     ): Double {
         return Math.max(
             super.computePrefHeight(
-                width - box!!.prefWidth(-1.0),
+                width - box.prefWidth(-1.0),
                 topInset,
                 rightInset,
                 bottomInset,
@@ -202,32 +198,5 @@ class ToggleSwitchSkin(checkBox: CheckBox) :
             HPos.RIGHT -> w - contentWidth
             else -> 0.0
         }
-    }
-}
-
-fun CheckBox.setNullableBoolean(newValue: Boolean?) {
-    when (newValue) {
-        true -> {
-            isSelected = true
-            isIndeterminate = false
-        }
-
-        false -> {
-            isSelected = false
-            isIndeterminate = false
-        }
-
-        null -> {
-            isIndeterminate = true
-            isSelected = false
-        }
-    }
-}
-
-fun CheckBox.getNullableBoolean(): Boolean? {
-    return when {
-        isSelected && !isIndeterminate -> true
-        !isSelected && !isIndeterminate -> false
-        else -> null
     }
 }

@@ -1,6 +1,5 @@
 package com.github.hanseter.json.editor
 
-import com.github.hanseter.json.editor.ui.skins.getNullableBoolean
 import javafx.scene.control.CheckBox
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert.assertThat
@@ -19,6 +18,16 @@ import java.util.stream.Stream
 @ExtendWith(ApplicationExtension::class)
 class BooleanTest {
     lateinit var editor: JsonPropertiesEditor
+
+    companion object{
+        fun CheckBox.getNullableBoolean(): Boolean? {
+            return when {
+                isSelected && !isIndeterminate -> true
+                !isSelected && !isIndeterminate -> false
+                else -> null
+            }
+        }
+    }
 
     @Start
     fun start(stage: Stage) {

@@ -9,6 +9,7 @@ import org.hamcrest.Matchers.*
 import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.testfx.api.FxRobot
 import org.testfx.framework.junit5.Start
 
 class NavigationTest : EditorTestBase() {
@@ -25,9 +26,9 @@ class NavigationTest : EditorTestBase() {
     }
 
     @Test
-    fun `navigate up and down and type text`() {
+    fun `navigate up and down and type text`(robot:FxRobot) {
         val testText = "changed!"
-        val valueCells = getValueCells()
+        val valueCells = getValueCells(robot)
         robot.clickOn(valueCells.first())
         repeat(5) {
             robot.typeHolingAlt(KeyCode.DOWN)
@@ -36,7 +37,7 @@ class NavigationTest : EditorTestBase() {
         repeat(2) {
             robot.typeHolingAlt(KeyCode.DOWN)
             robot.write(testText)
-            val selectedCell = getTable().selectionModel.selectedCells.firstOrNull()
+            val selectedCell = getTable(robot).selectionModel.selectedCells.firstOrNull()
             assertThat(selectedCell, notNullValue())
             val cellValue = getCellValue(selectedCell)
             assertThat(cellValue, `is`(testText))
@@ -46,7 +47,7 @@ class NavigationTest : EditorTestBase() {
         repeat(2) {
             robot.typeHolingAlt(KeyCode.UP)
             robot.write(testText + testText)
-            val selectedCell = getTable().selectionModel.selectedCells.firstOrNull()
+            val selectedCell = getTable(robot).selectionModel.selectedCells.firstOrNull()
             assertThat(selectedCell, notNullValue())
             val cellValue = getCellValue(selectedCell)
             assertThat(cellValue, `is`(testText + testText))
@@ -54,15 +55,15 @@ class NavigationTest : EditorTestBase() {
     }
 
     @Test
-    fun `collapse and expand`(){
-        val valueCell = getValueCells().first()
+    fun `collapse and expand`(robot:FxRobot){
+        val valueCell = getValueCells(robot).first()
         robot.clickOn(valueCell)
         //collapse
         robot.typeHolingAlt(KeyCode.SUBTRACT)
-        assertThat( getTable().root.children.first().isExpanded, `is`(false))
+        assertThat( getTable(robot).root.children.first().isExpanded, `is`(false))
         //expand
         robot.typeHolingAlt(KeyCode.ADD)
-        assertThat( getTable().root.children.first().isExpanded, `is`(true))
+        assertThat( getTable(robot).root.children.first().isExpanded, `is`(true))
 
     }
 }
