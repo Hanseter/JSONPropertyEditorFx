@@ -22,7 +22,6 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
     override val property: Property<String?> = SimpleObjectProperty<String?>(null)
 
     init {
-        control.minWidth = 150.0
 
         val enumDescriptions = model.enumDescriptions
 

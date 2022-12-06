@@ -76,6 +76,7 @@ class JsonPropertiesEditorTest {
         val numberControl = (editor.getControlInTable("num") as Spinner<Number>)
         val stringControl = (editor.getControlInTable("str") as TextField)
         stringControl.text = "foobar"
+        WaitForAsyncUtils.waitForFxEvents()
         assertThat(numberControl.editor.text, `is`("17"))
     }
 }

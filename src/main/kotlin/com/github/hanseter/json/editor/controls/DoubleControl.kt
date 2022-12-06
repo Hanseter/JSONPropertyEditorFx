@@ -14,7 +14,6 @@ class DoubleControl(decimalFormatSymbols: DecimalFormatSymbols) : NumberControl<
     }
 
     override val control = Spinner<Double?>().apply {
-        minWidth = 150.0
         valueFactory = DoubleSpinnerValueFactory(StringDoubleConverter(decimalFormat))
         isEditable = true
     }
