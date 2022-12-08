@@ -324,7 +324,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         init {
             selectedProperty().addListener { _, _, newValue ->
                 if (newValue) {
-                    val a=lazyControl?.control?.isFocused
                     lazyControl?.control?.requestFocus()
                 }
             }
