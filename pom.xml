@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.hanseter</groupId>
     <artifactId>json-properties-fx</artifactId>
-    <version>0.0.39</version>
+    <version>0.0.40</version>
 
     <packaging>bundle</packaging>
     <name>JSON Properties Editor Fx</name>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
-            <version>8.40.18</version>
+            <version>8.40.18b</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

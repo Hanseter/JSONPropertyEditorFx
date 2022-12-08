@@ -12,7 +12,6 @@ class ColorControl : ControlWithProperty<String?> {
 
     init {
         control.minHeight = 25.0
-        control.minWidth = 150.0
         Bindings.bindBidirectional(property, control.valueProperty(), ColorStringConverter)
     }
 

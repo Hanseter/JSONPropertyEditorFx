@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.TupleModel
+import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.LazyControl
@@ -20,7 +21,9 @@ class TupleControl(override val model: TupleModel, context: EditorContext) : Typ
             if (childControls.isEmpty()) {
                 childControls.addAll(childControlsNotNull)
             }
-            childControls.forEach { it.bindTo(subType) }
+            childControls.forEachIndexed { index, it ->
+                it.bindTo(BindableJsonArrayEntry(subType, index))
+            }
         } else {
             childControls.clear()
         }

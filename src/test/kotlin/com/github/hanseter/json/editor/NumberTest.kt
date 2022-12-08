@@ -9,15 +9,11 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.ArgumentsSource
-import org.junit.jupiter.params.provider.ArgumentsSources
 import org.junit.jupiter.params.provider.CsvSource
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
 import org.testfx.util.WaitForAsyncUtils
 import java.text.DecimalFormatSymbols
-import kotlin.math.log10
 import kotlin.math.pow
 
 @ExtendWith(ApplicationExtension::class)

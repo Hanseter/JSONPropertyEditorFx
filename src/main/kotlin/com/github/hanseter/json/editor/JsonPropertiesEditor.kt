@@ -9,10 +9,12 @@ import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.util.ViewOptions
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
 import com.github.hanseter.json.editor.validators.Validator
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableBooleanValue
+import javafx.beans.value.WeakChangeListener
 import javafx.scene.control.*
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
@@ -59,7 +61,10 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         isShowRoot = false
         columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
         root = rootItem
+        this.selectionModel.isCellSelectionEnabled = true
+        TreeTableNavigation.addNavigationToTreeTableView(this)
     }
+
     private val scrollPane = ScrollPane().apply {
         id = "contentArea"
         content = treeTableView
@@ -316,6 +321,14 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         private var changeListener: ((TreeItemData) -> Unit) = this::updateControl
         private var lazyControl: LazyControl? = null
 
+        init {
+            selectedProperty().addListener { _, _, newValue ->
+                if (newValue) {
+                    lazyControl?.control?.requestFocus()
+                }
+            }
+        }
+
         public override fun updateItem(item: TreeItemData?, empty: Boolean) {
             getItem()?.removeChangeListener(changeListener)
             super.updateItem(item, empty)
@@ -325,7 +338,15 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                 text = null
                 graphic = null
             } else {
-                graphic = lazyControl?.control
+                graphic = lazyControl?.control.also {
+                    it?.focusedProperty()?.addListener(WeakChangeListener{ _, _, newValue ->
+                        if(newValue){
+                            Platform.runLater {
+                                treeTableView.selectionModel.clearAndSelect(treeTableRow.index,tableColumn)
+                            }
+                        }
+                    })
+                }
                 updateControl(item)
                 item.registerChangeListener(changeListener)
             }

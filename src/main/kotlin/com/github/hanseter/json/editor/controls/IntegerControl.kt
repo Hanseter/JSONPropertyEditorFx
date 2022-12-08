@@ -1,10 +1,8 @@
 package com.github.hanseter.json.editor.controls
 
-import javafx.beans.property.Property
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
 import javafx.util.converter.IntegerStringConverter
-import org.everit.json.schema.NumberSchema
 
 class IntegerControl : NumberControl<Int?>() {
 

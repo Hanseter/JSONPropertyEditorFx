@@ -1,19 +1,9 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.controls
 
 import javafx.application.Platform
 import javafx.beans.property.Property
-import javafx.scene.control.Control
 import javafx.scene.control.Spinner
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 abstract class NumberControl<T : Number?> : ControlWithProperty<T> {
 
     abstract override val control: Spinner<T>
