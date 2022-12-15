@@ -1,6 +1,9 @@
-package com.github.hanseter.json.editor
+package com.github.hanseter.json.editor.app
 
-import com.github.hanseter.json.editor.base.TestUtils.getAllSchemas
+import com.github.hanseter.json.editor.IdReferenceProposalProvider
+import com.github.hanseter.json.editor.JsonPropertiesEditor
+import com.github.hanseter.json.editor.ResolutionScopeProvider
+import com.github.hanseter.json.editor.base.TestUtils
 import com.github.hanseter.json.editor.base.TestUtils.loadSchema
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.PropertiesEditorToolbar
@@ -16,14 +19,10 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
-import org.controlsfx.control.SearchableComboBox
 import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.net.URI
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.util.stream.Collectors
 import java.util.stream.Stream
 
 fun main(args: Array<String>) {
@@ -77,8 +76,7 @@ class JsonPropertiesEditorTestApp : Application() {
             selectionModel.select(0)
         }
 
-        val schemas=SearchableComboBox<String>().apply {
-            items.addAll(getAllSchemas())
+        val schemas=TestUtils.createSchemaComboBox().apply {
             this.valueProperty().addListener { _, _, newValue ->
                 if(newValue!=null){
                     display(propEdit, newValue, JSONObject())

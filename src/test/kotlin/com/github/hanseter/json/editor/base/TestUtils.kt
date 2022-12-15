@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.base
 
 import com.sun.javafx.robot.FXRobot
 import javafx.scene.input.KeyCode
+import org.controlsfx.control.SearchableComboBox
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.nio.file.Files
@@ -17,5 +18,9 @@ object TestUtils {
         return Files.walk(basePath)
             .filter { Files.isRegularFile(it) && it.toFile().extension == "json" }
             .map { basePath.relativize(it).toString() }.collect(Collectors.toList())
+    }
+
+    fun createSchemaComboBox() = SearchableComboBox<String>().apply {
+        items.addAll(getAllSchemas())
     }
 }
