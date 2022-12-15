@@ -1,7 +1,6 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.controls.*
-import com.github.hanseter.json.editor.controls.FormattedIntegerControl.Companion.INT_FORMAT
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.ForceReadOnlyEffectiveSchema
 import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
@@ -10,6 +9,7 @@ import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import com.github.hanseter.json.editor.schemaExtensions.LocalTimeFormat
 import com.github.hanseter.json.editor.schemaExtensions.synthetic
 import com.github.hanseter.json.editor.types.*
+import com.github.hanseter.json.editor.types.FormattedIntegerModel.Companion.INT_FORMAT
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
 
@@ -80,7 +80,7 @@ object ControlFactory {
     private fun createNumberControl(schema: EffectiveSchema<NumberSchema>, context: EditorContext): TypeControl =
         if (schema.baseSchema.requiresInteger()) {
             if (schema.baseSchema.unprocessedProperties.keys.contains(INT_FORMAT)) {
-                RowBasedControl({ FormattedIntegerControl(schema.baseSchema,context.decimalFormatSymbols) }, IntegerModel(schema))
+                RowBasedControl({ FormattedIntegerControl(schema.baseSchema,context.decimalFormatSymbols) }, FormattedIntegerModel(schema,context.decimalFormatSymbols))
             } else RowBasedControl({ IntegerControl() }, IntegerModel(schema))
         } else {
             RowBasedControl({ DoubleControl(context.decimalFormatSymbols) }, DoubleModel(schema))

@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.ModelControlSynchronizer
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.LazyControl
@@ -17,6 +18,9 @@ class RowBasedControl<T>(
     override fun bindTo(type: BindableJsonType) {
         model.bound = type
     }
+
+    override val previewString: PreviewString
+        get() = model.previewString
 
     override fun createLazyControl(): LazyControl = SimpleLazyControl(controlWithPropertyProvider())
 

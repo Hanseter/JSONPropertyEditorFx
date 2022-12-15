@@ -4,7 +4,8 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.NumberSchema
 
-class IntegerModel(override val schema: EffectiveSchema<NumberSchema>) : TypeModel<Int?, SupportedType.SimpleType.IntType> {
+open class IntegerModel(override val schema: EffectiveSchema<NumberSchema>) :
+    TypeModel<Int?, SupportedType.SimpleType.IntType> {
     override val supportedType: SupportedType.SimpleType.IntType
         get() = SupportedType.SimpleType.IntType
     override var bound: BindableJsonType? = null
@@ -20,4 +21,11 @@ class IntegerModel(override val schema: EffectiveSchema<NumberSchema>) : TypeMod
     companion object {
         val CONVERTER: (Any?) -> Int? = { (it as? Number)?.toInt() }
     }
+
+    override val previewString: PreviewString
+        get() = when {
+            value != null -> PreviewString(value.toString())
+            defaultValue != null -> PreviewString(defaultValue.toString(), isDefaultValue = true)
+            else -> PreviewString.NO_VALUE
+        }
 }
