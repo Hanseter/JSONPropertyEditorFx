@@ -33,8 +33,6 @@ class TupleControl(override val model: TupleModel, context: EditorContext) : Typ
     }
 
     override fun createLazyControl(): LazyControl = TupleLazyControl()
-    override val previewString: PreviewString
-        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.tuple.preview"))
 
     private inner class TupleLazyControl : LazyControl {
         override val control =

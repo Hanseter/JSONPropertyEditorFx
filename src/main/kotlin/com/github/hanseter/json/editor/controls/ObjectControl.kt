@@ -17,10 +17,6 @@ interface ObjectControl : TypeControl {
     override val childControls: List<TypeControl>
         get() = requiredChildren + optionalChildren
 
-    override val previewString: PreviewString
-        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.object.preview"))
-
-
     class LazyObjectControl(private val objectControl: ObjectControl) : LazyControl {
         override val control = TypeWithChildrenStatusControl("Create") {
             objectControl.model.value = JSONObject()

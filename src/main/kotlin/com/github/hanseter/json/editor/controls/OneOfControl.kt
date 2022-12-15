@@ -26,8 +26,6 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
     }
 
     override fun createLazyControl(): LazyControl = OneOfLazyControl()
-    override val previewString: PreviewString
-        get() = model.previewString
 
     private inner class OneOfLazyControl : LazyControl {
         private val selectionListener: ChangeListener<Schema?> =
@@ -37,7 +35,7 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
             }
         override val control: ComboBox<Schema> = ComboBox<Schema>().apply {
             items.addAll(model.schema.baseSchema.subschemas)
-            converter = SchemaTitleStringConverter
+            converter = OneOfModel.Companion.SchemaTitleStringConverter
             selectionModel.selectedItemProperty().addListener(selectionListener)
 
             isDisable = model.schema.readOnly
@@ -53,10 +51,5 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
 
     }
 
-    private object SchemaTitleStringConverter : StringConverter<Schema>() {
-        override fun toString(obj: Schema?): String? =
-            obj?.let { SimpleEffectiveSchema.calcSchemaTitle(it) }
 
-        override fun fromString(string: String?): Schema? = null
-    }
 }

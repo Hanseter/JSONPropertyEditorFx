@@ -5,6 +5,8 @@
  */
 package com.github.hanseter.json.editor.types
 
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+
 /**
  *
  * @author Henrik Frühling (henrik.fruehling@siemens.com)
@@ -15,6 +17,6 @@ class PreviewString @JvmOverloads constructor(
     val isPseudoValue: Boolean = false,
 ) {
     companion object {
-        val NO_VALUE: PreviewString = PreviewString("missing", isPseudoValue = true)
+        val NO_VALUE: PreviewString = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.missing"), isPseudoValue = true)
     }
 }

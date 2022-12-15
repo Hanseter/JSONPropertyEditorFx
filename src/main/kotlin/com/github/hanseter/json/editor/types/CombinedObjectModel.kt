@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.CombinedSchema
 import org.json.JSONObject
@@ -17,6 +18,8 @@ class CombinedObjectModel(override val schema: EffectiveSchema<CombinedSchema>) 
         set(value) {
             bound?.setValue(schema, value)
         }
+    override val previewString: PreviewString
+        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.object.preview"), isPseudoValue = true)
 
     companion object {
         val CONVERTER: (Any?) -> JSONObject? = { it as? JSONObject }

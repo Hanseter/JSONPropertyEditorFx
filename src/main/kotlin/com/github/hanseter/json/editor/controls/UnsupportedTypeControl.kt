@@ -15,8 +15,6 @@ class UnsupportedTypeControl(override val model: TypeModel<Any?, SupportedType.S
 
     override fun bindTo(type: BindableJsonType) {}
     override fun createLazyControl(): LazyControl = LazyNotSupportedControl()
-    override val previewString: PreviewString
-        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.notSupported.preview"))
 
     private inner class LazyNotSupportedControl : LazyControl {
         override val control: Node

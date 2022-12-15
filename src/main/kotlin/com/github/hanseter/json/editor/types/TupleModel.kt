@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.ArraySchema
 import org.everit.json.schema.Schema
@@ -19,6 +20,8 @@ class TupleModel(override val schema: EffectiveSchema<ArraySchema>, val contentS
         set(value) {
             bound?.setValue(schema, value)
         }
+    override val previewString: PreviewString
+        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.tuple.preview"),isPseudoValue = true)
 
     companion object {
         val CONVERTER: (Any?) -> JSONArray? = { it as? JSONArray }

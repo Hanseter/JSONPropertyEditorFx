@@ -25,8 +25,6 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
     }
 
     override fun createLazyControl(): LazyControl = LazyArrayControl()
-    override val previewString: PreviewString
-        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.array.preview"))
 
     private inner class LazyArrayControl : LazyControl {
         override val control = TypeWithChildrenStatusControl("To Empty List") {

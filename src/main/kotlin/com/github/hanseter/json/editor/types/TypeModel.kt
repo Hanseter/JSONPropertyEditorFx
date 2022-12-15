@@ -11,7 +11,11 @@ interface TypeModel<T, R: SupportedType<T>> {
     var value: T
 
     val previewString: PreviewString
-        get() = PreviewString("model todo..")
+        get() = when {
+            value != null -> PreviewString(value.toString())
+            defaultValue != null -> PreviewString(defaultValue.toString(), isDefaultValue = true)
+            else -> PreviewString.NO_VALUE
+        }
 
     val rawValue: Any?
         get() = bound?.getValue(schema)

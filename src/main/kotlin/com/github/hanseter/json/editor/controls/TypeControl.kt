@@ -12,8 +12,6 @@ interface TypeControl {
 
     fun createLazyControl(): LazyControl
 
-    val previewString: PreviewString
-
     companion object {
         const val NULL_PROMPT = "Null"
     }

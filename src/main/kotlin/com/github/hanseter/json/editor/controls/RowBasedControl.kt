@@ -19,9 +19,6 @@ class RowBasedControl<T>(
         model.bound = type
     }
 
-    override val previewString: PreviewString
-        get() = model.previewString
-
     override fun createLazyControl(): LazyControl = SimpleLazyControl(controlWithPropertyProvider())
 
     private inner class SimpleLazyControl(val controlWithProperty: ControlWithProperty<T?>) : LazyControl {

@@ -4,9 +4,12 @@ import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
+import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.merge
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
+import javafx.util.StringConverter
 import org.everit.json.schema.CombinedSchema
 import org.everit.json.schema.ObjectSchema
 import org.everit.json.schema.Schema
@@ -117,4 +120,16 @@ open class OneOfModel(
 //        val value = actualType?.model?.schema?.baseSchema?.let { optionData[it] }
 //        if (value )
     }
+
+    companion object{
+        object SchemaTitleStringConverter : StringConverter<Schema>() {
+            override fun toString(obj: Schema?): String? =
+                obj?.let { SimpleEffectiveSchema.calcSchemaTitle(it) }
+
+            override fun fromString(string: String?): Schema? = null
+        }
+    }
+
+    override val previewString: PreviewString
+        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.oneof.preview"), isPseudoValue = true)
 }
