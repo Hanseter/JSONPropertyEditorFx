@@ -65,7 +65,7 @@ object ControlFactory {
             ColorFormat.formatName -> RowBasedControl({ ColorControl() }, ColorModel(schema))
             IdReferenceFormat.formatName -> RowBasedControl(
                 { IdReferenceControl(schema, context) },
-                IdReferenceModel(schema)
+                IdReferenceModel(schema,context)
             )
 
             LocalTimeFormat.formatName -> RowBasedControl(
