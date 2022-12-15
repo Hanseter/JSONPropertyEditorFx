@@ -1,6 +1,8 @@
 package com.github.hanseter.json.editor.i18n
 
+import java.util.*
+
 object JsonPropertiesMl {
 
-//    private val bundle = ResourceBundle()
+    val bundle = ResourceBundle.getBundle("ml_jsonEditor")
 }

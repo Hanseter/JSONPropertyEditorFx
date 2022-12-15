@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.LazyControl
 import org.json.JSONObject
@@ -14,6 +16,9 @@ interface ObjectControl : TypeControl {
 
     override val childControls: List<TypeControl>
         get() = requiredChildren + optionalChildren
+
+    override val previewString: PreviewString
+        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.object.preview"))
 
 
     class LazyObjectControl(private val objectControl: ObjectControl) : LazyControl {

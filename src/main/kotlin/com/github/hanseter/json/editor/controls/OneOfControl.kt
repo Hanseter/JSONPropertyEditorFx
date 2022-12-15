@@ -1,7 +1,9 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.OneOfModel
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.LazyControl
 import javafx.beans.value.ChangeListener
@@ -24,6 +26,8 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
     }
 
     override fun createLazyControl(): LazyControl = OneOfLazyControl()
+    override val previewString: PreviewString
+        get() = model.previewString
 
     private inner class OneOfLazyControl : LazyControl {
         private val selectionListener: ChangeListener<Schema?> =

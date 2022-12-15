@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.TupleModel
 import com.github.hanseter.json.editor.util.BindableJsonArrayEntry
 import com.github.hanseter.json.editor.util.BindableJsonType
@@ -31,6 +33,8 @@ class TupleControl(override val model: TupleModel, context: EditorContext) : Typ
     }
 
     override fun createLazyControl(): LazyControl = TupleLazyControl()
+    override val previewString: PreviewString
+        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.tuple.preview"))
 
     private inner class TupleLazyControl : LazyControl {
         override val control =

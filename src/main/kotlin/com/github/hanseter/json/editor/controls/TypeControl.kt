@@ -13,7 +13,6 @@ interface TypeControl {
     fun createLazyControl(): LazyControl
 
     val previewString: PreviewString
-        get() = PreviewString("control todo..")
 
     companion object {
         const val NULL_PROMPT = "Null"
