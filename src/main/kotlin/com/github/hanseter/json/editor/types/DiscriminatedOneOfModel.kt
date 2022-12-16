@@ -1,6 +1,5 @@
 package com.github.hanseter.json.editor.types
 
-import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.schemaExtensions.synthetic
 import com.github.hanseter.json.editor.util.EditorContext
@@ -19,17 +18,17 @@ class DiscriminatedOneOfModel(
     val discriminatorKey: String
 ) : OneOfModel(schema, editorContext) {
 
-    override fun tryGuessActualType(): TypeControl? {
-        val data = value as? JSONObject ?: return null
-        val discriminatorValue = data.opt(discriminatorKey) ?: return null
+    override fun tryGuessActualSchema(value: Any?): Pair<Int, Schema?> {
+        val data = value as? JSONObject ?: return -1 to null
+        val discriminatorValue = data.opt(discriminatorKey) ?: return -1 to null
 
-        return schema.baseSchema.subschemas.find {
+        val found = schema.baseSchema.subschemas.find {
             val discSchema = getDiscriminatorSchema(it) ?: return@find false
-
             discSchema.permittedValue == discriminatorValue
-        }?.let {
-            createActualControl(it)
         }
+        val index = schema.baseSchema.subschemas.indexOf(found)
+
+        return index to found
     }
 
     override fun produceValueForNewType(
@@ -73,6 +72,7 @@ class DiscriminatedOneOfModel(
                         it as? ConstSchema
                     }
                 }
+
                 else -> null
             }
 

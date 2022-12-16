@@ -5,7 +5,6 @@ import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
-import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.merge
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
@@ -62,7 +61,7 @@ open class OneOfModel(
         if (!typeSetManually
             && (actualType == null || !isValid(actualType!!.model.schema.baseSchema, value))
         ) {
-            val possibleNewType = tryGuessActualType()
+            val possibleNewType = tryGuessActualTypeControl()
             if (possibleNewType != null) {
                 actualType = possibleNewType
                 possibleNewType.bindTo(new)
@@ -79,11 +78,17 @@ open class OneOfModel(
             false
         }
 
-    protected open fun tryGuessActualType(): TypeControl? {
-        val data = value ?: return null
-        return schema.baseSchema.subschemas.find { isValid(it, data) }?.let {
+    private fun tryGuessActualTypeControl(): TypeControl? =
+        tryGuessActualSchema(value).second?.let {
             createActualControl(it)
         }
+
+
+    protected open fun tryGuessActualSchema(value: Any?): Pair<Int, Schema?> {
+        val data = value ?: return -1 to null
+        val found=schema.baseSchema.subschemas.find { isValid(it, data) }
+        val index=schema.baseSchema.subschemas.indexOf(found)
+        return index to found
     }
 
     protected fun createActualControl(subSchema: Schema): TypeControl = ControlFactory.convert(
@@ -116,20 +121,24 @@ open class OneOfModel(
         return merge(JSONObject(), objectOptionData, keysToRemove - keysToKeep)
     }
 
-    private fun calcValueForOption() {
-//        val value = actualType?.model?.schema?.baseSchema?.let { optionData[it] }
-//        if (value )
-    }
-
-    companion object{
+    companion object {
         object SchemaTitleStringConverter : StringConverter<Schema>() {
             override fun toString(obj: Schema?): String? =
                 obj?.let { SimpleEffectiveSchema.calcSchemaTitle(it) }
 
             override fun fromString(string: String?): Schema? = null
         }
+
+        private fun schemaToString(pair: Pair<Int, Schema?>): String? {
+            if (pair.second== null) return null
+            return pair.second?.title?:pair.first.toString()
+        }
     }
 
     override val previewString: PreviewString
-        get() = PreviewString(JsonPropertiesMl.bundle.getString("jsonEditor.controls.oneof.preview"), isPseudoValue = true)
+        get() = PreviewString.createPseudo(
+            schemaToString(tryGuessActualSchema(value)),
+            schemaToString(tryGuessActualSchema(defaultValue)),
+            rawValue
+        )
 }

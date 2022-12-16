@@ -17,6 +17,8 @@ class EnumModel(override val schema: EffectiveSchema<Schema>, val enumSchema: En
         set(value) {
             bound?.setValue(schema, value)
         }
+    override val previewString: PreviewString
+        get() = PreviewString.create(value, defaultValue, rawValue)
 
     val enumDescriptions: Map<String, String?>
         get() {

@@ -19,16 +19,12 @@ class BooleanModel(override val schema: EffectiveSchema<BooleanSchema>) :
             bound?.setValue(schema, value)
         }
     override val previewString: PreviewString
-        get() = when {
-            value != null -> PreviewString(boolToString(value))
-            defaultValue != null -> PreviewString(boolToString(defaultValue), isDefaultValue = true)
-            else -> PreviewString.NO_VALUE
-        }
+        get() = PreviewString.create(boolToString(value), boolToString(defaultValue),rawValue)
 
     companion object {
         val CONVERTER: (Any?) -> Boolean? = { it as? Boolean }
-        private fun boolToString(boolean: Boolean?): String {
-            if (boolean == null) return ""
+        private fun boolToString(boolean: Boolean?): String? {
+            if (boolean == null) return null
 
             return if (boolean) {
                 JsonPropertiesMl.bundle.getString("jsonEditor.model.boolean.true")

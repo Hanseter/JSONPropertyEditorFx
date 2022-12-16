@@ -16,6 +16,8 @@ class StringModel(override val schema: EffectiveSchema<StringSchema>) : TypeMode
         set(value) {
             bound?.setValue(schema, value)
         }
+    override val previewString: PreviewString
+        get() = PreviewString.create(value, defaultValue, rawValue)
 
     companion object {
         val CONVERTER: (Any) -> String = { it as? String ?: it.toString() }

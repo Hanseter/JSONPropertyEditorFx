@@ -27,7 +27,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
     override fun createLazyControl(): LazyControl = LazyArrayControl()
 
     private inner class LazyArrayControl : LazyControl {
-        override val control = TypeWithChildrenStatusControl("To Empty List") {
+        override val control = TypeWithChildrenStatusControl(JsonPropertiesMl.bundle.getString("jsonEditor.control.array.create")) {
             model.value = JSONArray()
             valuesChanged()
         }.apply {
@@ -42,7 +42,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
             if (model.rawValue == JSONObject.NULL || (model.rawValue == null && model.defaultValue == null)) {
                 control.displayNull()
             } else {
-                control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")
+                control.displayNonNull(model.previewString.string)
             }
         }
     }

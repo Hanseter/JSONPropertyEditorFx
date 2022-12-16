@@ -29,30 +29,31 @@ class IdReferenceModel(
             value: String?,
             context: EditorContext,
             schema: EffectiveSchema<StringSchema>
-        ): String {
-            if (value == null) return ""
-            val desc=context.refProvider.get()
+        ): String? {
+            if (value == null) return null
+            val desc = context.refProvider.get()
                 .getReferenceDescription(value, context.editorObjId, schema.baseSchema)
+            val separator = " - "
             return when (context.idRefDisplayMode) {
                 IdRefDisplayMode.DESCRIPTION_ONLY -> desc
                 IdRefDisplayMode.ID_ONLY -> value
-                IdRefDisplayMode.ID_WITH_DESCRIPTION -> "$value - $desc"
-                IdRefDisplayMode.DESCRIPTION_WITH_ID -> "$desc - $value"
+                IdRefDisplayMode.ID_WITH_DESCRIPTION -> listOf(value, desc)
+                    .filter { it.isNotBlank() }
+                    .joinToString(separator)
+
+                IdRefDisplayMode.DESCRIPTION_WITH_ID -> listOf(desc, value)
+                    .filter { it.isNotBlank() }
+                    .joinToString(separator)
             }
 
         }
     }
 
     override val previewString: PreviewString
-        get() = when {
-            value != null -> PreviewString(idToString(value, context, schema))
-            defaultValue != null -> PreviewString(
-                idToString(defaultValue, context, schema),
-                isDefaultValue = true
-            )
-
-            else -> PreviewString.NO_VALUE
-        }
-
+        get() = PreviewString.create(
+            idToString(value,context,schema),
+            idToString(defaultValue,context,schema),
+            rawValue
+        )
 
 }

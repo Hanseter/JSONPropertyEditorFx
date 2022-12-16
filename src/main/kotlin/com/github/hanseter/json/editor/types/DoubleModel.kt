@@ -16,6 +16,8 @@ class DoubleModel(override val schema: EffectiveSchema<NumberSchema>) : TypeMode
         set(value) {
             bound?.setValue(schema, value)
         }
+    override val previewString: PreviewString
+        get() = PreviewString.create(value?.toString(), defaultValue?.toString(), rawValue)
 
     companion object {
         val CONVERTER: (Any?) -> Double? = { (it as? Number)?.toDouble() }

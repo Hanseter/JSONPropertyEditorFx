@@ -18,7 +18,7 @@ interface ObjectControl : TypeControl {
         get() = requiredChildren + optionalChildren
 
     class LazyObjectControl(private val objectControl: ObjectControl) : LazyControl {
-        override val control = TypeWithChildrenStatusControl("Create") {
+        override val control = TypeWithChildrenStatusControl(JsonPropertiesMl.bundle.getString("jsonEditor.control.object.create")) {
             objectControl.model.value = JSONObject()
         }.apply {
             isDisable = objectControl.model.schema.readOnly
@@ -32,8 +32,7 @@ interface ObjectControl : TypeControl {
             if (objectControl.model.rawValue == JSONObject.NULL || (objectControl.model.rawValue == null && objectControl.model.defaultValue == null)) {
                 control.displayNull()
             } else {
-                val size = objectControl.requiredChildren.size + objectControl.optionalChildren.size
-                control.displayNonNull("[${size} Propert${if (size == 1) "y" else "ies"}]")
+                control.displayNonNull(objectControl.model.previewString.string)
             }
         }
     }

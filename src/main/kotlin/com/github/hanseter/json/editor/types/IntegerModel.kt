@@ -23,9 +23,5 @@ open class IntegerModel(override val schema: EffectiveSchema<NumberSchema>) :
     }
 
     override val previewString: PreviewString
-        get() = when {
-            value != null -> PreviewString(value.toString())
-            defaultValue != null -> PreviewString(defaultValue.toString(), isDefaultValue = true)
-            else -> PreviewString.NO_VALUE
-        }
+        get() = PreviewString.create(value?.toString(), defaultValue?.toString(), rawValue)
 }

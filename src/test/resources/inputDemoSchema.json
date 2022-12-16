@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "a": {
-      "type": "string"
+      "type": "string",
+      "default": "default string value"
     },
     "b": {
       "type": "integer"

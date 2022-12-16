@@ -27,11 +27,11 @@ class FormattedIntegerModel(
     private val intFormat = IntFormat(schema.baseSchema.unprocessedProperties, decimalFormatSymbols)
 
     override val previewString: PreviewString
-        get() = when {
-            value != null -> PreviewString(intFormat.converter.toString(value))
-            defaultValue != null -> PreviewString(intFormat.converter.toString(defaultValue))
-            else -> PreviewString.NO_VALUE
-        }
+        get() = PreviewString.create(
+            intFormat.converter.toString(value),
+            intFormat.converter.toString(defaultValue),
+            rawValue
+        )
 
     companion object {
         const val INT_FORMAT = "int-format"
@@ -55,8 +55,8 @@ class FormattedIntegerModel(
             }
 
             val converter = object : StringConverter<Int?>() {
-                override fun toString(value: Int?): String {
-                    if (value == null) return ""
+                override fun toString(value: Int?): String? {
+                    if (value == null) return null
                     return decimalFormat.format((value.toDouble() / multiplier))
                 }
 
