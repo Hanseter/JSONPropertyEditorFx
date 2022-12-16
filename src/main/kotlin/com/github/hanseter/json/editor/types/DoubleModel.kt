@@ -16,10 +16,23 @@ class DoubleModel(override val schema: EffectiveSchema<NumberSchema>) : TypeMode
         set(value) {
             bound?.setValue(schema, value)
         }
+
+
+
     override val previewString: PreviewString
-        get() = PreviewString.create(value?.toString(), defaultValue?.toString(), rawValue)
+        get() = PreviewString.create(formatDoubleToString(value), formatDoubleToString(defaultValue), rawValue)
 
     companion object {
         val CONVERTER: (Any?) -> Double? = { (it as? Number)?.toDouble() }
+
+        private fun formatDoubleToString(value: Double?): String? {
+            if(value==null) return null
+
+            return if((value % 1) == 0.0){
+                value.toInt().toString()
+            }else{
+                value.toString()
+            }
+        }
     }
 }
