@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.actions
 
 import com.github.hanseter.json.editor.PropertiesEditInput
 import com.github.hanseter.json.editor.PropertiesEditResult
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
 import org.json.JSONArray
@@ -10,7 +11,7 @@ import org.json.JSONPointer
 
 object ResetToDefaultAction : EditorAction {
     override val text: String = "↻"
-    override val description: String = "Reset to default"
+    override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.resetToDefault")
     override val selector: TargetSelector = TargetSelector.AllOf(listOf(
             TargetSelector.ReadOnly.invert(),
             TargetSelector.AnyOf(listOf(

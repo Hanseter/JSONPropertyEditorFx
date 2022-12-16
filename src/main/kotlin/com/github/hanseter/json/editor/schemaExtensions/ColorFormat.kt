@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.schemaExtensions
 
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import java.util.*
 
 object ColorFormat {
@@ -13,7 +14,7 @@ object ColorFormat {
         override fun validate(subject: String?): Optional<String> {
             if (subject == null) return Optional.empty()
             return if (format.matches(subject)) Optional.empty()
-            else Optional.of("Has to be valid RGBA hex color (e.g. #FF0000FF)")
+            else Optional.of(JsonPropertiesMl.bundle.getString("jsonEditor.validators.colorFormat"))
         }
     }
 }

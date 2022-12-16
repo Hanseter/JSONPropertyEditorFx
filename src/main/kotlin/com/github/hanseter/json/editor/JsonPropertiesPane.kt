@@ -6,6 +6,7 @@ import com.github.hanseter.json.editor.controls.ObjectControl
 import com.github.hanseter.json.editor.controls.TupleControl
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.*
 import com.github.hanseter.json.editor.validators.JSONPointer
@@ -370,7 +371,8 @@ class JsonPropertiesPane(
                 // original validation error exception would be comparing
                 // ValidationException#getKeyword to "required", which would be better, but not by much.
                 if ("required key [$thisKey] not found" in parentError) {
-                    return error?.let { "$it\nkey is required" } ?: "key is required"
+                    return error?.let { "$it\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}" }
+                        ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")
                 }
             }
         }

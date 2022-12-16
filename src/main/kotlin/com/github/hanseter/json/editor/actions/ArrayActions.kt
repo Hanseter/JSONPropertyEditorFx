@@ -4,6 +4,7 @@ import com.github.hanseter.json.editor.PropertiesEditInput
 import com.github.hanseter.json.editor.PropertiesEditResult
 import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
@@ -17,7 +18,7 @@ val arrayActions =
 
 object AddToArrayAction : EditorAction {
     override val text: String = "\uD83D\uDFA3"// \uD83D\uDFA3 = 🞣
-    override val description: String = "Inserts a new empty item at the end of the list"
+    override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.addToArray")
     override val selector: TargetSelector = TargetSelector.AllOf(
         listOf(
             TargetSelector.ReadOnly.invert(),

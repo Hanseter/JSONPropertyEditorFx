@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.actions.*
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.CustomizationObject
@@ -215,7 +216,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
     private fun createKeyColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
         TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Key"
+            text = JsonPropertiesMl.bundle.getString("jsonEditor.keyCell")
             cellValueFactory = Callback { it.value.valueProperty() }
             cellFactory = Callback { KeyCell() }
             styleClass.add("key-cell")
@@ -309,7 +310,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
     private fun createControlColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
         TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Value"
+            text = JsonPropertiesMl.bundle.getString("jsonEditor.valueCell")
             cellValueFactory = Callback { it.value.valueProperty() }
             cellFactory = Callback { ValueCell() }
             minWidth = 150.0
@@ -359,7 +360,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
     private fun createActionColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
         TreeTableColumn<TreeItemData, TreeItemData>().apply {
-            text = "Action"
+            text = JsonPropertiesMl.bundle.getString("jsonEditor.actionCell")
             cellValueFactory = Callback { it.value.valueProperty() }
             cellFactory = Callback { ActionCell() }
             minWidth = 100.0
