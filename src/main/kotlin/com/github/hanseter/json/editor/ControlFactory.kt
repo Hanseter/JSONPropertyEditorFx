@@ -80,7 +80,8 @@ object ControlFactory {
     private fun createNumberControl(schema: EffectiveSchema<NumberSchema>, context: EditorContext): TypeControl =
         if (schema.baseSchema.requiresInteger()) {
             if (schema.baseSchema.unprocessedProperties.keys.contains(INT_FORMAT)) {
-                RowBasedControl({ FormattedIntegerControl(schema.baseSchema,context.decimalFormatSymbols) }, FormattedIntegerModel(schema,context.decimalFormatSymbols))
+                val model=FormattedIntegerModel(schema,context.decimalFormatSymbols)
+                RowBasedControl({ FormattedIntegerControl(model) },model )
             } else RowBasedControl({ IntegerControl() }, IntegerModel(schema))
         } else {
             RowBasedControl({ DoubleControl(context.decimalFormatSymbols) }, DoubleModel(schema))
