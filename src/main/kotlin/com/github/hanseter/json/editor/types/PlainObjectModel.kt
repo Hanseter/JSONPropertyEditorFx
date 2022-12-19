@@ -31,9 +31,9 @@ class PlainObjectModel(override val schema: EffectiveSchema<ObjectSchema>) :
             if (json == null) return null
             val size = json.keySet().size
             return if (size == 1) {
-                "1 ${JsonPropertiesMl.bundle.getString("jsonEditor.control.object.property")}"
+                JsonPropertiesMl.bundle.getString("jsonEditor.control.object.property").format(1)
             } else {
-                "$size ${JsonPropertiesMl.bundle.getString("jsonEditor.control.object.properties")}"
+                JsonPropertiesMl.bundle.getString("jsonEditor.control.object.properties").format(size)
             }
         }
     }

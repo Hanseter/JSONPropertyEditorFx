@@ -36,9 +36,9 @@ class TupleModel(
         private fun tupleToString(value: JSONArray?): String? {
             if (value == null) return null
             return if (value.length() == 1) {
-                "1 ${JsonPropertiesMl.bundle.getString("jsonEditor.controls.tuple.element")}"
+                JsonPropertiesMl.bundle.getString("jsonEditor.controls.tuple.element").format(1)
             } else {
-                "${value.length()} ${JsonPropertiesMl.bundle.getString("jsonEditor.controls.tuple.elements")}"
+                JsonPropertiesMl.bundle.getString("jsonEditor.controls.tuple.elements").format(value.length())
             }
         }
     }

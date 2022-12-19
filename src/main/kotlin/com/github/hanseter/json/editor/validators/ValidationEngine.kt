@@ -137,8 +137,8 @@ object ValidationEngine {
     private fun createErrorMessage(subErrors: Int, errors: List<String>?): List<String>? {
         if (subErrors < 1) return errors
         val subErrorMessage =
-            if (subErrors == 1) listOf("1 ${JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError")}")
-            else listOf("$subErrors ${JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors")}")
+            if (subErrors == 1) listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
+            else listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors").format(subErrors))
 
         return if (errors == null) subErrorMessage
         else subErrorMessage + errors

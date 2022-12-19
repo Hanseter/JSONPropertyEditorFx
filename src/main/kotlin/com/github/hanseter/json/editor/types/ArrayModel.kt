@@ -33,9 +33,9 @@ class ArrayModel(override val schema: EffectiveSchema<ArraySchema>, val contentS
         private fun arrayToElementString(value: JSONArray?): String? {
             if (value == null) return null
             return if (value.length() == 1) {
-                "1 ${JsonPropertiesMl.bundle.getString("jsonEditor.control.array.element")}"
+                JsonPropertiesMl.bundle.getString("jsonEditor.control.array.element").format(1)
             } else {
-                "${value.length()} ${JsonPropertiesMl.bundle.getString("jsonEditor.control.array.elements")}"
+                JsonPropertiesMl.bundle.getString("jsonEditor.control.array.elements").format(value.length())
             }
         }
     }
