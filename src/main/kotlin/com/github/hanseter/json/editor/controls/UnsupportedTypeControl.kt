@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonType
@@ -16,7 +18,7 @@ class UnsupportedTypeControl(override val model: TypeModel<Any?, SupportedType.S
 
     private inner class LazyNotSupportedControl : LazyControl {
         override val control: Node
-            get() = Label("!!Error: Schema ${model.schema.baseSchema.schemaLocation} with type ${model.schema.baseSchema::class.java.name} cannot be displayed.")
+            get() = Label(String.format(JsonPropertiesMl.bundle.getString("jsonEditor.controls.notSupported.label"),model.schema.baseSchema.schemaLocation,model.schema.baseSchema::class.java.name))
 
         override fun updateDisplayedValue() {
         }

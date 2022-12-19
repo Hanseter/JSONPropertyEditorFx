@@ -3,7 +3,9 @@ package com.github.hanseter.json.editor.controls
 import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.ArrayModel
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.*
 import org.everit.json.schema.ArraySchema
@@ -25,7 +27,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
     override fun createLazyControl(): LazyControl = LazyArrayControl()
 
     private inner class LazyArrayControl : LazyControl {
-        override val control = TypeWithChildrenStatusControl("To Empty List") {
+        override val control = TypeWithChildrenStatusControl(JsonPropertiesMl.bundle.getString("jsonEditor.control.array.create")) {
             model.value = JSONArray()
             valuesChanged()
         }.apply {
@@ -40,7 +42,7 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
             if (model.rawValue == JSONObject.NULL || (model.rawValue == null && model.defaultValue == null)) {
                 control.displayNull()
             } else {
-                control.displayNonNull("[${childControls.size} Element${if (childControls.size == 1) "" else "s"}]")
+                control.displayNonNull(model.previewString.string)
             }
         }
     }

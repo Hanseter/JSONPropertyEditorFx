@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor.actions
 import com.github.hanseter.json.editor.PropertiesEditInput
 import com.github.hanseter.json.editor.PropertiesEditResult
 import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
 import org.json.JSONArray
@@ -11,7 +12,7 @@ import org.json.JSONPointer
 
 object ResetToNullAction : EditorAction {
     override val text: String = "Ø"
-    override val description: String = "Reset to null"
+    override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.resetToNull")
     override val selector: TargetSelector = TargetSelector.AllOf(listOf(
             TargetSelector.ReadOnly.invert(),
             TargetSelector { (it.schema as? PartialEffectiveSchema)?.allowsNull == true }

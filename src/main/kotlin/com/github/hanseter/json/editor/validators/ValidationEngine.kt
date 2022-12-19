@@ -6,6 +6,7 @@ import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.RootBindableType
@@ -135,7 +136,10 @@ object ValidationEngine {
 
     private fun createErrorMessage(subErrors: Int, errors: List<String>?): List<String>? {
         if (subErrors < 1) return errors
-        val subErrorMessage = listOf("$subErrors sub-error" + if (subErrors > 1) "s" else "")
+        val subErrorMessage =
+            if (subErrors == 1) listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
+            else listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors").format(subErrors))
+
         return if (errors == null) subErrorMessage
         else subErrorMessage + errors
     }

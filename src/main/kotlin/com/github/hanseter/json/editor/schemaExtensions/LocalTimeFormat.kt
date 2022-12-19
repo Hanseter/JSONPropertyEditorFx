@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.schemaExtensions
 
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.ui.TIME_REGEX
 import java.util.*
 
@@ -14,7 +15,7 @@ object LocalTimeFormat {
         override fun validate(subject: String?): Optional<String> {
             if (subject == null) return Optional.empty()
             return if (format.matches(subject)) Optional.empty()
-            else Optional.of("Has to be a valid time (e.g. 15:23:46)")
+            else Optional.of(JsonPropertiesMl.bundle.getString("jsonEditor.validators.localTimeFormat"))
         }
     }
 }

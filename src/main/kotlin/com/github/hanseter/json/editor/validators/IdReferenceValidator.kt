@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.validators
 
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.actions.TargetSelector
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import org.everit.json.schema.StringSchema
@@ -12,6 +13,6 @@ class IdReferenceValidator(private val referenceProposalProvider: Supplier<IdRef
 
     override fun validate(model: TypeModel<*, *>, objId: String): List<String> =
             if (referenceProposalProvider.get().isValidReference(model.value as? String, objId, model.schema.baseSchema as StringSchema)) emptyList()
-            else listOf("Has to be a valid reference")
+            else listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.validReference"))
 
 }

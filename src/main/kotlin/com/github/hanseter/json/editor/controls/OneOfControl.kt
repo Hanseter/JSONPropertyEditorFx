@@ -1,7 +1,9 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.OneOfModel
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.LazyControl
 import javafx.beans.value.ChangeListener
@@ -33,7 +35,7 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
             }
         override val control: ComboBox<Schema> = ComboBox<Schema>().apply {
             items.addAll(model.schema.baseSchema.subschemas)
-            converter = SchemaTitleStringConverter
+            converter = OneOfModel.Companion.SchemaTitleStringConverter
             selectionModel.selectedItemProperty().addListener(selectionListener)
 
             isDisable = model.schema.readOnly
@@ -49,10 +51,5 @@ class OneOfControl(override val model: OneOfModel) : TypeControl {
 
     }
 
-    private object SchemaTitleStringConverter : StringConverter<Schema>() {
-        override fun toString(obj: Schema?): String? =
-            obj?.let { SimpleEffectiveSchema.calcSchemaTitle(it) }
 
-        override fun fromString(string: String?): Schema? = null
-    }
 }

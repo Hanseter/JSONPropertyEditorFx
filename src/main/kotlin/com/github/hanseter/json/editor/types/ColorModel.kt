@@ -16,4 +16,6 @@ class ColorModel(override val schema: EffectiveSchema<StringSchema>) : TypeModel
         set(value) {
             bound?.setValue(schema, value)
         }
+    override val previewString: PreviewString
+        get() = PreviewString.create(value, defaultValue, rawValue)
 }

@@ -1,5 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.LazyControl
@@ -9,9 +11,9 @@ interface TypeControl {
     val childControls: List<TypeControl>
     fun bindTo(type: BindableJsonType)
 
-    fun createLazyControl() : LazyControl
+    fun createLazyControl(): LazyControl
 
     companion object {
-        const val NULL_PROMPT = "Null"
+        val NULL_PROMPT: String = JsonPropertiesMl.bundle.getString("jsonEditor.missing")
     }
 }

@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.ModelControlSynchronizer
+import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.LazyControl

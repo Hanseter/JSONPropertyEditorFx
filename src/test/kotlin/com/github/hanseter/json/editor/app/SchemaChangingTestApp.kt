@@ -1,5 +1,9 @@
-package com.github.hanseter.json.editor
+package com.github.hanseter.json.editor.app
 
+import com.github.hanseter.json.editor.JsonPropertiesEditor
+import com.github.hanseter.json.editor.PropertiesEditInput
+import com.github.hanseter.json.editor.PropertiesEditResult
+import com.github.hanseter.json.editor.ResolutionScopeProvider
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.ViewOptions

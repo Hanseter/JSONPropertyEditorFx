@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.actions
 
 import com.github.hanseter.json.editor.*
 import com.github.hanseter.json.editor.controls.IdReferenceControl
+import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
@@ -25,7 +26,7 @@ class PreviewAction(
     private val resolutionScopeProvider: Supplier<ResolutionScopeProvider>
 ) : EditorAction {
     override val text: String = "⤴"
-    override val description: String = "Open Preview for Reference Target"
+    override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.preview")
     override val selector: TargetSelector =
         TargetSelector.SchemaType(SupportedType.SimpleType.IdReferenceType)
 
