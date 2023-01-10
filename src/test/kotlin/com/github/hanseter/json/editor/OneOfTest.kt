@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.validators.ValidationEngine
 import javafx.scene.control.ComboBox
 import javafx.scene.control.Spinner
 import javafx.scene.control.TextField
@@ -12,8 +13,10 @@ import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
@@ -249,6 +252,62 @@ class OneOfTest {
             data.getJSONObject("choice"),
             `is`(Similar(JSONObject().put("keepMe", 42).put("name", "foo").put("shared", 5)))
         )
+    }
+
+    @Test
+    fun `test weird edge cases`() {
+        val schema = JSONObject("""
+{
+    "type": "object",
+    "properties": {
+        "anArray": {
+          "type": "array",
+          "items": {
+            "${'$'}comment": "containing objects",
+            "type": "object",
+            "properties": {
+              "containingArrays": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "arr": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+    }
+}
+        """)
+
+        assertDoesNotThrow {
+            ValidationEngine.validate(
+                "id",
+                JSONObject()
+                    .put("anArray", JSONArray().put(
+                        JSONObject().put(
+                            "containingArrays",
+                            JSONArray().put(
+                                JSONObject().put("arr", listOf("item1"))
+                            )
+                        )
+                    )),
+                schema,
+                null,
+                IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
+            )
+        }
     }
 
     private class Similar(private val expected: JSONObject) : BaseMatcher<JSONObject>() {
