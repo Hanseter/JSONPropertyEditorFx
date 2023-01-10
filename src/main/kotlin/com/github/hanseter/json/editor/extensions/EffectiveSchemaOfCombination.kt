@@ -16,4 +16,7 @@ class EffectiveSchemaOfCombination<T : Schema>(override val parent: EffectiveSch
 
     override val propertyName: String
         get() = parent.propertyName
+
+    override val nonSyntheticAncestor: EffectiveSchema<*>?
+        get() = parent.nonSyntheticAncestor
 }
