@@ -18,17 +18,17 @@ object TreeTableNavigation {
 
     fun addNavigationToTreeTableView(treeTableView: TreeTableView<TreeItemData>) {
         treeTableView.apply {
-            addEventHandler(KeyEvent.KEY_PRESSED) {
-                if (!(it.isAltDown && it.code.isArrowKey)) {
-                    it.consume()
-                }
-            }
             addEventFilter(KeyEvent.KEY_PRESSED) {
                 if (it.isConsumed) return@addEventFilter
 
                 if (it.code == KeyCode.TAB) {
                     it.consume()
-                    selectNext()
+
+                    if (it.isShiftDown) {
+                        selectPrevious()
+                    } else {
+                        selectNext()
+                    }
                 }
 
                 if (it.code.isArrowKey && it.isAltDown) {
@@ -86,12 +86,26 @@ object TreeTableNavigation {
         }
     }
 
+    private fun TreeTableView<*>.selectPrevious() {
+        val selectedRow = selectionModel.selectedCells.firstOrNull()?.row ?: -1
+        when {
+            selectedRow > 0 -> selectUp()
+            selectedRow == 0 -> selectLast()
+            else -> selectFirst()
+        }
+    }
+
     private fun TreeTableView<*>.scrollToCurrentRow() {
         scrollTo(selectionModel.selectedIndex)
     }
 
     private fun TreeTableView<*>.selectFirst() {
         selectionModel.selectFirst()
+        scrollToCurrentRow()
+    }
+
+    private fun TreeTableView<*>.selectLast() {
+        selectionModel.selectLast()
         scrollToCurrentRow()
     }
 
