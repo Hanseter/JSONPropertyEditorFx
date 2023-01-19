@@ -118,6 +118,49 @@
           "type": "string"
         }
       }
+    },
+    "someArrayThing": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "theActualArrayNow": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "foo"
+                    },
+                    "foo": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": 2
+                    },
+                    "bar": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
     }
   }
 }

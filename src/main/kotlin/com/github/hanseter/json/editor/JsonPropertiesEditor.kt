@@ -14,7 +14,9 @@ import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableBooleanValue
+import javafx.beans.value.ObservableValue
 import javafx.beans.value.WeakChangeListener
 import javafx.scene.control.*
 import javafx.scene.layout.StackPane
@@ -322,10 +324,29 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         private var changeListener: ((TreeItemData) -> Unit) = this::updateControl
         private var lazyControl: LazyControl? = null
 
+        // if we don't delay this, we run into issues when collapsing a cell that is currently focused
+        // but with the delay, it sometimes happens that the control isn't actually focused anymore by the time we get to the runLater, so we check again
+        private val focusListener =
+            ChangeListener { obs, _, new: Boolean ->
+                if (new) {
+                    Platform.runLater {
+                        if (obs.value) {
+                            treeTableView.selectionModel.select(treeTableRow.index, tableColumn)
+                        }
+                    }
+
+                }
+            }
+
         init {
-            selectedProperty().addListener { _, _, newValue ->
+            selectedProperty().addListener { obs, _, newValue ->
                 if (newValue) {
-                    lazyControl?.control?.requestFocus()
+                    Platform.runLater {
+                        if (obs.value) {
+                            lazyControl?.control?.requestFocus()
+                        }
+                    }
+
                 }
             }
         }
@@ -334,19 +355,15 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             getItem()?.removeChangeListener(changeListener)
             super.updateItem(item, empty)
 
+            lazyControl?.control?.focusedProperty()?.removeListener(focusListener)
+
             lazyControl = item?.createControl()
             if (item == null || empty) {
                 text = null
                 graphic = null
             } else {
-                graphic = lazyControl?.control.also {
-                    it?.focusedProperty()?.addListener(WeakChangeListener{ _, _, newValue ->
-                        if(newValue){
-                            Platform.runLater {
-                                treeTableView.selectionModel.clearAndSelect(treeTableRow.index,tableColumn)
-                            }
-                        }
-                    })
+                graphic = lazyControl?.control?.also {
+                    it.focusedProperty().addListener(focusListener)
                 }
                 updateControl(item)
                 item.registerChangeListener(changeListener)
