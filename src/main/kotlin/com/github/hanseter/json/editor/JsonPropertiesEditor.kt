@@ -331,7 +331,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                 if (new) {
                     Platform.runLater {
                         if (obs.value) {
-                            println("Focus received ${treeTableRow.index}, ${treeTableView.expandedItemCount}")
                             treeTableView.selectionModel.select(treeTableRow.index, tableColumn)
                         }
                     }
@@ -344,7 +343,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                 if (newValue) {
                     Platform.runLater {
                         if (obs.value) {
-                            println("Cell selected ${treeTableRow.index}, ${treeTableView.expandedItemCount}")
                             lazyControl?.control?.requestFocus()
                         }
                     }
