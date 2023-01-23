@@ -1,16 +1,15 @@
 package com.github.hanseter.json.editor.controls
 
 import com.github.hanseter.json.editor.types.EnumModel
-import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin
-import impl.org.controlsfx.skin.SearchableComboBoxSkin
 import javafx.beans.binding.Bindings
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
-import javafx.event.EventHandler
-import javafx.scene.control.*
-import javafx.scene.input.MouseEvent
+import javafx.scene.control.ContentDisplay
+import javafx.scene.control.Label
+import javafx.scene.control.ListCell
+import javafx.scene.control.ListView
 import javafx.scene.shape.Rectangle
 import javafx.util.Callback
 import javafx.util.StringConverter

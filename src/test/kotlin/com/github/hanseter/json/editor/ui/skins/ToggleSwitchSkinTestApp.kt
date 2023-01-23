@@ -1,13 +1,12 @@
 package com.github.hanseter.json.editor.ui.skins
 
-import com.sun.javafx.scene.control.skin.CheckBoxSkin
 import javafx.application.Application
 import javafx.geometry.Pos
 import javafx.scene.Scene
 import javafx.scene.control.CheckBox
-import javafx.scene.control.Skin
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
+
 class ToggleSwitchSkinTestApp : Application() {
     companion object {
         @JvmStatic

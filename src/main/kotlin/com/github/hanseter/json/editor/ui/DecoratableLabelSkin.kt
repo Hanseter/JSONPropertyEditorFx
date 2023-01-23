@@ -1,7 +1,7 @@
 package com.github.hanseter.json.editor.ui
 
-import com.sun.javafx.scene.control.skin.LabelSkin
 import javafx.scene.control.Label
+import javafx.scene.control.skin.LabelSkin
 import org.controlsfx.control.decoration.Decorator
 
 /**

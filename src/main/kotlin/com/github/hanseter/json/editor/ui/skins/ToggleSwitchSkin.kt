@@ -1,22 +1,18 @@
 package com.github.hanseter.json.editor.ui.skins
 
-import com.sun.javafx.scene.control.behavior.ButtonBehavior
-import com.sun.javafx.scene.control.skin.LabeledSkinBase
 import javafx.animation.Animation
 import javafx.animation.TranslateTransition
 import javafx.beans.binding.Bindings
-import javafx.css.CssMetaData
-import javafx.css.Styleable
 import javafx.geometry.HPos
 import javafx.geometry.VPos
 import javafx.scene.control.CheckBox
+import javafx.scene.control.skin.LabeledSkinBase
 import javafx.scene.layout.StackPane
 import javafx.util.Duration
 import kotlin.math.max
 import kotlin.math.min
 
-class ToggleSwitchSkin(checkBox: CheckBox) :
-    LabeledSkinBase<CheckBox, ButtonBehavior<CheckBox>>(checkBox, ButtonBehavior(checkBox)) {
+class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox) {
 
     companion object {
         private val CSS =
