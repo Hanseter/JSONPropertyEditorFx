@@ -1,8 +1,10 @@
 package com.github.hanseter.json.editor.ui.skins
 
+import com.sun.javafx.scene.control.behavior.ButtonBehavior
 import javafx.animation.Animation
 import javafx.animation.TranslateTransition
 import javafx.beans.binding.Bindings
+import javafx.beans.value.ChangeListener
 import javafx.geometry.HPos
 import javafx.geometry.VPos
 import javafx.scene.control.CheckBox
@@ -19,9 +21,8 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
             ToggleSwitchSkin::class.java.getResource("toggleSwitch.css")!!.toExternalForm()
     }
 
-    init {
-        checkBox.stylesheets.setAll(CSS)
-    }
+    private val behavior = ButtonBehavior(checkBox)
+
 
     private val thumb = StackPane()
     private val thumbArea = StackPane()
@@ -39,19 +40,28 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
     }
 
 
-    init {
-        children.add(box)
-        checkBox.selectedProperty().addListener { _, oldValue, newValue ->
-            if (newValue != oldValue) {
-                selectedStateChanged()
-            }
+    private val selectionListener = ChangeListener<Boolean> { _, old, new ->
+        if (new != old) {
+            selectedStateChanged()
         }
+    }
+
+    init {
+        checkBox.stylesheets.setAll(CSS)
+        children.add(box)
+        checkBox.selectedProperty().addListener(selectionListener)
+    }
+
+    override fun dispose() {
+        super.dispose()
+        skinnable.selectedProperty().removeListener(selectionListener)
+        behavior.dispose()
     }
 
     private fun selectedStateChanged() {
         // Stop the transition if it was already running, has no effect otherwise.
         transition.stop()
-        if (skinnable.isArmed) {
+
             if (skinnable.isSelected) {
                 transition.rate = 1.0
                 transition.jumpTo(Duration.ZERO)
@@ -60,6 +70,7 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
                 transition.rate = -1.0
                 transition.jumpTo(transition.duration)
             }
+        if (skinnable.isArmed || skinnable.isFocused) {
             transition.play()
         }
     }
@@ -77,7 +88,7 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
             rightInset,
             bottomInset,
             leftInset
-        ) + snapSize(
+        ) + snapSizeX(
             box.minWidth(-1.0)
         )
     }
@@ -89,7 +100,7 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
         bottomInset: Double,
         leftInset: Double
     ): Double {
-        return Math.max(
+        return max(
             super.computeMinHeight(
                 width - box.minWidth(-1.0),
                 topInset,
@@ -114,7 +125,7 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
             rightInset,
             bottomInset,
             leftInset
-        ) + snapSize(
+        ) + snapSizeX(
             box.prefWidth(-1.0)
         )
     }
@@ -126,7 +137,7 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
         bottomInset: Double,
         leftInset: Double
     ): Double {
-        return Math.max(
+        return max(
             super.computePrefHeight(
                 width - box.prefWidth(-1.0),
                 topInset,
@@ -143,10 +154,10 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
         w: Double, h: Double
     ) {
         val checkBox = skinnable
-        val boxWidth = snapSize(box.prefWidth(-1.0))
-        val boxHeight = snapSize(box.prefHeight(-1.0))
+        val boxWidth = snapSizeX(box.prefWidth(-1.0))
+        val boxHeight = snapSizeY(box.prefHeight(-1.0))
         val computeWidth = max(checkBox.prefWidth(-1.0), checkBox.minWidth(-1.0))
-        val labelWidth = min(computeWidth - boxWidth, w - snapSize(boxWidth))
+        val labelWidth = min(computeWidth - boxWidth, w - snapSizeX(boxWidth))
         val labelHeight = min(checkBox.prefHeight(labelWidth), h)
         val maxHeight = max(boxHeight, labelHeight)
         val xOffset = computeXOffset(w, labelWidth + boxWidth, checkBox.alignment.hpos) + x

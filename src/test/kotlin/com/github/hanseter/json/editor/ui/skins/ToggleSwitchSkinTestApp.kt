@@ -7,12 +7,12 @@ import javafx.scene.control.CheckBox
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
 
+fun main(args: Array<String>) {
+    Application.launch(ToggleSwitchSkinTestApp::class.java, *args)
+}
+
 class ToggleSwitchSkinTestApp : Application() {
     companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            launch(ToggleSwitchSkinTestApp::class.java, *args)
-        }
 
         fun CheckBox.withToggleSkin() = this.apply {
             skin = ToggleSwitchSkin(this)
