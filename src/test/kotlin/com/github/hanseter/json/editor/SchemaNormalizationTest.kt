@@ -24,6 +24,31 @@ class SchemaNormalizationTest {
     }
 
     @Test
+    fun resolveSimpleRefTwice() {
+        val schema =
+            JSONObject(
+                """{"definitions": {"test": {
+                    "type":"array",
+                    "items":{
+                    "type":"string"
+                    }
+                    }},
+                "type":"object","properties":{
+                "strings":{"${'$'}ref": "#/definitions/test"},
+                "strings2":{"${'$'}ref": "#/definitions/test"}
+                }}
+                """
+            )
+        val result = SchemaNormalizer.resolveRefs(schema, null)
+        result.getJSONObject("properties").getJSONObject("strings").getJSONObject("items")
+            .put("title", "foo")
+        assertThat(
+            result.getJSONObject("properties").getJSONObject("strings2").getJSONObject("items")
+                .has("title"), `is`(false)
+        )
+    }
+
+    @Test
     fun resolveRootRef() {
         val objSchema =
             JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
