@@ -309,11 +309,12 @@ object SchemaNormalizer {
             put("properties", JSONObject())
         }
         val order = JSONArray()
+        val notCopiedKeys = copyTarget().keySet() + "order"+"properties"
         getAllObjectsInAllOf(allOf).forEach { propObj ->
             merge(copyTarget().getJSONObject("properties"), propObj.getJSONObject("properties"))
             propObj.optJSONArray("order")?.also { order.put(it) }
             propObj.optJSONObject("order")?.also { order.put(it) }
-            merge(copyTarget(), propObj, copyTarget().keySet())
+            merge(copyTarget(), propObj, notCopiedKeys)
         }
         if (!order.isEmpty) {
             copyTarget().put("order", order)
