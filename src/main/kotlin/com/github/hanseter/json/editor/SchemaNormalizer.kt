@@ -100,7 +100,7 @@ object SchemaNormalizer {
         target.remove("${"$"}ref")
         referredSchema.keySet().forEach {
             if (!target.has(it)) {
-                target.put(it, referredSchema.get(it))
+                target.put(it, deepCopy(referredSchema.get(it)))
             }
         }
     }
