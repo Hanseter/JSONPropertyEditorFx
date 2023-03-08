@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.base.SimilarObjectMatcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.json.JSONArray
@@ -481,4 +482,146 @@ class SchemaNormalizationTest {
             containsInAnyOrder("id", "text", "non-existent", "layer")
         )
     }
+
+    @Test
+    fun resolveInMemory() {
+        val referenced = JSONObject(
+            """
+           {"type":"string"} 
+        """
+        )
+        val schema = JSONObject(
+            """
+       {
+       "type": object,
+       "properties": {
+       "foo":{
+       "${"$"}ref": "other.json"
+       }
+       }
+        }
+    """
+        )
+        assertThat(
+            SchemaNormalizer.normalizeSchema(schema, mapOf("other.json" to referenced)),
+            SimilarObjectMatcher(
+                JSONObject(
+                    """
+       {
+       "type": object,
+       "properties": {
+       "foo":{
+           "type":"string"
+       }
+       }
+        }
+    """
+                )
+            )
+        )
+    }
+
+    @Test
+    fun resolveInMemoryRefInSameFile() {
+        val schema = JSONObject(
+            """
+       {
+       "definitions": {
+                "string": {"type":"string"}
+                 },
+       "type": object,
+       "properties": {
+       "foo":{
+       "${"$"}ref": "#/definitions/string"
+       }
+       }
+        }
+    """
+        )
+        assertThat(
+            SchemaNormalizer.normalizeSchema(schema, mapOf()),
+            SimilarObjectMatcher(
+                JSONObject(
+                    """
+       {
+       "definitions": {
+                "string": {"type":"string"}
+                 },
+       "type": object,
+       "properties": {
+       "foo":{
+       "type":"string"
+       }
+       }
+        }
+    """
+                )
+            )
+        )
+    }
+
+    @Test
+    fun resolveInMemoryRelativeNested() {
+        val referenced = JSONObject(
+            """ {
+                "definitions": {
+                "string": {"type":"string"}
+                 }
+                 }
+        """
+        )
+        val inSubDir = JSONObject(
+            """
+       {
+       "type": object,
+       "properties": {
+       "foo":{
+       "${"$"}ref": "../other.json#/definitions/string"
+       }
+       }
+        }
+    """
+        )
+        val schema = JSONObject(
+            """
+       {
+       "type": object,
+       "properties": {
+       "foo":{
+       "${"$"}ref": "sub/other.json"
+       }
+       }
+        }
+    """
+        )
+        assertThat(
+            SchemaNormalizer.normalizeSchema(
+                schema,
+                mapOf("other.json" to referenced, "sub/other.json" to inSubDir)
+            ),
+            `is`(
+                SimilarObjectMatcher(
+                    JSONObject(
+                        """
+                    {
+       "type": object,
+       "properties": {
+       "foo":{
+       
+       "type": object,
+       "properties": {
+       "foo":{
+       "type":"string"
+       }
+       }
+        }
+       }
+        }
+                """
+                    )
+                )
+            )
+        )
+    }
+
 }
