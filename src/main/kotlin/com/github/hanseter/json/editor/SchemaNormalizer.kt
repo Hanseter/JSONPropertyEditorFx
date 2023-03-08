@@ -8,12 +8,15 @@ import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.InputStream
 import java.io.UncheckedIOException
 import java.net.URI
 
 object SchemaNormalizer {
+
+    private val logger = LoggerFactory.getLogger(SchemaNormalizer::class.java)
 
     fun parseSchema(
         schema: JSONObject,
@@ -100,7 +103,7 @@ object SchemaNormalizer {
         target.remove("${"$"}ref")
         referredSchema.keySet().forEach {
             if (!target.has(it)) {
-                target.put(it, referredSchema.get(it))
+                target.put(it, deepCopy(referredSchema.get(it)))
             }
         }
     }
@@ -303,20 +306,29 @@ object SchemaNormalizer {
         if (inlineInItems(subPart, copyTarget)) return
 
         val allOf = subPart.optJSONArray("allOf") ?: return
+
         copyTarget().apply {
             remove("allOf")
-            put("type", "object")
-            put("properties", JSONObject())
         }
-        val order = JSONArray()
-        getAllObjectsInAllOf(allOf).forEach { propObj ->
-            merge(copyTarget().getJSONObject("properties"), propObj.getJSONObject("properties"))
-            propObj.optJSONArray("order")?.also { order.put(it) }
-            propObj.optJSONObject("order")?.also { order.put(it) }
-            merge(copyTarget(), propObj, copyTarget().keySet())
+
+        val order = lazy { JSONArray() }
+        val notCopiedKeys = copyTarget().keySet() + "order" + "properties"
+        getAllEntriesInAllOf(allOf).forEach { propObj ->
+            propObj.optJSONObject("properties")?.let { newSubProps ->
+                val oldProps = copyTarget().optJSONObject("properties") ?: JSONObject()
+                merge(oldProps, newSubProps)
+                copyTarget().put("properties", oldProps)
+            }
+            propObj.opt("order")?.let {
+                if (it is JSONObject || it is JSONArray) {
+                    order.value.put(it)
+                }
+            }
+
+            merge(copyTarget(), propObj, notCopiedKeys)
         }
-        if (!order.isEmpty) {
-            copyTarget().put("order", order)
+        if (order.isInitialized()) {
+            copyTarget().put("order", order.value)
         }
 
         inlineCompositions(copyTarget(), copyTarget)
@@ -421,6 +433,31 @@ object SchemaNormalizer {
                     } else {
                         emptyList()
                     }
+                }
+            } else {
+                emptyList()
+            }
+        }
+    }
+
+    /**
+     * Gets all sub-schemas inside an `allOf` array.
+     * If the array contains items other than objects, they are filtered out.
+     * If the array contains nested `allOf`s, they are flattened.
+     */
+    private fun getAllEntriesInAllOf(allOf: JSONArray): List<JSONObject> {
+        return (0 until allOf.length()).flatMap { i ->
+            val allOfEntry = allOf.get(i)
+            if (allOfEntry is JSONObject) {
+                val nestedAllOff = allOfEntry.optJSONArray("allOf")
+                if (nestedAllOff != null) {
+                    if ((allOfEntry.keySet() - "allOf").isNotEmpty()) {
+                        logger.warn("Encountered additional content in `allOf` during schema normalization. It will be discarded: {}", allOfEntry.toString())
+                    }
+
+                    getAllEntriesInAllOf(nestedAllOff)
+                } else {
+                    listOf(allOfEntry)
                 }
             } else {
                 emptyList()

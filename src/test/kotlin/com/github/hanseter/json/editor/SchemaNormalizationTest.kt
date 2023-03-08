@@ -12,35 +12,60 @@ class SchemaNormalizationTest {
     @Test
     fun resolveSimpleRef() {
         val schema =
-                JSONObject(
-                        """{"definitions": {"test": {"type":"string"}},
+            JSONObject(
+                """{"definitions": {"test": {"type":"string"}},
                 "type":"object","properties":{"string":{"${'$'}ref": "#/definitions/test"}}}"""
-                )
+            )
         val result = SchemaNormalizer.resolveRefs(schema, null)
         assertThat(
-                result.getJSONObject("properties").getJSONObject("string").getString("type"),
-                `is`("string")
+            result.getJSONObject("properties").getJSONObject("string").getString("type"),
+            `is`("string")
+        )
+    }
+
+    @Test
+    fun resolveSimpleRefTwice() {
+        val schema =
+            JSONObject(
+                """{"definitions": {"test": {
+                    "type":"array",
+                    "items":{
+                    "type":"string"
+                    }
+                    }},
+                "type":"object","properties":{
+                "strings":{"${'$'}ref": "#/definitions/test"},
+                "strings2":{"${'$'}ref": "#/definitions/test"}
+                }}
+                """
+            )
+        val result = SchemaNormalizer.resolveRefs(schema, null)
+        result.getJSONObject("properties").getJSONObject("strings").getJSONObject("items")
+            .put("title", "foo")
+        assertThat(
+            result.getJSONObject("properties").getJSONObject("strings2").getJSONObject("items")
+                .has("title"), `is`(false)
         )
     }
 
     @Test
     fun resolveRootRef() {
         val objSchema =
-                JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
+            JSONObject("""{"type":"object","properties":{"string":{"type":"string"}}}""")
         val schema = JSONObject().put("definitions", JSONArray().put(objSchema))
-                .put("${'$'}ref", "#/definitions/0")
+            .put("${'$'}ref", "#/definitions/0")
         val result = SchemaNormalizer.resolveRefs(schema, null)
         assertThat(
-                result.getJSONObject("properties").getJSONObject("string").getString("type"),
-                `is`("string")
+            result.getJSONObject("properties").getJSONObject("string").getString("type"),
+            `is`("string")
         )
     }
 
     @Test
     fun resolveAllOfRef() {
         val schema =
-                JSONObject(
-                        """{"definitions": [ 
+            JSONObject(
+                """{"definitions": [ 
                     {
                       "type":"object","properties": {"string0":{"type":"string"}}
                     },
@@ -51,26 +76,26 @@ class SchemaNormalizationTest {
                 "allOf":[
                 {"${'$'}ref": "#/definitions/0"}, {"${'$'}ref": "#/definitions/1"}
                 ]}"""
-                )
+            )
 
         val result = SchemaNormalizer.resolveRefs(schema, null)
         println(schema.toString(1))
         assertThat(
-                result.getJSONArray("allOf").getJSONObject(0).getJSONObject("properties")
-                        .getJSONObject("string0").getString("type"),
-                `is`("string")
+            result.getJSONArray("allOf").getJSONObject(0).getJSONObject("properties")
+                .getJSONObject("string0").getString("type"),
+            `is`("string")
         )
         assertThat(
-                result.getJSONArray("allOf").getJSONObject(1).getJSONObject("properties")
-                        .getJSONObject("string1").getString("type"),
-                `is`("string")
+            result.getJSONArray("allOf").getJSONObject(1).getJSONObject("properties")
+                .getJSONObject("string1").getString("type"),
+            `is`("string")
         )
     }
 
     @Test
     fun mergesAllOfs() {
         val schema = JSONObject(
-                """{"allOf": [ 
+            """{"allOf": [ 
                     {
                       "type":"object", 
                       "properties": {"string0":{"type":"string"},"int0": {"type": "integer"}},
@@ -109,7 +134,8 @@ class SchemaNormalizationTest {
 
     @Test
     fun mergesPartialRef() {
-        val schema = JSONObject("""
+        val schema = JSONObject(
+            """
 {
   "definitions": {
     "foo": {
@@ -133,7 +159,8 @@ class SchemaNormalizationTest {
     }
   }
 }
-        """)
+        """
+        )
 
         val result = SchemaNormalizer.resolveRefs(schema, null)
         val properties = result.getJSONObject("properties")
@@ -158,8 +185,12 @@ class SchemaNormalizationTest {
         val schema = javaClass.classLoader.getResourceAsStream("nestedCompositeSchema.json").use {
             JSONObject(JSONTokener(it))
         }
-        val result = SchemaNormalizer.normalizeSchema(schema, javaClass.classLoader.getResource("").toURI())
-        assertThat(result.toString(1), `is`(JSONObject("""{
+        val result =
+            SchemaNormalizer.normalizeSchema(schema, javaClass.classLoader.getResource("").toURI())
+        assertThat(
+            result.toString(1), `is`(
+                JSONObject(
+                    """{
  "${'$'}schema": "http://json-schema.org/draft-07/schema",
  "title": "composite",
  "type": "object",
@@ -179,14 +210,16 @@ class SchemaNormalizationTest {
   "y": {"type": "number"}
  }
 }
-""").toString(1))
+"""
+                ).toString(1)
+            )
         )
     }
 
     @Test
     fun correctlyMergesOrderWhenArray() {
         val schema = JSONObject(
-                """{"allOf": [ 
+            """{"allOf": [ 
     {
       "type":"object", 
       "properties": {"string0":{"type":"string"},"int0": {"type": "integer"}},
@@ -200,13 +233,16 @@ class SchemaNormalizationTest {
     ]}"""
         )
         val result = SchemaNormalizer.convertOrder(SchemaNormalizer.inlineCompositions(schema))
-        assertThat(result.getJSONArray("order").toList(), contains("int0", "string0", "string1", "int1"))
+        assertThat(
+            result.getJSONArray("order").toList(),
+            contains("int0", "string0", "string1", "int1")
+        )
     }
 
     @Test
     fun correctlyMergesOrderWhenMixed() {
         val schema = JSONObject(
-                """{"allOf": [ 
+            """{"allOf": [ 
     {
       "type":"object", 
       "properties": {"string0":{"type":"string"},"int0": {"type": "integer"}},
@@ -220,13 +256,16 @@ class SchemaNormalizationTest {
     ]}"""
         )
         val result = SchemaNormalizer.convertOrder(SchemaNormalizer.inlineCompositions(schema))
-        assertThat(result.getJSONArray("order").toList(), contains("int0", "string0", "int1", "string1"))
+        assertThat(
+            result.getJSONArray("order").toList(),
+            contains("int0", "string0", "int1", "string1")
+        )
     }
 
     @Test
     fun correctlyMergesOrderWhenObject() {
         val schema = JSONObject(
-                """{"allOf": [ 
+            """{"allOf": [ 
     {
       "type":"object", 
       "properties": {"string0":{"type":"string"},"int0": {"type": "integer"}},
@@ -237,15 +276,19 @@ class SchemaNormalizationTest {
       "properties": {"string1":{"type":"string"},"int1": {"type": "integer"}},
       "order": {"string1": 4,"int1": 800}
     }
-    ]}""")
+    ]}"""
+        )
         val result = SchemaNormalizer.convertOrder(SchemaNormalizer.inlineCompositions(schema))
-        assertThat(result.getJSONArray("order").toList(), contains("int0", "string1", "string0", "int1"))
+        assertThat(
+            result.getJSONArray("order").toList(),
+            contains("int0", "string1", "string0", "int1")
+        )
     }
 
     @Test
     fun ensureCorrectOrderFormat() {
         val schema = JSONObject(
-                """{
+            """{
       "type":"object", 
       "properties": {"obj0":{
       "type":"object",
@@ -253,12 +296,15 @@ class SchemaNormalizationTest {
       "order": {"string1": 4000,"int1": 800}
       },"int0": {"type": "integer"}},
       "order": {"int0": 1,"obj0": 7}
-    }""")
+    }"""
+        )
 
         val result = SchemaNormalizer.convertOrder(schema)
         assertThat(result.getJSONArray("order").toList(), contains("int0", "obj0"))
-        assertThat(result.getJSONObject("properties").getJSONObject("obj0")
-                .getJSONArray("order").toList(), contains("int1", "string1"))
+        assertThat(
+            result.getJSONObject("properties").getJSONObject("obj0")
+                .getJSONArray("order").toList(), contains("int1", "string1")
+        )
     }
 
     @Test
@@ -266,7 +312,7 @@ class SchemaNormalizationTest {
         val uri = this::class.java.classLoader.getResource("")?.toURI()
 
         val schema = JSONObject(
-                """
+            """
 {
   "type": "object",
   "properties": {
@@ -275,7 +321,8 @@ class SchemaNormalizationTest {
     }
   }
 }
-""")
+"""
+        )
 
         val result = SchemaNormalizer.resolveRefs(schema, uri)
 
@@ -287,7 +334,7 @@ class SchemaNormalizationTest {
         val uri = this::class.java.classLoader.getResource("")?.toURI()
 
         val schema = JSONObject(
-                """
+            """
 {
   "type": "object",
   "properties": {
@@ -296,7 +343,8 @@ class SchemaNormalizationTest {
     }
   }
 }
-""")
+"""
+        )
 
         val result = SchemaNormalizer.resolveRefs(schema, uri)
 
@@ -309,7 +357,8 @@ class SchemaNormalizationTest {
     fun testRefToFragmentInDifferentFile() {
         val uri = this::class.java.classLoader.getResource("")?.toURI()
 
-        val schema = JSONObject("""
+        val schema = JSONObject(
+            """
             {
               "properties": {
                 "a": {
@@ -317,7 +366,8 @@ class SchemaNormalizationTest {
                 }
               }
             }
-        """.trimIndent())
+        """.trimIndent()
+        )
 
         val result = SchemaNormalizer.resolveRefs(schema, uri)
 
@@ -327,7 +377,7 @@ class SchemaNormalizationTest {
     @Test
     fun testRefInsideDefinitions() {
         val schema = JSONObject(
-                """
+            """
 {
   "definitions": {
     "a": {
@@ -355,7 +405,8 @@ class SchemaNormalizationTest {
     }
   }
 }
-""")
+"""
+        )
         val result = SchemaNormalizer.resolveRefs(schema, null)
 
         assertThat(result.query("#/properties/foo/type"), `is`("integer"))
@@ -367,7 +418,7 @@ class SchemaNormalizationTest {
     fun refInAdditionalProperties() {
         val uri = this::class.java.classLoader.getResource("")?.toURI()
         val schema = JSONObject(
-                """
+            """
 {
   "type": "object",
   "properties": {
@@ -379,9 +430,55 @@ class SchemaNormalizationTest {
     }
   }
 }
-""")
+"""
+        )
         val result = SchemaNormalizer.resolveRefs(schema, uri)
 
         assertThat(result.query("#/properties/foo/additionalProperties/type"), `is`("object"))
+    }
+
+    @Test
+    fun deeplyNestedRequired() {
+        val schema = JSONObject(
+            """
+           {"allOf": [
+ {"allOf": [
+  {
+   "type": "object",
+   "properties": {
+    "layer": {"type": "integer"}
+   },
+   "required": [
+    "layer",
+    "non-existent"
+   ]
+  },
+  {
+   "type": "object",
+   "properties": {
+    "text": {"type": "string"},
+   },
+   "required": [
+    "text",
+   ]
+  }
+ ]},
+ {
+  "type": "object",
+  "properties": {
+   "id": {"type": "string"}
+  },
+  "required": [
+   "id",
+  ]
+ }
+]} 
+        """
+        )
+
+        assertThat(
+            SchemaNormalizer.normalizeSchema(schema, null).getJSONArray("required"),
+            containsInAnyOrder("id", "text", "non-existent", "layer")
+        )
     }
 }
