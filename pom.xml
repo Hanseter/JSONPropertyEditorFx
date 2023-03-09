@@ -170,4 +170,39 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>linux-x86_64-monocle</id>
+            <activation>
+                <os>
+                    <name>linux</name>
+                    <arch>amd64</arch>
+                </os>
+                <property>
+                    <name>javafx.monocle</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <javafx.platform>linux-monocle</javafx.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>windows-x86_64-monocle</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                    <arch>amd64</arch>
+                </os>
+                <property>
+                    <name>javafx.monocle</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <javafx.platform>win-monocle</javafx.platform>
+            </properties>
+        </profile>
+    </profiles>
 </project>
