@@ -11,9 +11,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '8'
-          distribution: 'zulu'
-          java-package: jdk+fx
+          java-version: '17'
+          distribution: 'temurin'
           cache: maven
       - name: Run Maven Tests
         run: mvn --batch-mode --update-snapshots verify -Dtestfx.robot=glass -Dtestfx.headless=true -Dglass.platform=Monocle -Dmonocle.platform=Headless -Dprism.order=sw -Dheadless.geometry=1000x1000-32
