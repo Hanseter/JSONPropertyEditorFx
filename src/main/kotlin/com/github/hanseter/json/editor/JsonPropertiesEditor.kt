@@ -31,14 +31,15 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private val readOnly: Boolean = false,
     viewOptions: ViewOptions = ViewOptions(),
     actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-    private val customizationObject: CustomizationObject = DefaultCustomizationObject
+    private val customizationObject: CustomizationObject = DefaultCustomizationObject,
+    additionalValidators: List<Validator> = emptyList()
 ) : StackPane() {
     var referenceProposalProvider: IdReferenceProposalProvider =
         IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
     var resolutionScopeProvider: ResolutionScopeProvider =
         ResolutionScopeProvider.ResolutionScopeProviderEmpty
     val validators: List<Validator> =
-        listOf(IdReferenceValidator { referenceProposalProvider })
+        listOf(IdReferenceValidator { referenceProposalProvider }) + additionalValidators
 
     private val actions =
         actions + PreviewAction(
