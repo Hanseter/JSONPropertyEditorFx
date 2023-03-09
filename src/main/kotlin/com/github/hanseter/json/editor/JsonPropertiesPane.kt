@@ -327,7 +327,7 @@ class JsonPropertiesPane(
 
     private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
         (root.value as? ControlTreeItemData)?.typeControl?.also { control ->
-            val errors = ValidationEngine.validate(control, objId, data, validators).toMap()
+            val errors = ValidationEngine.validateData(control, objId, data, validators).toMap()
             flattenBottomUp(root).forEach { item ->
                 (item.value as? ControlTreeItemData)?.also { data ->
                     item.value.validationMessage =
@@ -357,9 +357,11 @@ class JsonPropertiesPane(
 
     private fun generateErrorMessage(
         pointer: JSONPointer,
-        errorMap: Map<JSONPointer, List<String>>
+        errorMap: Map<JSONPointer, List<Validator.ValidationResult>>
     ): String? {
-        val error = errorMap[listOf("#") + pointer]?.joinToString("\n")
+        val error = errorMap[listOf("#") + pointer]?.joinToString("\n") {
+            it.message
+        }
 
         // check for "missing key" error in parent
         if (pointer.isNotEmpty()) {
@@ -370,7 +372,7 @@ class JsonPropertiesPane(
                 // the best we can do. The only way it could be made more robust if we still had the
                 // original validation error exception would be comparing
                 // ValidationException#getKeyword to "required", which would be better, but not by much.
-                if ("required key [$thisKey] not found" in parentError) {
+                if ("required key [$thisKey] not found" in parentError.map { it.message }) {
                     return error?.let { "$it\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}" }
                         ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")
                 }

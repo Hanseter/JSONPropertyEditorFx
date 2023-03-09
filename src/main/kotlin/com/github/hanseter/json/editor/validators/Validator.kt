@@ -15,5 +15,17 @@ interface Validator {
     /**
      * Returns an error message if validation fails.
      */
-    fun validate(model: TypeModel<*,*>, objId: String): List<String>
+    fun validate(model: TypeModel<*,*>, objId: String): List<ValidationResult>
+
+    interface ValidationResult {
+
+        val message: String
+
+    }
+
+    class SimpleValidationResult(
+        override val message: String
+    ) : ValidationResult
+
+
 }

@@ -25,10 +25,10 @@ class ValidationTest {
                     override val selector: TargetSelector
                         get() = TargetSelector.SchemaType(SupportedType.SimpleType.StringType)
 
-                    override fun validate(model: TypeModel<*, *>, objId: String): List<String> {
+                    override fun validate(model: TypeModel<*, *>, objId: String): List<Validator.ValidationResult> {
                         return if (model.value == "foo") {
                             emptyList()
-                        } else listOf("error")
+                        } else listOf(Validator.SimpleValidationResult("error"))
                     }
 
                 }

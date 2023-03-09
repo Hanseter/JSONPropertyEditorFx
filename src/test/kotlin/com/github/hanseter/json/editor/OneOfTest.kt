@@ -292,7 +292,7 @@ class OneOfTest {
         """)
 
         assertDoesNotThrow {
-            ValidationEngine.validate(
+            ValidationEngine.validateData(
                 "id",
                 JSONObject()
                     .put("anArray", JSONArray().put(
