@@ -21,7 +21,7 @@ open class EditorTestBase {
     @Start
     open fun start(stage: Stage) {
         editor = JsonPropertiesEditor()
-        stage.scene = Scene(editor, 1500.0, 1000.0)
+        stage.scene = Scene(editor, 800.0, 800.0)
         stage.show()
     }
 
