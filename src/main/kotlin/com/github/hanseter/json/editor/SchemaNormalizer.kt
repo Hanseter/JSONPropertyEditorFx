@@ -31,7 +31,10 @@ object SchemaNormalizer {
         .addFormatValidator(ColorFormat.Validator)
         .addFormatValidator(IdReferenceFormat.Validator())
         .addFormatValidator(LocalTimeFormat.Validator)
-        .schemaJson(normalizeSchema(schema, resolutionScope))
+        .schemaJson(
+            if (resolutionScope != null) normalize(schema, resolutionScope)
+            else normalize(schema)
+        )
         .build().load().readOnly(readOnly).build()
 
     /**
@@ -57,14 +60,6 @@ object SchemaNormalizer {
      * `$refs` will be resolved relatively to [resolutionScope].
      */
     fun normalize(schema: JSONObject, resolutionScope: URI) =
-        convertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
-
-    /**
-     * Normalizes a schema. I.e. it resolves all `$refs` and inlines all compositions.
-     * `$refs` will be resolved relatively to [resolutionScope].
-     */
-    @Deprecated(message = "Use `normalize` instead")
-    fun normalizeSchema(schema: JSONObject, resolutionScope: URI?) =
         convertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
 
     /**
@@ -100,7 +95,8 @@ object SchemaNormalizer {
         schema: JSONObject,
         otherSchemas: Map<String, JSONObject>,
         completeSchema: JSONObject? = null
-    ): JSONObject = resolveRefs(schema, { resolveInMap(it, otherSchemas, Paths.get(".")) }, completeSchema)
+    ): JSONObject =
+        resolveRefs(schema, { resolveInMap(it, otherSchemas, Paths.get(".")) }, completeSchema)
 
     /**
      * Resolves $refs in a schema.

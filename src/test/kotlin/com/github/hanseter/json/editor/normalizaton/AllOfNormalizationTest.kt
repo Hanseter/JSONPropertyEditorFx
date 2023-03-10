@@ -40,7 +40,7 @@ class AllOfNormalizationTest {
                     }
                 })))
 
-                val normalized = SchemaNormalizer.normalizeSchema(input, null)
+                val normalized = SchemaNormalizer.normalize(input)
 
                 val expected = JSONObject()
                     .put("type", "object")
@@ -193,7 +193,7 @@ class AllOfNormalizationTest {
                     )))
             )
 
-        val normalizedSchema = SchemaNormalizer.normalizeSchema(schema, null)
+        val normalizedSchema = SchemaNormalizer.normalize(schema)
 
         MatcherAssert.assertThat(
             normalizedSchema,

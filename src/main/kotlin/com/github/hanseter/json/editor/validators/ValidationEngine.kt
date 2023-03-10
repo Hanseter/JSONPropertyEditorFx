@@ -165,17 +165,16 @@ object ValidationEngine {
         }
     }
 
-    private fun createErrorMessage(subErrors: Int, errors: List<Validator.ValidationResult>?): List<Validator.ValidationResult>? {
+    private fun createErrorMessage(
+        subErrors: Int,
+        errors: List<Validator.ValidationResult>?
+    ): List<Validator.ValidationResult>? {
         if (subErrors < 1) return errors
-        val subErrorMessage =
-            if (subErrors == 1) listOf(Validator.SimpleValidationResult(
-                Severity.ERROR,
-                JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
+        val subErrorMessage = listOf(
+            Validator.SimpleValidationResult(
+                Severity.ERROR, JsonPropertiesMl.validatorSubErrors(subErrors)
             )
-            else listOf(Validator.SimpleValidationResult(
-                Severity.ERROR,
-                JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors").format(subErrors))
-            )
+        )
 
         return if (errors == null) subErrorMessage
         else subErrorMessage + errors

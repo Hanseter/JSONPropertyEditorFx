@@ -187,7 +187,7 @@ class SchemaNormalizationTest {
             JSONObject(JSONTokener(it))
         }
         val result =
-            SchemaNormalizer.normalizeSchema(schema, javaClass.classLoader.getResource("").toURI())
+            SchemaNormalizer.normalize(schema, javaClass.classLoader.getResource("").toURI())
         assertThat(
             result.toString(1), `is`(
                 JSONObject(
@@ -478,7 +478,7 @@ class SchemaNormalizationTest {
         )
 
         assertThat(
-            SchemaNormalizer.normalizeSchema(schema, null).getJSONArray("required"),
+            SchemaNormalizer.normalize(schema).getJSONArray("required"),
             containsInAnyOrder("id", "text", "non-existent", "layer")
         )
     }
