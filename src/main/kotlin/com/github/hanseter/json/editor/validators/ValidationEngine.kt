@@ -10,6 +10,7 @@ import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.RootBindableType
+import org.controlsfx.validation.Severity
 import org.everit.json.schema.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject
@@ -18,13 +19,13 @@ import java.text.DecimalFormat
 
 object ValidationEngine {
 
-    fun validate(
+    fun validateData(
         elemId: String,
         data: JSONObject,
         schema: JSONObject,
         resolutionScope: URI?,
         referenceProposalProvider: IdReferenceProposalProvider
-    ): List<Pair<JSONPointer, List<String>>> {
+    ): List<Pair<JSONPointer, List<Validator.ValidationResult>>> {
         val parsedSchema = SchemaNormalizer.parseSchema(schema, resolutionScope, false)
 
         val effectiveSchema = SimpleEffectiveSchema(null, parsedSchema, null)
@@ -39,29 +40,44 @@ object ValidationEngine {
             )
         )
         control.bindTo(RootBindableType(data))
-        return validate(
+        return validateData(
             control, elemId, data, listOf(IdReferenceValidator { referenceProposalProvider })
         )
     }
 
+    @Deprecated(message = "Use validateData instead")
     fun validate(
+        elemId: String,
+        data: JSONObject,
+        schema: JSONObject,
+        resolutionScope: URI?,
+        referenceProposalProvider: IdReferenceProposalProvider
+    ): List<Pair<JSONPointer, List<String>>> {
+        return validateData(elemId, data, schema, resolutionScope, referenceProposalProvider).map {
+            it.first to it.second.map { it.message }
+        }
+    }
+
+    fun validateData(
         rootControl: TypeControl,
         id: String,
         data: JSONObject,
         customValidators: List<Validator>
-    ): List<Pair<JSONPointer, List<String>>> {
+    ): List<Pair<JSONPointer, List<Validator.ValidationResult>>> {
         val controls = flattenControl(rootControl).toList()
         val toValidate = prepareForValidation(controls.asSequence().map { it.model.schema }, data)
 
-        val errorMap = mutableMapOf<JSONPointer, MutableList<String>>()
+        val errorMap = mutableMapOf<JSONPointer, MutableList<Validator.ValidationResult>>()
         val parentErrorCount = mutableMapOf<JSONPointer, Int>()
-        fun addError(pointer: List<String>, message: String) {
-            val pointers = pointer.heads()
-            pointers.dropLast(1).forEach { parentPointer ->
-                val count = parentErrorCount[parentPointer] ?: 0
-                parentErrorCount[parentPointer] = count + 1
+        fun addError(pointer: List<String>, result: Validator.ValidationResult) {
+            if (result.severity == Severity.ERROR) {
+                val pointers = pointer.heads()
+                pointers.dropLast(1).forEach { parentPointer ->
+                    val count = parentErrorCount[parentPointer] ?: 0
+                    parentErrorCount[parentPointer] = count + 1
+                }
             }
-            errorMap.getOrPut(pointer) { mutableListOf() }.add(message)
+            errorMap.getOrPut(pointer) { mutableListOf() }.add(result)
         }
         validateSchema(toValidate, rootControl.model.schema, ::addError)
         return controls.mapNotNull { control ->
@@ -69,6 +85,18 @@ object ValidationEngine {
             validateCustomValidator(control, pointer, customValidators, id, ::addError)
             createErrorMessage(parentErrorCount[pointer] ?: 0, errorMap[pointer])
                 ?.let { pointer to it }
+        }
+    }
+
+    @Deprecated(message = "Use validateData instead")
+    fun validate(
+        rootControl: TypeControl,
+        id: String,
+        data: JSONObject,
+        customValidators: List<Validator>
+    ): List<Pair<JSONPointer, List<String>>> {
+        return validateData(rootControl, id, data, customValidators).map {
+            it.first to it.second.map { it.message }
         }
     }
 
@@ -97,7 +125,7 @@ object ValidationEngine {
     private fun validateSchema(
         data: JSONObject,
         schema: EffectiveSchema<*>,
-        errorCollector: (JSONPointer, String) -> Unit
+        errorCollector: (JSONPointer, Validator.ValidationResult) -> Unit
     ) {
         try {
             schema.schemaForValidation.validate(data)
@@ -108,7 +136,7 @@ object ValidationEngine {
 
     private fun mapPointerToError(
         ex: ValidationException,
-        errorCollector: (JSONPointer, String) -> Unit
+        errorCollector: (JSONPointer, Validator.ValidationResult) -> Unit
     ) {
         fun flatten(ex: ValidationException): Sequence<ValidationException> =
             if (ex.causingExceptions.isEmpty()) sequenceOf(ex)
@@ -117,7 +145,10 @@ object ValidationEngine {
         flatten(ex).forEach { validationError ->
             errorCollector(
                 validationError.pointerToViolation.split('/'),
-                validationError.errorMessage
+                Validator.SimpleValidationResult(
+                    Severity.ERROR,
+                    validationError.errorMessage
+                )
             )
         }
     }
@@ -127,18 +158,24 @@ object ValidationEngine {
         pointer: JSONPointer,
         customValidators: List<Validator>,
         id: String,
-        errorCollector: (JSONPointer, String) -> Unit
+        errorCollector: (JSONPointer, Validator.ValidationResult) -> Unit
     ) {
         customValidators.filter { it.selector.matches(control.model) }.forEach { validator ->
             validator.validate(control.model, id).forEach { errorCollector(pointer, it) }
         }
     }
 
-    private fun createErrorMessage(subErrors: Int, errors: List<String>?): List<String>? {
+    private fun createErrorMessage(subErrors: Int, errors: List<Validator.ValidationResult>?): List<Validator.ValidationResult>? {
         if (subErrors < 1) return errors
         val subErrorMessage =
-            if (subErrors == 1) listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
-            else listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors").format(subErrors))
+            if (subErrors == 1) listOf(Validator.SimpleValidationResult(
+                Severity.ERROR,
+                JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
+            )
+            else listOf(Validator.SimpleValidationResult(
+                Severity.ERROR,
+                JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors").format(subErrors))
+            )
 
         return if (errors == null) subErrorMessage
         else subErrorMessage + errors

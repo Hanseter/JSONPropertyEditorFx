@@ -37,7 +37,7 @@ object SchemaNormalizer {
     /**
      * Normalizes a schema. I.e. it resolves all `$refs` and inlines all compositions.
      */
-    fun normalizeSchema(
+    fun normalize(
         schema: JSONObject,
         otherSchemas: Map<String, JSONObject>
     ): JSONObject =
@@ -46,19 +46,33 @@ object SchemaNormalizer {
     /**
      * Normalizes a schema. I.e. it resolves all `$refs` and inlines all compositions.
      */
-    fun normalizeSchema(
+    fun normalize(
         schema: JSONObject,
         resolveFunc: (String) -> ResolvedSchema
     ): JSONObject =
         convertOrder(inlineCompositions(resolveRefs(schema, resolveFunc)))
 
+    /**
+     * Normalizes a schema. I.e. it resolves all `$refs` and inlines all compositions.
+     * `$refs` will be resolved relatively to [resolutionScope].
+     */
+    fun normalize(schema: JSONObject, resolutionScope: URI) =
+        convertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
 
     /**
      * Normalizes a schema. I.e. it resolves all `$refs` and inlines all compositions.
      * `$refs` will be resolved relatively to [resolutionScope].
      */
+    @Deprecated(message = "Use `normalize` instead")
     fun normalizeSchema(schema: JSONObject, resolutionScope: URI?) =
         convertOrder(inlineCompositions(resolveRefs(schema, resolutionScope)))
+
+    /**
+     * Normalizes a schema. I.e. it resolves all `$refs` and inlines all compositions.
+     * With this overload, only local `$refs` can be resolved.
+     */
+    fun normalize(schema: JSONObject) =
+        normalize(schema, emptyMap())
 
     /**
      * Resolves $refs in a schema.
@@ -499,31 +513,6 @@ object SchemaNormalizer {
     }
 
     /**
-     * Gets all objects inside a JSONArray.
-     * If the array contains items other than objects, they are filtered out.
-     */
-    private fun getAllObjectsInAllOf(allOf: JSONArray): List<JSONObject> {
-        return (0 until allOf.length()).flatMap { i ->
-            val allOfEntry = allOf.get(i)
-            if (allOfEntry is JSONObject) {
-                val props = allOfEntry.optJSONObject("properties")
-                if (props != null) {
-                    listOf(allOfEntry)
-                } else {
-                    val nestedAllOff = allOfEntry.optJSONArray("allOf")
-                    if (nestedAllOff != null) {
-                        getAllObjectsInAllOf(nestedAllOff)
-                    } else {
-                        emptyList()
-                    }
-                }
-            } else {
-                emptyList()
-            }
-        }
-    }
-
-    /**
      * Gets all sub-schemas inside an `allOf` array.
      * If the array contains items other than objects, they are filtered out.
      * If the array contains nested `allOf`s, they are flattened.
@@ -631,7 +620,7 @@ fun merge(
             if (newArray != null) {
                 acc.put(key, mergeArrays(oldArray, newArray))
             } else {
-                acc.put(key, source.get(key))
+                acc.put(key, SchemaNormalizer.deepCopy(source.get(key)))
             }
         } else {
             val merged = merge(old, new)
@@ -641,9 +630,9 @@ fun merge(
     }
 
 fun mergeArrays(target: JSONArray?, source: JSONArray): JSONArray {
-    if (target == null) return source
+    if (target == null) return SchemaNormalizer.deepCopy(source)
     source.forEach {
-        target.put(it)
+        target.put(SchemaNormalizer.deepCopy(it))
     }
     return target
 }

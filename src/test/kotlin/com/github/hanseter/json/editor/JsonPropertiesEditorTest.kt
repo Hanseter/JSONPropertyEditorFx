@@ -54,11 +54,16 @@ class JsonPropertiesEditorTest {
             it
         }
         val stringControl = (editor.getControlInTable("str") as TextField)
-        stringControl.text = "foobar"
+        WaitForAsyncUtils.asyncFx {
+            stringControl.text = "foobar"
+        }
+        WaitForAsyncUtils.waitForFxEvents()
         assertThat(data.similar(JSONObject("""{"num":42.5,"str":"foobar"}""")), `is`(true))
         assertThat(updateCount, `is`(1))
         val numberControl = (editor.getControlInTable("num") as Spinner<Number>)
-        numberControl.editor.text = "1573"
+        WaitForAsyncUtils.asyncFx {
+            numberControl.editor.text = "1573"
+        }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(data.similar(JSONObject().put("str", "foobar").put("num", 1573.0)), `is`(true))
         assertThat(updateCount, `is`(2))

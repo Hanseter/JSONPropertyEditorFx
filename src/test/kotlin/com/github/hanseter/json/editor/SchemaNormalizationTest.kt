@@ -503,7 +503,7 @@ class SchemaNormalizationTest {
     """
         )
         assertThat(
-            SchemaNormalizer.normalizeSchema(schema, mapOf("other.json" to referenced)),
+            SchemaNormalizer.normalize(schema, mapOf("other.json" to referenced)),
             SimilarObjectMatcher(
                 JSONObject(
                     """
@@ -539,7 +539,7 @@ class SchemaNormalizationTest {
     """
         )
         assertThat(
-            SchemaNormalizer.normalizeSchema(schema, mapOf()),
+            SchemaNormalizer.normalize(schema, mapOf()),
             SimilarObjectMatcher(
                 JSONObject(
                     """
@@ -595,7 +595,7 @@ class SchemaNormalizationTest {
     """
         )
         assertThat(
-            SchemaNormalizer.normalizeSchema(
+            SchemaNormalizer.normalize(
                 schema,
                 mapOf("other.json" to referenced, "sub/other.json" to inSubDir)
             ),

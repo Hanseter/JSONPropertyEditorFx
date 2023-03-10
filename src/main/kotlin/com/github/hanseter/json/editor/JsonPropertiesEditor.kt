@@ -4,10 +4,7 @@ import com.github.hanseter.json.editor.actions.*
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
-import com.github.hanseter.json.editor.util.CustomizationObject
-import com.github.hanseter.json.editor.util.DefaultCustomizationObject
-import com.github.hanseter.json.editor.util.LazyControl
-import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.util.*
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.application.Platform
@@ -31,14 +28,15 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private val readOnly: Boolean = false,
     viewOptions: ViewOptions = ViewOptions(),
     actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-    private val customizationObject: CustomizationObject = DefaultCustomizationObject
+    private val customizationObject: CustomizationObject = DefaultCustomizationObject,
+    additionalValidators: List<Validator> = emptyList()
 ) : StackPane() {
     var referenceProposalProvider: IdReferenceProposalProvider =
         IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
     var resolutionScopeProvider: ResolutionScopeProvider =
         ResolutionScopeProvider.ResolutionScopeProviderEmpty
     val validators: List<Validator> =
-        listOf(IdReferenceValidator { referenceProposalProvider })
+        listOf(IdReferenceValidator { referenceProposalProvider }) + additionalValidators
 
     private val actions =
         actions + PreviewAction(
@@ -273,8 +271,13 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                     text = desc
 
                     validationMessage?.let {
-                        graphic = Label(it).apply {
-                            styleClass.add("error-display")
+                        graphic = Label(it.message).apply {
+                            styleClass.add(when (it.severity) {
+                                Severity.ERROR -> "error-display"
+                                Severity.WARNING -> "warning-display"
+                                Severity.OK -> "ok-display"
+                                else -> "info-display"
+                            })
                         }
                     }
                 }
@@ -295,9 +298,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
         private fun createValidationMessage(
             label: Control,
-            msg: String?
+            msg: Validator.ValidationResult?
         ): SimpleValidationMessage? =
-            msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
+            msg?.let { SimpleValidationMessage(label, it.message, it.severity) }
 
         private inner class SimpleValidationMessage(
             private val target: Control,
@@ -416,7 +419,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         } else {
             rootItem.setFilter { item ->
                 (item as? ControlTreeItemData)?.let {
-                    filters.any { !it(item.typeControl.model, item.validationMessage) }
+                    filters.any { !it(item.typeControl.model, item.validationMessage?.message) }
                 } ?: true
             }
         }
@@ -475,6 +478,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     companion object {
-        val DECORATOR = GraphicValidationDecoration()
+        val DECORATOR = ExtendedGraphicValidationDecoration()
     }
 }
