@@ -9,15 +9,18 @@ import org.controlsfx.validation.decoration.GraphicValidationDecoration
 /**
  * Extension to the [GraphicValidationDecoration] to make it support [Severity.OK] (by default, it
  * is treated as if it were [Severity.INFO]).
+ *
+ * Also recolors the [Severity.INFO] tooltip because its contrast was so low it was barely legible.
  */
 class ExtendedGraphicValidationDecoration : GraphicValidationDecoration() {
 
 
     override fun getStyleBySeverity(severity: Severity?): String {
-        if (severity == Severity.OK) {
-            return OK_TOOLTIP_EFFECT
+        return when (severity) {
+            Severity.OK -> OK_TOOLTIP_EFFECT
+            Severity.INFO -> INFO_TOOLTIP_EFFECT
+            else -> super.getStyleBySeverity(severity)
         }
-        return super.getStyleBySeverity(severity)
     }
 
     override fun getGraphicBySeverity(severity: Severity?): Node {
@@ -43,6 +46,8 @@ class ExtendedGraphicValidationDecoration : GraphicValidationDecoration() {
         private val OK_TOOLTIP_EFFECT = (POPUP_SHADOW_EFFECT + TOOLTIP_COMMON_EFFECTS
                 + "-fx-background-color: #EBF4ED; -fx-text-fill: #007906; -fx-border-color: #007906;")
 
+        private val INFO_TOOLTIP_EFFECT = (POPUP_SHADOW_EFFECT + TOOLTIP_COMMON_EFFECTS
+                + "-fx-background-color: #F0F1FA; -fx-text-fill: #0065DA; -fx-border-color: #0065DA;")
     }
 
 }
