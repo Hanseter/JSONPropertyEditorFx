@@ -15,6 +15,7 @@ import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
+import org.controlsfx.validation.Severity
 import org.json.JSONObject
 import java.net.URI
 import java.util.function.Supplier
@@ -327,7 +328,7 @@ class JsonPropertiesPane(
 
     private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
         (root.value as? ControlTreeItemData)?.typeControl?.also { control ->
-            val errors = ValidationEngine.validate(control, objId, data, validators).toMap()
+            val errors = ValidationEngine.validateData(control, objId, data, validators).toMap()
             flattenBottomUp(root).forEach { item ->
                 (item.value as? ControlTreeItemData)?.also { data ->
                     item.value.validationMessage =
@@ -337,7 +338,7 @@ class JsonPropertiesPane(
             }
             treeItem.value.validationMessage = generateErrorMessage(listOf(), errors)
             treeItem.value.updateFinished()
-            valid.set(errors.isEmpty())
+            valid.set(errors.none { it.value.any { it.severity == Severity.ERROR } })
         }
     }
 
@@ -357,9 +358,9 @@ class JsonPropertiesPane(
 
     private fun generateErrorMessage(
         pointer: JSONPointer,
-        errorMap: Map<JSONPointer, List<String>>
-    ): String? {
-        val error = errorMap[listOf("#") + pointer]?.joinToString("\n")
+        errorMap: Map<JSONPointer, List<Validator.ValidationResult>>
+    ): Validator.ValidationResult? {
+        val error = errorMap[listOf("#") + pointer]
 
         // check for "missing key" error in parent
         if (pointer.isNotEmpty()) {
@@ -370,14 +371,23 @@ class JsonPropertiesPane(
                 // the best we can do. The only way it could be made more robust if we still had the
                 // original validation error exception would be comparing
                 // ValidationException#getKeyword to "required", which would be better, but not by much.
-                if ("required key [$thisKey] not found" in parentError) {
-                    return error?.let { "$it\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}" }
-                        ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")
+                if ("required key [$thisKey] not found" in parentError.map { it.message }) {
+                    return Validator.SimpleValidationResult(
+                        Severity.ERROR,
+                        (error?.let {
+                            it.joinToString("\n") { it.message } + "\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}"
+                        } ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired"))
+                    )
                 }
             }
         }
 
-        return error
+        return error?.let {
+            Validator.SimpleValidationResult(
+                it.maxOf { it.severity },
+                it.joinToString("\n") { it.message }
+            )
+        }
     }
 
 

@@ -47,10 +47,11 @@ class NumberTest {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number"}}}""")
         val data = JSONObject().put("num", 723.168)
         editor.display("1", "1", data, schema) { it }
-        val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(500.36)
-        numberControl.editor.text = converted
+        WaitForAsyncUtils.asyncFx {
+            numberControl.editor.text = converted
+        }
         WaitForAsyncUtils.waitForFxEvents()
         MatcherAssert.assertThat(data.getDouble("num"), `is`(500.36))
     }

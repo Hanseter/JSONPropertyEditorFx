@@ -116,7 +116,37 @@
     -fx-font-weight: bold;
     -fx-padding: 5;
     -fx-border-width: 1;
-    -fx-background-color: FBEFEF;
-    -fx-text-fill: cc0033;
-    -fx-border-color: cc0033;
+    -fx-background-color: #FBEFEF;
+    -fx-text-fill: #cc0033;
+    -fx-border-color: #cc0033;
+}
+
+.json-props-editor-tooltip .warning-display {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+    -fx-background-color: #FFFFCC;
+    -fx-text-fill: #CC9900;
+    -fx-border-color: #CC9900;
+}
+
+.json-props-editor-tooltip .info-display {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+    -fx-background-color: #F0F1FA;
+    -fx-text-fill: #0065DA;
+    -fx-border-color: #0065DA;
+}
+
+.json-props-editor-tooltip .ok-display {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+    -fx-background-color: #EBF4ED;
+    -fx-text-fill: #007906;
+    -fx-border-color: #007906;
 }
