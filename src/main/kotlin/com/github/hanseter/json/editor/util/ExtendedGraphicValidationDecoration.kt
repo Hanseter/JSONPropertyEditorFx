@@ -33,7 +33,7 @@ class ExtendedGraphicValidationDecoration : GraphicValidationDecoration() {
             ExtendedGraphicValidationDecoration::class.java.getResource("decoration-ok.png")!!
                 .toExternalForm()
         )
-        
+
         private const val POPUP_SHADOW_EFFECT =
             "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);"
 

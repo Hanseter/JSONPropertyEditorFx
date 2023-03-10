@@ -70,10 +70,12 @@ object ValidationEngine {
         val errorMap = mutableMapOf<JSONPointer, MutableList<Validator.ValidationResult>>()
         val parentErrorCount = mutableMapOf<JSONPointer, Int>()
         fun addError(pointer: List<String>, result: Validator.ValidationResult) {
-            val pointers = pointer.heads()
-            pointers.dropLast(1).forEach { parentPointer ->
-                val count = parentErrorCount[parentPointer] ?: 0
-                parentErrorCount[parentPointer] = count + 1
+            if (result.severity == Severity.ERROR) {
+                val pointers = pointer.heads()
+                pointers.dropLast(1).forEach { parentPointer ->
+                    val count = parentErrorCount[parentPointer] ?: 0
+                    parentErrorCount[parentPointer] = count + 1
+                }
             }
             errorMap.getOrPut(pointer) { mutableListOf() }.add(result)
         }
@@ -81,7 +83,7 @@ object ValidationEngine {
         return controls.mapNotNull { control ->
             val pointer = listOf("#") + control.model.schema.pointer
             validateCustomValidator(control, pointer, customValidators, id, ::addError)
-            createErrorMessageNew(parentErrorCount[pointer] ?: 0, errorMap[pointer])
+            createErrorMessage(parentErrorCount[pointer] ?: 0, errorMap[pointer])
                 ?.let { pointer to it }
         }
     }
@@ -163,20 +165,9 @@ object ValidationEngine {
         }
     }
 
-    private fun createErrorMessage(subErrors: Int, errors: List<String>?): List<String>? {
+    private fun createErrorMessage(subErrors: Int, errors: List<Validator.ValidationResult>?): List<Validator.ValidationResult>? {
         if (subErrors < 1) return errors
         val subErrorMessage =
-            if (subErrors == 1) listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
-            else listOf(JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors").format(subErrors))
-
-        return if (errors == null) subErrorMessage
-        else subErrorMessage + errors
-    }
-
-    private fun createErrorMessageNew(subErrors: Int, errors: List<Validator.ValidationResult>?): List<Validator.ValidationResult>? {
-        if (subErrors < 1) return errors
-        val subErrorMessage =
-            // TODO before merge make this take severities into account
             if (subErrors == 1) listOf(Validator.SimpleValidationResult(
                 Severity.ERROR,
                 JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
