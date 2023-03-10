@@ -338,7 +338,7 @@ class JsonPropertiesPane(
             }
             treeItem.value.validationMessage = generateErrorMessage(listOf(), errors)
             treeItem.value.updateFinished()
-            valid.set(errors.filter { it.value.any { it.severity == Severity.ERROR } }.isEmpty())
+            valid.set(errors.none { it.value.any { it.severity == Severity.ERROR } })
         }
     }
 
@@ -359,7 +359,7 @@ class JsonPropertiesPane(
     private fun generateErrorMessage(
         pointer: JSONPointer,
         errorMap: Map<JSONPointer, List<Validator.ValidationResult>>
-    ): Pair<Severity, String>? {
+    ): Validator.ValidationResult? {
         val error = errorMap[listOf("#") + pointer]
 
         // check for "missing key" error in parent
@@ -372,15 +372,21 @@ class JsonPropertiesPane(
                 // original validation error exception would be comparing
                 // ValidationException#getKeyword to "required", which would be better, but not by much.
                 if ("required key [$thisKey] not found" in parentError.map { it.message }) {
-                    return Severity.ERROR to (error?.let {
-                        it.joinToString("\n") { it.message } + "\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}"
-                    } ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired"))
+                    return Validator.SimpleValidationResult(
+                        Severity.ERROR,
+                        (error?.let {
+                            it.joinToString("\n") { it.message } + "\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}"
+                        } ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired"))
+                    )
                 }
             }
         }
 
         return error?.let {
-            it.maxOf { it.severity } to it.joinToString("\n") { it.message }
+            Validator.SimpleValidationResult(
+                it.maxOf { it.severity },
+                it.joinToString("\n") { it.message }
+            )
         }
     }
 

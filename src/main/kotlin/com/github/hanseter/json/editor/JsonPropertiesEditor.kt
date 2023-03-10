@@ -271,8 +271,8 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                     text = desc
 
                     validationMessage?.let {
-                        graphic = Label(it.second).apply {
-                            styleClass.add(when (it.first) {
+                        graphic = Label(it.message).apply {
+                            styleClass.add(when (it.severity) {
                                 Severity.ERROR -> "error-display"
                                 Severity.WARNING -> "warning-display"
                                 Severity.OK -> "ok-display"
@@ -298,9 +298,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
         private fun createValidationMessage(
             label: Control,
-            msg: Pair<Severity, String>?
+            msg: Validator.ValidationResult?
         ): SimpleValidationMessage? =
-            msg?.let { SimpleValidationMessage(label, it.second, it.first) }
+            msg?.let { SimpleValidationMessage(label, it.message, it.severity) }
 
         private inner class SimpleValidationMessage(
             private val target: Control,
@@ -419,7 +419,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         } else {
             rootItem.setFilter { item ->
                 (item as? ControlTreeItemData)?.let {
-                    filters.any { !it(item.typeControl.model, item.validationMessage?.second) }
+                    filters.any { !it(item.typeControl.model, item.validationMessage?.message) }
                 } ?: true
             }
         }
