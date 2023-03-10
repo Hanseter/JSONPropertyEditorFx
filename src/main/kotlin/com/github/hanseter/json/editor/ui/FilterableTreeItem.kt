@@ -12,6 +12,7 @@ import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.event.Event
 import javafx.scene.control.TreeItem
+import org.controlsfx.validation.Severity
 
 /**
  * Creates a filterable TreeItem with children.
@@ -105,7 +106,7 @@ interface TreeItemData {
     val required: Boolean
     val cssClasses: List<String>
     val cssStyle: String?
-    var validationMessage: String?
+    var validationMessage: Pair<Severity, String>?
 
     fun createControl(): LazyControl?
 
@@ -139,7 +140,7 @@ class ControlTreeItemData(
     override val cssStyle: String?
         get() = typeControl.model.schema.cssStyle
 
-    override var validationMessage: String? = null
+    override var validationMessage: Pair<Severity, String>? = null
 
     override fun createControl(): LazyControl? = typeControl.createLazyControl()
 
@@ -168,7 +169,7 @@ class StyledTreeItemData(override val title: String, override val cssClasses: Li
 
     override val required: Boolean
         get() = false
-    override var validationMessage: String? = null
+    override var validationMessage: Pair<Severity, String>? = null
 
     override val cssStyle: String?
         get() = null

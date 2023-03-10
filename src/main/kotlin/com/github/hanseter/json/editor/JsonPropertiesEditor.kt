@@ -4,10 +4,7 @@ import com.github.hanseter.json.editor.actions.*
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
-import com.github.hanseter.json.editor.util.CustomizationObject
-import com.github.hanseter.json.editor.util.DefaultCustomizationObject
-import com.github.hanseter.json.editor.util.LazyControl
-import com.github.hanseter.json.editor.util.ViewOptions
+import com.github.hanseter.json.editor.util.*
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.application.Platform
@@ -274,8 +271,13 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                     text = desc
 
                     validationMessage?.let {
-                        graphic = Label(it).apply {
-                            styleClass.add("error-display")
+                        graphic = Label(it.second).apply {
+                            styleClass.add(when (it.first) {
+                                Severity.ERROR -> "error-display"
+                                Severity.WARNING -> "warning-display"
+                                Severity.OK -> "ok-display"
+                                else -> "info-display"
+                            })
                         }
                     }
                 }
@@ -296,9 +298,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
         private fun createValidationMessage(
             label: Control,
-            msg: String?
+            msg: Pair<Severity, String>?
         ): SimpleValidationMessage? =
-            msg?.let { SimpleValidationMessage(label, it, Severity.ERROR) }
+            msg?.let { SimpleValidationMessage(label, it.second, it.first) }
 
         private inner class SimpleValidationMessage(
             private val target: Control,
@@ -417,7 +419,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         } else {
             rootItem.setFilter { item ->
                 (item as? ControlTreeItemData)?.let {
-                    filters.any { !it(item.typeControl.model, item.validationMessage) }
+                    filters.any { !it(item.typeControl.model, item.validationMessage?.second) }
                 } ?: true
             }
         }
@@ -476,6 +478,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     companion object {
-        val DECORATOR = GraphicValidationDecoration()
+        val DECORATOR = ExtendedGraphicValidationDecoration()
     }
 }

@@ -15,6 +15,7 @@ import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
+import org.controlsfx.validation.Severity
 import org.json.JSONObject
 import java.net.URI
 import java.util.function.Supplier
@@ -337,7 +338,7 @@ class JsonPropertiesPane(
             }
             treeItem.value.validationMessage = generateErrorMessage(listOf(), errors)
             treeItem.value.updateFinished()
-            valid.set(errors.isEmpty())
+            valid.set(errors.filter { it.value.any { it.severity == Severity.ERROR } }.isEmpty())
         }
     }
 
@@ -358,10 +359,8 @@ class JsonPropertiesPane(
     private fun generateErrorMessage(
         pointer: JSONPointer,
         errorMap: Map<JSONPointer, List<Validator.ValidationResult>>
-    ): String? {
-        val error = errorMap[listOf("#") + pointer]?.joinToString("\n") {
-            it.message
-        }
+    ): Pair<Severity, String>? {
+        val error = errorMap[listOf("#") + pointer]
 
         // check for "missing key" error in parent
         if (pointer.isNotEmpty()) {
@@ -373,13 +372,16 @@ class JsonPropertiesPane(
                 // original validation error exception would be comparing
                 // ValidationException#getKeyword to "required", which would be better, but not by much.
                 if ("required key [$thisKey] not found" in parentError.map { it.message }) {
-                    return error?.let { "$it\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}" }
-                        ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")
+                    return Severity.ERROR to (error?.let {
+                        it.joinToString("\n") { it.message } + "\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}"
+                    } ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired"))
                 }
             }
         }
 
-        return error
+        return error?.let {
+            it.maxOf { it.severity } to it.joinToString("\n") { it.message }
+        }
     }
 
 

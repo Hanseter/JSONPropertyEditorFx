@@ -5,6 +5,7 @@ import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.scene.control.TextField
+import org.controlsfx.validation.Severity
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers
 import org.json.JSONObject
@@ -28,7 +29,7 @@ class ValidationTest {
                     override fun validate(model: TypeModel<*, *>, objId: String): List<Validator.ValidationResult> {
                         return if (model.value == "foo") {
                             emptyList()
-                        } else listOf(Validator.SimpleValidationResult("error"))
+                        } else listOf(Validator.SimpleValidationResult(Severity.ERROR, "error"))
                     }
 
                 }

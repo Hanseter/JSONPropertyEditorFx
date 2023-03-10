@@ -10,6 +10,7 @@ import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.RootBindableType
+import org.controlsfx.validation.Severity
 import org.everit.json.schema.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject
@@ -142,7 +143,10 @@ object ValidationEngine {
         flatten(ex).forEach { validationError ->
             errorCollector(
                 validationError.pointerToViolation.split('/'),
-                Validator.SimpleValidationResult(validationError.errorMessage)
+                Validator.SimpleValidationResult(
+                    Severity.ERROR,
+                    validationError.errorMessage
+                )
             )
         }
     }
@@ -172,10 +176,13 @@ object ValidationEngine {
     private fun createErrorMessageNew(subErrors: Int, errors: List<Validator.ValidationResult>?): List<Validator.ValidationResult>? {
         if (subErrors < 1) return errors
         val subErrorMessage =
+            // TODO before merge make this take severities into account
             if (subErrors == 1) listOf(Validator.SimpleValidationResult(
+                Severity.ERROR,
                 JsonPropertiesMl.bundle.getString("jsonEditor.validators.subError").format(1))
             )
             else listOf(Validator.SimpleValidationResult(
+                Severity.ERROR,
                 JsonPropertiesMl.bundle.getString("jsonEditor.validators.subErrors").format(subErrors))
             )
 
