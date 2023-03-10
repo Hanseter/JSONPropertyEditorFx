@@ -5,6 +5,7 @@ import com.github.hanseter.json.editor.base.SimilarObjectMatcher
 import org.hamcrest.MatcherAssert
 import org.json.JSONObject
 import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
 class AllOfNormalizationTest {
@@ -164,6 +165,64 @@ class AllOfNormalizationTest {
                     .put("baz2", JSONObject().put("type", "integer"))
                 )
                 .put("required", listOf("foo2", "bar"))
+        )
+    }
+
+    @Test
+    fun `no side effects in allOf`() {
+        val baseSchema = JSONObject()
+            .put("type", "object")
+            .put("properties", JSONObject().put("propFromBase", JSONObject().put("type", "string")))
+            .put("required", listOf("propFromBase"))
+
+        val schema = JSONObject()
+            .put("properties", JSONObject()
+                .put("foo", JSONObject()
+                    .put("allOf", listOf(
+                        baseSchema,
+                        JSONObject()
+                            .put("properties", JSONObject().put("propFromFoo", JSONObject().put("type", "string")))
+                            .put("required", listOf("propFromFoo"))
+                    )))
+                .put("bar", JSONObject()
+                    .put("allOf", listOf(
+                        baseSchema,
+                        JSONObject()
+                            .put("properties", JSONObject().put("propFromBar", JSONObject().put("type", "string")))
+                            .put("required", listOf("propFromBar"))
+                    )))
+            )
+
+        val normalizedSchema = SchemaNormalizer.normalizeSchema(schema, null)
+
+        MatcherAssert.assertThat(
+            normalizedSchema,
+            SimilarObjectMatcher(
+                JSONObject(mapOf(
+                    "properties" to mapOf(
+                        "foo" to mapOf(
+                            "type" to "object",
+                            "properties" to mapOf(
+                                "propFromBase" to mapOf("type" to "string"),
+                                "propFromFoo" to mapOf("type" to "string")
+                            ),
+                            "required" to listOf(
+                                "propFromBase", "propFromFoo"
+                            )
+                        ),
+                        "bar" to mapOf(
+                            "type" to "object",
+                            "properties" to mapOf(
+                                "propFromBase" to mapOf("type" to "string"),
+                                "propFromBar" to mapOf("type" to "string")
+                            ),
+                            "required" to listOf(
+                                "propFromBase", "propFromBar"
+                            )
+                        )
+                    ),
+                ))
+            )
         )
     }
 
