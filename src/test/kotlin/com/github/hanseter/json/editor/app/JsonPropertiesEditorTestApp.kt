@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor.app
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.JsonPropertiesEditor
 import com.github.hanseter.json.editor.ResolutionScopeProvider
+import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.base.TestUtils
 import com.github.hanseter.json.editor.base.TestUtils.loadSchema
 import com.github.hanseter.json.editor.types.TypeModel
@@ -58,10 +59,11 @@ class JsonPropertiesEditorTestApp : Application() {
 
     private fun display(editor: JsonPropertiesEditor, schemaName: String, data: JSONObject) {
         editor.clear()
-        editor.display("test", "isRoot 1 2 3 4 5 long text", data, loadSchema(schemaName)) {
+        editor.display("test", "isRoot 1 2 3 4 5 long text", SchemaNormalizer.deepCopy(data), loadSchema(schemaName)) {
             println(it.toString(1))
             editor.lookup("c2")
             it
+//            SchemaNormalizer.deepCopy(data)
         }
     }
 

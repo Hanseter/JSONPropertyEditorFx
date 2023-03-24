@@ -12,6 +12,7 @@ import com.github.hanseter.json.editor.util.*
 import com.github.hanseter.json.editor.validators.JSONPointer
 import com.github.hanseter.json.editor.validators.ValidationEngine
 import com.github.hanseter.json.editor.validators.Validator
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
@@ -168,22 +169,24 @@ class JsonPropertiesPane(
         type.registerListener {
             val newData = changeListener(PropertiesEditInput(type.getValue()!!, rawSchema))
 
-            if (newData.schema != null) {
+            Platform.runLater {
+                if (newData.schema != null) {
 
-                rawSchema = newData.schema
+                    rawSchema = newData.schema
 
-                val parsedSchema = SchemaNormalizer.parseSchema(
-                    newData.schema,
-                    resolutionScope,
-                    readOnly,
-                )
+                    val parsedSchema = SchemaNormalizer.parseSchema(
+                        newData.schema,
+                        resolutionScope,
+                        readOnly,
+                    )
 
-                schema = SimpleEffectiveSchema(null, parsedSchema, title)
+                    schema = SimpleEffectiveSchema(null, parsedSchema, title)
 
-                rebuildControlTree()
+                    rebuildControlTree()
+                }
+
+                fillData(newData.data)
             }
-
-            fillData(newData.data)
         }
     }
 
@@ -375,8 +378,13 @@ class JsonPropertiesPane(
                     return Validator.SimpleValidationResult(
                         Severity.ERROR,
                         (error?.let {
-                            it.joinToString("\n") { it.message } + "\n${JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired")}"
-                        } ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired"))
+                            it.joinToString("\n") { it.message } + "\n${
+                                JsonPropertiesMl.bundle.getString(
+                                    "jsonEditor.validators.message.keyIsRequired"
+                                )
+                            }"
+                        }
+                            ?: JsonPropertiesMl.bundle.getString("jsonEditor.validators.message.keyIsRequired"))
                     )
                 }
             }

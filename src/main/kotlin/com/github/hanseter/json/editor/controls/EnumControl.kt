@@ -17,7 +17,8 @@ import org.controlsfx.control.SearchableComboBox
 import org.json.JSONObject
 
 //TODO this control makes every enum a string, even if it is something else. This needs to be improved.
-class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, ChangeListener<String?> {
+class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>,
+    ChangeListener<String?> {
     override val control = SearchableComboBox<String?>()
     override val property: Property<String?> = SimpleObjectProperty<String?>(null)
 
@@ -25,15 +26,16 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
 
         val enumDescriptions = model.enumDescriptions
 
-        control.items.setAll(model.enumSchema.possibleValuesAsList.filterNotNull().map { it.toString() })
-        control.selectionModel.selectedIndexProperty()
-                .addListener { _, _, new ->
-                    if (new.toInt() >= 0) {
-                        property.removeListener(this)
-                        property.value = model.enumSchema.possibleValuesAsList.filterNotNull()[new.toInt()].toString()
-                        property.addListener(this)
-                    }
-                }
+        control.items.setAll(
+            model.enumSchema.possibleValuesAsList.filterNotNull().map { it.toString() })
+        control.selectionModel.selectedIndexProperty().addListener { _, _, new ->
+            if (new.toInt() >= 0) {
+                property.removeListener(this)
+                property.value =
+                    model.enumSchema.possibleValuesAsList.filterNotNull()[new.toInt()].toString()
+                property.addListener(this)
+            }
+        }
 
         val cellFactory = Callback<ListView<String?>, ListCell<String?>> {
             object : ListCell<String?>() {
@@ -100,17 +102,21 @@ class EnumControl(private val model: EnumModel) : ControlWithProperty<String?>, 
         control.promptText = if (b) TypeControl.NULL_PROMPT else ""
     }
 
-    override fun changed(observable: ObservableValue<out String?>?, oldValue: String?, newValue: String?) {
+    override fun changed(
+        observable: ObservableValue<out String?>?,
+        oldValue: String?,
+        newValue: String?
+    ) {
         setSelectedValue(newValue)
     }
 
     private fun setSelectedValue(value: String?) {
         control.selectionModel.select(
-                when {
-                    control.items.contains(value) -> value
-                    model.rawValue == JSONObject.NULL -> null
-                    else -> model.defaultValue
-                }
+            when {
+                control.items.contains(value) -> value
+                model.rawValue == JSONObject.NULL -> null
+                else -> model.defaultValue
+            }
         )
     }
 

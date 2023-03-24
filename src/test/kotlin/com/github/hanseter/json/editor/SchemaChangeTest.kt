@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
+import org.testfx.util.WaitForAsyncUtils
 
 @ExtendWith(ApplicationExtension::class)
 class SchemaChangeTest {
@@ -60,10 +61,12 @@ class SchemaChangeTest {
         assertThat(editor.getItemTable().root.findChildWithKeyRecursive("hello"), nullValue())
 
         srcControl.text = "hello"
+        WaitForAsyncUtils.waitForFxEvents()
 
         assertThat(editor.getItemTable().root.findChildWithKeyRecursive("hello"), notNullValue())
 
         srcControl.text = "goodbye"
+        WaitForAsyncUtils.waitForFxEvents()
 
         assertThat(editor.getItemTable().root.findChildWithKeyRecursive("hello"), nullValue())
         assertThat(editor.getItemTable().root.findChildWithKeyRecursive("goodbye"), notNullValue())
