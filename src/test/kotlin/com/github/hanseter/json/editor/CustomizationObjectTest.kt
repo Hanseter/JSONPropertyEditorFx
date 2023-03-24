@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
+import org.testfx.util.WaitForAsyncUtils
 
 @ExtendWith(ApplicationExtension::class)
 class CustomizationObjectTest {
@@ -63,6 +64,7 @@ class CustomizationObjectTest {
 
         fooControl.text = "something"
 
+        WaitForAsyncUtils.waitForFxEvents()
         MatcherAssert.assertThat((fooCell.graphic as Labeled).text, Matchers.`is`("barsomething"))
         MatcherAssert.assertThat((notFooCell.graphic as Labeled).text, Matchers.`is`("notFoo"))
     }

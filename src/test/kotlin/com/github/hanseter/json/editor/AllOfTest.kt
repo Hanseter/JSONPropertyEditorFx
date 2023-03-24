@@ -64,6 +64,7 @@ class AllOfTest {
         val objectEntry = editor.getItemTable().root.children.first().findChildWithKey("notRoot")!!
         assertThat(objectEntry.children.size, `is`(0))
         (objectEntry.value.createControl()?.control as TypeWithChildrenStatusControl).button.fire()
+        WaitForAsyncUtils.waitForFxEvents()
         assertThat(objectEntry.children.size, `is`(3))
         assertThat(editor.getControlInTable("hello"), `is`(instanceOf(TextField::class.java)))
         assertThat(editor.getControlInTable("x"), `is`(instanceOf(Spinner::class.java)))
