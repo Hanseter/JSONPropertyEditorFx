@@ -10,7 +10,6 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.io.InputStream
 import java.io.UncheckedIOException
 import java.net.URI
 import java.nio.file.Path
@@ -590,25 +589,28 @@ private class MapBasedSchemaResolver(val schemas: Map<String, JSONObject>) : Sch
 }
 
 private class UriBasedSchemaResolver(val baseUrl: URI?) : SchemaResolver {
+    private val cache = HashMap<URI, JSONObject>()
     override fun resolveSchema(ref: String): ResolvedSchema = resolveRefFromUrl(ref, baseUrl)
 
     private fun resolveRefFromUrl(url: String, resolutionScope: URI?): ResolvedSchema {
-        fun get(uri: URI): InputStream {
+        fun get(uri: URI): JSONObject {
             if (!uri.isAbsolute) {
                 throw IllegalArgumentException("""URI is not absolute: $uri""")
             }
-            val conn = uri.toURL().openConnection()
-            val location = conn.getHeaderField("Location")
-            return location?.let { get(URI(it)) } ?: conn.getInputStream()
+            return cache.getOrPut(uri) {
+                val conn = uri.toURL().openConnection()
+                val location = conn.getHeaderField("Location")
+                location?.let { get(URI(it)) } ?: conn.getInputStream().use {
+                    JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
+                }
+            }
         }
         if (resolutionScope != null) {
             try {
                 val fullUri = resolveJarAware(resolutionScope, url)
                 val jarAwareUri = resolveJarAware(fullUri, ".")
                 return ResolvedSchema(
-                    get(fullUri).use {
-                        JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
-                    },
+                    get(fullUri),
                     { resolveRefFromUrl(it, jarAwareUri) },
                     fullUri.fragment
                 )
@@ -620,9 +622,7 @@ private class UriBasedSchemaResolver(val baseUrl: URI?) : SchemaResolver {
             val fullUri = URI(url)
             val jarAwareUri = resolveJarAware(fullUri, ".")
             return ResolvedSchema(
-                get(fullUri).use {
-                    JSONObject(JSONTokener(it.reader(Charsets.UTF_8)))
-                },
+                get(fullUri),
                 { resolveRefFromUrl(it, jarAwareUri) },
                 fullUri.fragment
             )
