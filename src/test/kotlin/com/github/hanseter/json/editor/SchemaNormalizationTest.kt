@@ -624,4 +624,54 @@ class SchemaNormalizationTest {
         )
     }
 
+    @Test
+    fun foo() {
+        val grandParent = JSONObject(
+            """{
+                "properties": {
+                "someEnum": {
+                "type":"string",
+                "enum":["A", "B"]
+                }}}"""
+        )
+        val schemaA = JSONObject(
+            """
+                {"allOf": [
+                {"${"$"}ref": "grandparent.json"},
+                {
+                "properties": {
+                "a": {
+                "type":"string",
+                }}}]}"""
+        )
+
+        val schemaB = JSONObject(
+            """
+                {"allOf": [
+                {"${"$"}ref": "grandparent.json"},
+                {
+                "properties": {
+                "b": {
+                "type":"string",
+                }}}]}"""
+        )
+
+        val schemaAll =
+            JSONObject().put(
+                "allOf", listOf(
+                    JSONObject().put("\$ref", "a.json"),
+                    JSONObject().put("\$ref", "b.json")
+                )
+            )
+
+        val normalized = SchemaNormalizer.normalize(
+            schemaAll, mapOf(
+                "grandparent.json" to grandParent,
+                "a.json" to schemaA,
+                "b.json" to schemaB
+            )
+        )
+        println(normalized.toString(1))
+    }
+
 }
