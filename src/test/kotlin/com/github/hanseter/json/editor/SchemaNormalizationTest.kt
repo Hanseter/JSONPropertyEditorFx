@@ -6,7 +6,11 @@ import org.hamcrest.Matchers.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
 
 class SchemaNormalizationTest {
 
@@ -622,6 +626,77 @@ class SchemaNormalizationTest {
                 )
             )
         )
+    }
+
+    @TestFactory
+    fun mergesMultipleCompositionsOnlyOnce(@TempDir tmpDir: File): List<DynamicTest> {
+        val grandParent = JSONObject(
+            """{
+                "properties": {
+                "someEnum": {
+                "type":"string",
+                "enum":["A", "B"]
+                }}}"""
+        )
+        val schemaA = JSONObject(
+            """
+                {"allOf": [
+                {"${"$"}ref": "grandparent.json"},
+                {
+                "properties": {
+                "a": {
+                "type":"string",
+                }}}]}"""
+        )
+
+        val schemaB = JSONObject(
+            """
+                {"allOf": [
+                {"${"$"}ref": "grandparent.json"},
+                {
+                "properties": {
+                "b": {
+                "type":"string",
+                }}}]}"""
+        )
+
+        val schemaAll =
+            JSONObject().put(
+                "allOf", listOf(
+                    JSONObject().put("\$ref", "a.json"),
+                    JSONObject().put("\$ref", "b.json")
+                )
+            )
+        return listOf(
+            DynamicTest.dynamicTest("URI based") {
+                tmpDir.resolve("grandparent.json").writeText(grandParent.toString())
+                tmpDir.resolve("a.json").writeText(schemaA.toString())
+                tmpDir.resolve("b.json").writeText(schemaB.toString())
+
+                val normalized = SchemaNormalizer.normalize(schemaAll, tmpDir.toURI())
+                assertThat(
+                    normalized.getJSONObject("properties").getJSONObject("someEnum")
+                        .getJSONArray("enum"),
+                    contains("A", "B")
+                )
+            },
+            DynamicTest.dynamicTest("Map based") {
+                val normalized = SchemaNormalizer.normalize(
+                    schemaAll, mapOf(
+                        "grandparent.json" to grandParent,
+                        "a.json" to schemaA,
+                        "b.json" to schemaB
+                    )
+                )
+                assertThat(
+                    normalized.getJSONObject("properties").getJSONObject("someEnum")
+                        .getJSONArray("enum"),
+                    contains("A", "B")
+                )
+            }
+        )
+
+
     }
 
 }
