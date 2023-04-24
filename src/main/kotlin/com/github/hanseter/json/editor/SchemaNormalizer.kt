@@ -8,7 +8,6 @@ import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
-import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.net.URI
@@ -16,9 +15,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 object SchemaNormalizer {
-
-    private val logger = LoggerFactory.getLogger(SchemaNormalizer::class.java)
-
 
     fun parseSchema(
         schema: JSONObject,
@@ -86,7 +82,7 @@ object SchemaNormalizer {
      * Resolves $refs in a schema.
      *
      * @param schema the schema to resolve the references in
-     * @param resolutionScope the URI to resolve $refs to other files from
+     * @param otherSchemas the other schemas that can be used to resolve $refs
      * @param completeSchema the schema to resolve internal $refs relative to (usually the root schema), or `null` to resolve them relative to `schema`
      * @return a schema where the $refs have been resolved
      */
@@ -290,7 +286,7 @@ object SchemaNormalizer {
 
     private fun getDistinctEntriesInAllOf(allOf: JSONArray): List<JSONObject> {
         var i = -1
-        return getAllEntriesInAllOf(allOf).distinctBy { it.optInt("${"$"}ref", i--) }
+        return getAllEntriesInAllOf(allOf).distinctBy { it.optInt("\$ref", i--) }
     }
 
     /**
@@ -300,24 +296,10 @@ object SchemaNormalizer {
      */
     private fun getAllEntriesInAllOf(allOf: JSONArray): List<JSONObject> {
         return (0 until allOf.length()).flatMap { i ->
-            val allOfEntry = allOf.get(i)
-            if (allOfEntry is JSONObject) {
-                val nestedAllOff = allOfEntry.optJSONArray("allOf")
-                if (nestedAllOff != null) {
-                    if ((allOfEntry.keySet() - "allOf").isNotEmpty()) {
-                        logger.warn(
-                            "Encountered additional content in `allOf` during schema normalization. It will be discarded: {}",
-                            allOfEntry.toString()
-                        )
-                    }
-
-                    getAllEntriesInAllOf(nestedAllOff)
-                } else {
-                    listOf(allOfEntry)
-                }
-            } else {
-                emptyList()
-            }
+            val allOfEntry = allOf.optJSONObject(i) ?: return@flatMap emptyList()
+            val nestedAllOff = allOfEntry.optJSONArray("allOf")
+            if (nestedAllOff != null) getAllEntriesInAllOf(nestedAllOff)
+            else listOf(allOfEntry)
         }
     }
 
