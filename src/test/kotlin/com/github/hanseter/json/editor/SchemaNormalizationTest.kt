@@ -695,8 +695,6 @@ class SchemaNormalizationTest {
                 )
             }
         )
-
-
     }
 
 }
