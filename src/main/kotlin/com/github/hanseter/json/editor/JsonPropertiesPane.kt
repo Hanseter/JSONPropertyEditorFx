@@ -167,9 +167,10 @@ class JsonPropertiesPane(
         objectControl?.bindTo(type)
         fillTree(data)
         type.registerListener {
-            val newData = changeListener(PropertiesEditInput(type.getValue()!!, rawSchema))
 
             Platform.runLater {
+                val newData = changeListener(PropertiesEditInput(type.getValue()!!, rawSchema))
+
                 if (newData.schema != null) {
 
                     rawSchema = newData.schema
