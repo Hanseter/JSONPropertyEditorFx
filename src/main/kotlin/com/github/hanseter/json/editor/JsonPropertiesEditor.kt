@@ -13,14 +13,11 @@ import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableBooleanValue
-import javafx.beans.value.ObservableValue
-import javafx.beans.value.WeakChangeListener
 import javafx.scene.control.*
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
-import org.controlsfx.validation.decoration.GraphicValidationDecoration
 import org.json.JSONObject
 import java.net.URI
 
@@ -251,6 +248,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         }
 
         fun updateLabel(treeItemData: TreeItemData) {
+            //TODO workaround for fx 17. Should be fixed in 18
+            //https://bugs.openjdk.org/browse/JDK-8231644
+            text = " "
             graphic = Label().apply {
                 text =
                     treeItemData.title + if (viewOptions.markRequired && treeItemData.required) " *" else ""

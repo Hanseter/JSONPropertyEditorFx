@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.hanseter</groupId>
     <artifactId>json-properties-fx</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
 
     <packaging>bundle</packaging>
     <name>JSON Properties Editor Fx</name>
@@ -16,7 +16,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.7.0</kotlin.version>
+        <kotlin.version>1.8.20</kotlin.version>
         <javafx.version>17.0.2</javafx.version>
         <slf4j.version>1.7.32</slf4j.version>
     </properties>

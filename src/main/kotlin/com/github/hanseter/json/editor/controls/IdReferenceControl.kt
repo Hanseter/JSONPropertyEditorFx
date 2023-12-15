@@ -27,6 +27,7 @@ class IdReferenceControl(
         val completionBinding = TextFields.bindAutoCompletion(control) { request ->
             val proposals = mapProposals(getValidProposals(request, regex))
                 .filter { it.matchesInput(request.userText) }
+                .sorted(Comparator.comparingInt { it.toString().indexOf(request.userText) })
                 .limit(30).collect(Collectors.toList())
             if (canProposalsAutoApplied(request, proposals)) {
                 Platform.runLater {
@@ -147,8 +148,8 @@ class IdReferenceControl(
         val description: String? = if (description.isBlank()) null
         else description
 
-        fun matchesInput(input: String) =
-            id.startsWith(input) || description?.startsWith(input) ?: false
+        fun matchesInput(input: String)  =
+            input in toString()
 
         fun equalsInput(input: String) =
             id == input || description?.equals(input) ?: false
