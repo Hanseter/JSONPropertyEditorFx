@@ -77,18 +77,7 @@ object ControlFactory {
             )
 
             "date" -> RowBasedControl({ DateControl() }, DateModel(schema))
-            else -> RowBasedControl({ StringControl().apply {
-                LOG.info("Created new string control ${toString()} for ${schema.propertyName}")
-
-                control.focusedProperty().addListener { _, _, new ->
-                    LOG.info("Focus of ${toString()} changed to $new")
-                }
-                control.caretPositionProperty().addListener { _, _, new ->
-                    if (new == 0) {
-                        LOG.info("The caret is now 0 for some reason")
-                    }
-                }
-            } }, StringModel(schema))
+            else -> RowBasedControl({ StringControl() }, StringModel(schema))
         }
 
     private fun createNumberControl(schema: EffectiveSchema<NumberSchema>, context: EditorContext): TypeControl =
