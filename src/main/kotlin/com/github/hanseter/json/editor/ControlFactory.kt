@@ -12,9 +12,12 @@ import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.types.FormattedIntegerModel.Companion.INT_FORMAT
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
+import org.slf4j.LoggerFactory
 
 
 object ControlFactory {
+
+    private val LOG = LoggerFactory.getLogger(ControlFactory::class.java)
 
     @Suppress("UNCHECKED_CAST")
     fun convert(schema: EffectiveSchema<*>, context: EditorContext): TypeControl =
@@ -74,7 +77,18 @@ object ControlFactory {
             )
 
             "date" -> RowBasedControl({ DateControl() }, DateModel(schema))
-            else -> RowBasedControl({ StringControl() }, StringModel(schema))
+            else -> RowBasedControl({ StringControl().apply {
+                LOG.info("Created new string control ${toString()} for ${schema.propertyName}")
+
+                control.focusedProperty().addListener { _, _, new ->
+                    LOG.info("Focus of ${toString()} changed to $new")
+                }
+                control.caretPositionProperty().addListener { _, _, new ->
+                    if (new == 0) {
+                        LOG.info("The caret is now 0 for some reason")
+                    }
+                }
+            } }, StringModel(schema))
         }
 
     private fun createNumberControl(schema: EffectiveSchema<NumberSchema>, context: EditorContext): TypeControl =

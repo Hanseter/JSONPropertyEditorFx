@@ -29,7 +29,7 @@ object AddToArrayAction : EditorAction {
         input: PropertiesEditInput,
         model: TypeModel<*, *>,
         mouseEvent: Event?
-    ): PropertiesEditResult {
+    ): PropertiesEditResult? {
         val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value
             ?: JSONArray().also {
                 model.value = it
@@ -40,7 +40,8 @@ object AddToArrayAction : EditorAction {
             }
         children.put(children.length(), childDefaultValue ?: JSONObject.NULL)
         model.value = children
-        return PropertiesEditResult(input.data)
+        // since we just called `model.setValue`, we don't actually need to return anything here
+        return null
     }
 }
 
@@ -65,7 +66,7 @@ object RemoveFromArrayAction : EditorAction {
                 ?: return null
         val index = (model.schema as EffectiveSchemaInArray).index
         children.remove(index)
-        return PropertiesEditResult(input.data)
+        return PropertiesEditResult(model.bound?.rootType?.getValue() ?: input.data)
     }
 }
 
@@ -88,7 +89,7 @@ object MoveArrayItemUpAction : EditorAction {
         val tmp = children.get(index - 1)
         children.put(index - 1, children.get(index))
         children.put(index, tmp)
-        return PropertiesEditResult(input.data)
+        return PropertiesEditResult(model.bound?.rootType?.getValue() ?: input.data)
     }
 }
 
@@ -112,6 +113,6 @@ object MoveArrayItemDownAction : EditorAction {
         val tmp = children.get(index + 1)
         children.put(index + 1, children.get(index))
         children.put(index, tmp)
-        return PropertiesEditResult(input.data)
+        return PropertiesEditResult(model.bound?.rootType?.getValue() ?: input.data)
     }
 }

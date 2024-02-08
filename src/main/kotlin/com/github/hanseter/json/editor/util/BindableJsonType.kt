@@ -30,7 +30,16 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
         this.listeners += listener
     }
 
+    val rootType: RootBindableType
+        get() = getRootType(this)
+
     companion object {
+
+        private tailrec fun getRootType(ref: BindableJsonType): RootBindableType {
+            return if (ref.parent == null) ref as RootBindableType
+            else getRootType(ref.parent)
+        }
+
         fun <T> convertValue(value: Any?, schema: EffectiveSchema<*>, converter: (Any) -> T?): T? =
                 when (value) {
                     null -> schema.baseSchema.defaultValue?.let {SchemaNormalizer.deepCopy(converter(it))}
