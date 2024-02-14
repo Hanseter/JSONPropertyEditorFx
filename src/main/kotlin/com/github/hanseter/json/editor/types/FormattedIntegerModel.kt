@@ -28,11 +28,11 @@ class FormattedIntegerModel(
         unprocessedProperties: Map<String, Any>,
         decimalFormatSymbols: DecimalFormatSymbols
     ) {
-        private val map = unprocessedProperties[INT_FORMAT] as Map<*, *>
-        val pattern = (map[INT_FORMAT_PATTERN] as? String)
+        private val intFormat = unprocessedProperties[INT_FORMAT] as Map<*, *>
+        val pattern = (intFormat[INT_FORMAT_PATTERN] as? String)
             ?: DoubleControl.DEFAULT_PATTERN
         val symbols = decimalFormatSymbols
-        val precision = (map[INT_FORMAT_PRECISION] as? Int) ?: 0
+        val precision = (intFormat[INT_FORMAT_PRECISION] as? Int) ?: 0
 
         val multiplier = 10.0.pow(precision)
 
@@ -47,7 +47,7 @@ class FormattedIntegerModel(
             }
 
             override fun fromString(string: String?): Int? {
-                if (string.isNullOrBlank()) return 0
+                if (string.isNullOrBlank()) return null
                 val parsePosition = ParsePosition(0)
                 val parsed = decimalFormat.parse(string, parsePosition)
                 val number = (parsed?.toDouble()?.times(multiplier))?.roundToInt()

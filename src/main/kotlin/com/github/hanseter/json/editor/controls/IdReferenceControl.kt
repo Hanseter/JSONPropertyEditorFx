@@ -149,7 +149,7 @@ class IdReferenceControl(
         else description
 
         fun matchesInput(input: String)  =
-            input in toString()
+            toString().contains(input, ignoreCase = true)
 
         fun equalsInput(input: String) =
             id == input || description?.equals(input) ?: false

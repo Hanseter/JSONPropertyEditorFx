@@ -13,7 +13,7 @@ abstract class NumberControl<T : Number?> : ControlWithProperty<T> {
 
     protected fun initControl(){
         control.focusedProperty().addListener { _, _, new ->
-            if (!new && (control.editor.text.isEmpty() || control.editor.text == "-")) {
+            if (!new && (control.editor.text.isNullOrEmpty() || control.editor.text == "-")) {
                 control.editor.text =
                     control.valueFactory.converter.toString(property.value)
             }
@@ -30,7 +30,7 @@ abstract class NumberControl<T : Number?> : ControlWithProperty<T> {
     companion object {
         fun <T> updateValueAfterTextChange(control: Spinner<T>) {
             Platform.runLater {
-                val new = control.editor.text
+                val new = control.editor.text.orEmpty()
                 if (new.isNotEmpty() && new != "-") {
                     try {
                         val caretPos = control.editor.caretPosition
