@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor
 import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
 import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
 import com.github.hanseter.json.editor.schemaExtensions.LocalTimeFormat
+import com.github.hanseter.json.editor.schemaExtensions.MultiLineFormat
 import org.everit.json.schema.Schema
 import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONArray
@@ -26,6 +27,7 @@ object SchemaNormalizer {
         .addFormatValidator(ColorFormat.Validator)
         .addFormatValidator(IdReferenceFormat.Validator())
         .addFormatValidator(LocalTimeFormat.Validator)
+        .addFormatValidator(MultiLineFormat.Validator)
         .schemaJson(
             if (resolutionScope != null) normalize(schema, resolutionScope)
             else normalize(schema)

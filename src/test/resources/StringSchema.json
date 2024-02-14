@@ -13,6 +13,13 @@
       "description": "This is a test string",
       "title": "testString"
     },
+    "multi-line": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 5,
+      "default": "This is a \n multi-line \n string",
+      "format": "multi-line"
+    },
     "ref": {
       "type": "string",
       "format": "id-reference",

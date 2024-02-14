@@ -4,10 +4,7 @@ import com.github.hanseter.json.editor.controls.*
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.ForceReadOnlyEffectiveSchema
 import com.github.hanseter.json.editor.extensions.PartialEffectiveSchema
-import com.github.hanseter.json.editor.schemaExtensions.ColorFormat
-import com.github.hanseter.json.editor.schemaExtensions.IdReferenceFormat
-import com.github.hanseter.json.editor.schemaExtensions.LocalTimeFormat
-import com.github.hanseter.json.editor.schemaExtensions.synthetic
+import com.github.hanseter.json.editor.schemaExtensions.*
 import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.types.FormattedIntegerModel.Companion.INT_FORMAT
 import com.github.hanseter.json.editor.util.EditorContext
@@ -74,6 +71,7 @@ object ControlFactory {
             )
 
             "date" -> RowBasedControl({ DateControl() }, DateModel(schema))
+            MultiLineFormat.FORMAT_NAME -> RowBasedControl({ MultiLineStringControl()}, StringModel(schema))
             else -> RowBasedControl({ StringControl() }, StringModel(schema))
         }
 

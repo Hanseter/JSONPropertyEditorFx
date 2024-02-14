@@ -5,7 +5,7 @@ import java.util.*
 object IdReferenceFormat {
     const val formatName = "id-reference"
 
-    class Validator() : org.everit.json.schema.FormatValidator {
+    class Validator : org.everit.json.schema.FormatValidator {
 
         override fun formatName() = formatName
 

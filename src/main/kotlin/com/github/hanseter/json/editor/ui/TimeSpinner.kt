@@ -1,13 +1,13 @@
 package com.github.hanseter.json.editor.ui
 
+import com.github.hanseter.json.editor.schemaExtensions.LocalTimeFormat
 import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
 import javafx.scene.control.TextFormatter
 import javafx.scene.input.InputEvent
 import javafx.util.StringConverter
 
-
-class TimeSpinner constructor(time: String = "00:00:00") : Spinner<String?>() {
+class TimeSpinner(time: String = "00:00:00") : Spinner<String?>() {
     // Property containing the current editing mode:
     private var mode: Mode = Mode.HOURS
 
@@ -89,7 +89,7 @@ class TimeSpinner constructor(time: String = "00:00:00") : Spinner<String?>() {
         editor.text = time
         editor.textFormatter = TextFormatter<String> { c: TextFormatter.Change ->
             when {
-                c.isReplaced -> if (TIME_REGEX.matches(c.controlNewText)) c else null
+                c.isReplaced -> if (LocalTimeFormat.FORMAT_REGEX.matches(c.controlNewText)) c else null
                 c.isAdded -> handleAdded(c)
                 c.isDeleted -> handleDeletion(c)
                 else -> c
@@ -134,4 +134,3 @@ class TimeSpinner constructor(time: String = "00:00:00") : Spinner<String?>() {
     }
 }
 
-val TIME_REGEX = "([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)".toRegex()
