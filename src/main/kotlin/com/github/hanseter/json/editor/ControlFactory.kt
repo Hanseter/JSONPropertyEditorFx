@@ -9,9 +9,12 @@ import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.types.FormattedIntegerModel.Companion.INT_FORMAT
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
+import org.slf4j.LoggerFactory
 
 
 object ControlFactory {
+
+    private val LOG = LoggerFactory.getLogger(ControlFactory::class.java)
 
     @Suppress("UNCHECKED_CAST")
     fun convert(schema: EffectiveSchema<*>, context: EditorContext): TypeControl =

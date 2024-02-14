@@ -25,7 +25,7 @@ object ResetToNullAction : EditorAction {
             is JSONArray -> parentContainer.put(key.toInt(), JSONObject.NULL)
             else -> throw IllegalStateException("Unknown parent container type: ${parentContainer::class.java}")
         }
-        return PropertiesEditResult(input.data)
+        return PropertiesEditResult(model.bound?.rootType?.getValue() ?: input.data)
     }
 
 }
