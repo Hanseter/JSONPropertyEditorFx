@@ -1,7 +1,9 @@
 package com.github.hanseter.json.editor.controls
 
 import javafx.beans.property.Property
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.TextArea
+import javafx.scene.control.skin.TextAreaSkin
 
 class MultiLineStringControl : ControlWithProperty<String?> {
     override val control: TextArea = TextArea().apply {
@@ -9,10 +11,20 @@ class MultiLineStringControl : ControlWithProperty<String?> {
         prefHeightProperty().bind(maxHeightProperty())
         minHeightProperty().bind(maxHeightProperty())
         textProperty().addListener { _, _, text ->
-            maxHeight = if ('\n' in text) 70.0
-            else 26.0
+            if ('\n' in text) {
+                maxHeight = 70.0
+                setHorizonzalScrollbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED)
+            } else {
+                maxHeight = 26.0
+                setHorizonzalScrollbarPolicy(ScrollPane.ScrollBarPolicy.NEVER)
+            }
         }
     }
+
+    private fun TextArea.setHorizonzalScrollbarPolicy(policy: ScrollPane.ScrollBarPolicy) {
+        ((skin as TextAreaSkin).children.single() as ScrollPane).hbarPolicy = policy
+    }
+
     override val property: Property<String?>
         get() = control.textProperty()
 
