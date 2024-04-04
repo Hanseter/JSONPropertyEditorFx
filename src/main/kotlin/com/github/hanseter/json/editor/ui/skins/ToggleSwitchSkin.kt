@@ -62,17 +62,17 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
         // Stop the transition if it was already running, has no effect otherwise.
         transition.stop()
 
-            if (skinnable.isSelected) {
-                transition.rate = 1.0
-                transition.jumpTo(Duration.ZERO)
-            } else {
-                // If we are not selected, we need to go from right to left.
-                transition.rate = -1.0
-                transition.jumpTo(transition.duration)
-            }
+        transition.rate = if (skinnable.isSelected) 1.0 else -1.0
+
+        // we jump the selection to the start based on the current direction (-duration will be coerced to 0)
+        transition.jumpTo(transition.duration.multiply(-transition.rate))
+
         if (skinnable.isArmed || skinnable.isFocused) {
             transition.play()
+        } else {
+            skinnable.requestLayout()
         }
+
     }
 
     override fun computeMinWidth(
