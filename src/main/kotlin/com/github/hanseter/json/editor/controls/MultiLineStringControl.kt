@@ -6,6 +6,9 @@ import javafx.scene.control.TextArea
 import javafx.scene.control.skin.TextAreaSkin
 
 class MultiLineStringControl : ControlWithProperty<String?> {
+
+    private var scrollBarPolicy: ScrollPane.ScrollBarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+
     override val control: TextArea = TextArea().apply {
         maxHeight = 26.0
         prefHeightProperty().bind(maxHeightProperty())
@@ -19,10 +22,16 @@ class MultiLineStringControl : ControlWithProperty<String?> {
                 setHorizonzalScrollbarPolicy(ScrollPane.ScrollBarPolicy.NEVER)
             }
         }
+        skinProperty().addListener { _, _, new ->
+            if (new != null) {
+                setHorizonzalScrollbarPolicy(scrollBarPolicy)
+            }
+        }
     }
 
     private fun TextArea.setHorizonzalScrollbarPolicy(policy: ScrollPane.ScrollBarPolicy) {
-        ((skin as TextAreaSkin).children.single() as ScrollPane).hbarPolicy = policy
+        scrollBarPolicy = policy
+        ((skin as? TextAreaSkin)?.children?.single() as? ScrollPane)?.hbarPolicy = policy
     }
 
     override val property: Property<String?>
