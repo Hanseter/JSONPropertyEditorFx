@@ -13,7 +13,7 @@ class IdReferenceValidator(private val referenceProposalProvider: Supplier<IdRef
     override val selector: TargetSelector = TargetSelector { it.supportedType == SupportedType.SimpleType.IdReferenceType }
 
     override fun validate(model: TypeModel<*, *>, objId: String): List<Validator.ValidationResult> =
-            if (referenceProposalProvider.get().isValidReference(model.value as? String, objId, model.schema.baseSchema as StringSchema)) emptyList()
+            if (model.value == null || referenceProposalProvider.get().isValidReference(model.value as? String, objId, model.schema.baseSchema as StringSchema)) emptyList()
             else listOf(Validator.SimpleValidationResult(
                 Severity.ERROR,
                 JsonPropertiesMl.bundle.getString("jsonEditor.validators.validReference")

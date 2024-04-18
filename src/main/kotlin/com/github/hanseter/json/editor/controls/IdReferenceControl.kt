@@ -101,21 +101,26 @@ class IdReferenceControl(
 
     private fun idChanged(id: Preview?) {
         if (id == null) {
+            control.text = ""
             control.label = ""
+            property.value = null
             return
         }
         when (context.idRefDisplayMode) {
             IdRefDisplayMode.ID_ONLY -> {
                 control.text = id.id
+                control.label = ""
                 property.value = id.id
             }
 
             IdRefDisplayMode.DESCRIPTION_ONLY -> {
                 if (id.description == null) {
                     control.text = id.id
+                    control.label = ""
                     property.value = ""
                 } else {
                     control.text = id.description
+                    control.label = ""
                     property.value = id.id
                 }
             }
@@ -128,8 +133,8 @@ class IdReferenceControl(
 
             IdRefDisplayMode.DESCRIPTION_WITH_ID -> {
                 if (id.description == null) {
-                    control.label = ""
                     control.text = id.id
+                    control.label = ""
                     property.value = ""
                 } else {
                     control.text = id.description
