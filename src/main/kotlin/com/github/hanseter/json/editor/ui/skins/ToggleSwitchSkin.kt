@@ -5,6 +5,7 @@ import javafx.animation.Animation
 import javafx.animation.TranslateTransition
 import javafx.beans.binding.Bindings
 import javafx.beans.value.ChangeListener
+import javafx.collections.ListChangeListener
 import javafx.geometry.HPos
 import javafx.geometry.VPos
 import javafx.scene.control.CheckBox
@@ -186,6 +187,17 @@ class ToggleSwitchSkin(checkBox: CheckBox) : LabeledSkinBase<CheckBox>(checkBox)
                 checkBox.isIndeterminate -> 0.0
                 else -> 0.0
             }
+        }
+    }
+
+    override fun updateChildren() {
+        super.updateChildren()
+        // This method is invoked during the super constructor (among others),
+        // where `box` is not initialized yet.
+        // This implementation is identical to the one in CheckBoxSkin, which is in the same situation.
+        @Suppress("SENSELESS_COMPARISON")
+        if (box != null) {
+            children.add(box)
         }
     }
 

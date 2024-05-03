@@ -1,4 +1,4 @@
-package com.github.hanseter.json.editor
+package com.github.hanseter.json.editor.app
 
 import com.github.hanseter.json.editor.ui.skins.ToggleSwitchSkin
 import javafx.application.Application
@@ -32,8 +32,11 @@ class ToggleSwitchTestApp : Application() {
             skin = ToggleSwitchSkin(this)
         }
 
+
+
         switch1.selectedProperty().addListener { _, _, new ->
             switch2.isSelected = new
+            switch3.text = "switch 1 selected: ${switch1.isSelected}"
         }
 
         val root = VBox(16.0,
