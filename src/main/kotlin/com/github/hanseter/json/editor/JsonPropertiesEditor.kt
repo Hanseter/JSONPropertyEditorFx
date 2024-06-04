@@ -32,8 +32,26 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
     var resolutionScopeProvider: ResolutionScopeProvider =
         ResolutionScopeProvider.ResolutionScopeProviderEmpty
-    val validators: List<Validator> =
-        listOf(IdReferenceValidator { referenceProposalProvider }) + additionalValidators
+
+    private val fixedValidators = listOf(IdReferenceValidator { referenceProposalProvider })
+
+    var additionalValidators: List<Validator> = additionalValidators
+        set(value) {
+            field = value.toList()
+            validators = fixedValidators + field
+        }
+
+    // since this is read a lot more frequently than it's updated, we cache the complete validator
+    // list instead of having it be computed every time
+    var validators: List<Validator> = fixedValidators + additionalValidators
+        private set(value) {
+            field = value
+            Platform.runLater {
+                idsToPanes.values.forEach {
+                    it.revalidate()
+                }
+            }
+        }
 
     private val actions =
         actions + PreviewAction(
@@ -205,7 +223,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             resolutionScope,
             { referenceProposalProvider },
             actions,
-            validators,
+            { validators },
             viewOptions,
             customizationObject,
             callback

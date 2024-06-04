@@ -30,7 +30,7 @@ class JsonPropertiesPane(
     private val resolutionScope: URI?,
     private val refProvider: Supplier<IdReferenceProposalProvider>,
     private val actions: List<EditorAction>,
-    private val validators: List<Validator>,
+    private val validators: () -> List<Validator>,
     viewOptions: ViewOptions,
     private val customizationObject: CustomizationObject,
     private val changeListener: JsonPropertiesEditor.OnEditCallback
@@ -145,7 +145,6 @@ class JsonPropertiesPane(
                     actions,
                     actionHandler,
                     objId,
-                    validators.filter { it.selector.matches(control.model) },
                     customizationObject
                 )
             )
@@ -332,7 +331,7 @@ class JsonPropertiesPane(
 
     private fun updateTreeUiElements(root: FilterableTreeItem<TreeItemData>, data: JSONObject) {
         (root.value as? ControlTreeItemData)?.typeControl?.also { control ->
-            val errors = ValidationEngine.validateData(control, objId, data, validators).toMap()
+            val errors = ValidationEngine.validateData(control, objId, data, validators()).toMap()
             flattenBottomUp(root).forEach { item ->
                 (item.value as? ControlTreeItemData)?.also { data ->
                     item.value.validationMessage =
@@ -343,6 +342,12 @@ class JsonPropertiesPane(
             treeItem.value.validationMessage = generateErrorMessage(listOf(), errors)
             treeItem.value.updateFinished()
             valid.set(errors.none { it.value.any { it.severity == Severity.ERROR } })
+        }
+    }
+
+    fun revalidate() {
+        controlItem?.also { item ->
+            updateTreeUiElements(item, contentHandler.data)
         }
     }
 
