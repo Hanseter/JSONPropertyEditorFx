@@ -49,7 +49,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private val treeTableView = TreeTableView<TreeItemData>().apply {
         id = "itemTable"
         rowFactory = Callback { TreeItemDataRow() }
-
+        styleClass.add("json-properties-table")
         stylesheets.add(
             this@JsonPropertiesEditor.javaClass
                 .getResource("TreeTableView.css")!!
@@ -272,12 +272,14 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
                     validationMessage?.let {
                         graphic = Label(it.message).apply {
-                            styleClass.add(when (it.severity) {
-                                Severity.ERROR -> "error-display"
-                                Severity.WARNING -> "warning-display"
-                                Severity.OK -> "ok-display"
-                                else -> "info-display"
-                            })
+                            styleClass.add(
+                                when (it.severity) {
+                                    Severity.ERROR -> "error-display"
+                                    Severity.WARNING -> "warning-display"
+                                    Severity.OK -> "ok-display"
+                                    else -> "info-display"
+                                }
+                            )
                         }
                     }
                 }
@@ -471,9 +473,26 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             appliedStyleClasses.clear()
             if (item != null) {
                 appliedStyleClasses.addAll(item.cssClasses)
+                val indent = calcIndent()
+                if (indent >= 0) {
+                    appliedStyleClasses.add(
+                        if (indent % 2 == 0) "json-props-editor-even-indent-row"
+                        else "json-props-editor-odd-indent-row"
+                    )
+                }
                 styleClass.addAll(appliedStyleClasses)
-                style = item.cssStyle
+//                style = item.cssStyle
             }
+        }
+
+        private fun calcIndent(): Int {
+            var indent = -1
+            var current = treeItem
+            while (current != null) {
+                indent++
+                current = current.parent
+            }
+            return indent
         }
     }
 

@@ -1,3 +1,16 @@
+.json-properties-table {
+    -json-props-editor-even-indent-background : #FFFFFF;
+    -json-props-editor-odd-indent-background : #F0F0F0;
+}
+
+.json-props-editor-even-indent-row {
+    -fx-background-color: -json-props-editor-even-indent-background;
+}
+
+.json-props-editor-odd-indent-row {
+    -fx-background-color: -json-props-editor-odd-indent-background;
+}
+
 .control-cell {
     -fx-padding: 0.1em 0.35em 0.4em 1.0em;
 }
