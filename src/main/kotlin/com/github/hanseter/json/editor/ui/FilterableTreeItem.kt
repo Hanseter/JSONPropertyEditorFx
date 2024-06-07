@@ -12,7 +12,6 @@ import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.event.Event
 import javafx.scene.control.TreeItem
-import org.controlsfx.validation.Severity
 
 /**
  * Creates a filterable TreeItem with children.
@@ -122,7 +121,6 @@ class ControlTreeItemData(
     private val actions: List<EditorAction>,
     private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
     private val objId: String,
-    val validators: List<Validator>,
     private val customizationObject: CustomizationObject
 ) : TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
