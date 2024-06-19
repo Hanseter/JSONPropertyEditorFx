@@ -4,7 +4,8 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.NumberSchema
 
-class DoubleModel(override val schema: EffectiveSchema<NumberSchema>) : TypeModel<Double?, SupportedType.SimpleType.DoubleType> {
+class DoubleModel(override val schema: EffectiveSchema<NumberSchema>) :
+    TypeModel<Double?, SupportedType.SimpleType.DoubleType> {
     override val supportedType: SupportedType.SimpleType.DoubleType
         get() = SupportedType.SimpleType.DoubleType
     override var bound: BindableJsonType? = null
@@ -18,19 +19,22 @@ class DoubleModel(override val schema: EffectiveSchema<NumberSchema>) : TypeMode
         }
 
 
-
     override val previewString: PreviewString
-        get() = PreviewString.create(formatDoubleToString(value), formatDoubleToString(defaultValue), rawValue)
+        get() = PreviewString.create(
+            formatDoubleToString(value),
+            formatDoubleToString(defaultValue),
+            rawValue
+        )
 
     companion object {
         val CONVERTER: (Any?) -> Double? = { (it as? Number)?.toDouble() }
 
         private fun formatDoubleToString(value: Double?): String? {
-            if(value==null) return null
+            if (value == null) return null
 
-            return if((value % 1) == 0.0){
+            return if ((value % 1) == 0.0) {
                 value.toInt().toString()
-            }else{
+            } else {
                 value.toString()
             }
         }

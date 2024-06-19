@@ -10,7 +10,7 @@ import java.text.ParsePosition
 class DoubleControl(decimalFormatSymbols: DecimalFormatSymbols) : NumberControl<Double?>() {
 
     private val decimalFormat = DecimalFormat(DEFAULT_PATTERN).apply {
-        this.decimalFormatSymbols=decimalFormatSymbols
+        this.decimalFormatSymbols = decimalFormatSymbols
     }
 
     override val control = Spinner<Double?>().apply {
@@ -51,9 +51,16 @@ class DoubleControl(decimalFormatSymbols: DecimalFormatSymbols) : NumberControl<
 
     }
 
-    private class StringDoubleConverter(private val decimalFormat: DecimalFormat) : StringConverter<Double?>() {
-        override fun toString(`object`: Double?): String? =
-            if (`object` == null) "" else decimalFormat.format(`object`)
+    private class StringDoubleConverter(private val decimalFormat: DecimalFormat) :
+        StringConverter<Double?>() {
+        override fun toString(`object`: Double?): String? {
+            return when (`object`) {
+                null -> ""
+                -0.0 -> "0.0"
+                else -> decimalFormat.format(`object`)
+            }
+        }
+
 
         override fun fromString(string: String?): Double? {
             if (string.isNullOrBlank()) return 0.0
