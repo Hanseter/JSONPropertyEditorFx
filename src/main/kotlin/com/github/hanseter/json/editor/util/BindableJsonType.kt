@@ -10,16 +10,23 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
 
     fun setValue(schema: EffectiveSchema<*>, value: Any?) {
         if (jsonAwareEquals(getValue(schema), value)) return
+        updateAfterChange(schema, value)
+    }
+
+    open fun updateFromChild(child: BindableJsonType, schema: EffectiveSchema<*>) {
+        updateAfterChange(schema.nonSyntheticAncestor!!, child.getValue())
+    }
+
+    private fun updateAfterChange(
+        schema: EffectiveSchema<*>,
+        value: Any?,
+    ) {
         setValueInternal(schema, value)
         if (parent != null) {
             parent.updateFromChild(this, schema)
         } else {
             listeners.forEach { it() }
         }
-    }
-
-    open fun updateFromChild(child: BindableJsonType, schema: EffectiveSchema<*>) {
-        setValue(schema.nonSyntheticAncestor!!, child.getValue())
     }
 
     protected abstract fun setValueInternal(schema: EffectiveSchema<*>, value: Any?)
