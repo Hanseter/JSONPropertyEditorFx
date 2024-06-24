@@ -122,13 +122,15 @@ class ArrayTest {
 
     @Test
     fun arrayElementCanBeAddedByButtonPress() {
+        val updateCounter = AtomicInteger(0)
+
         val schema = JSONObject(
             """{"type":"object","properties":{"bar":{"type":"array",
             "items":{"type":"string"}
             }}}"""
         )
         val data = JSONObject()
-        editor.display("1", "1", data, schema) { it }
+        editor.display("1", "1", data, schema) { it.also { updateCounter.incrementAndGet() } }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val addButton = arrayEntry.value.createActions()!!.children[1] as Button
@@ -145,6 +147,7 @@ class ArrayTest {
         }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(data.getJSONArray("bar").toList(), contains(null, null, null))
+        assertThat(updateCounter.get(), `is`(3))
     }
 
     @Test

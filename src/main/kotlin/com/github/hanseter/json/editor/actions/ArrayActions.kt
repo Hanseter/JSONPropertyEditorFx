@@ -7,6 +7,7 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
+import com.github.hanseter.json.editor.util.shallowClone
 import javafx.event.Event
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
@@ -30,8 +31,12 @@ object AddToArrayAction : EditorAction {
         model: TypeModel<*, *>,
         mouseEvent: Event?
     ): PropertiesEditResult? {
-        val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value
-            ?: JSONArray().also {
+        // Because this calls model.setValue instead of returning an edit result, we need to ensure
+        // the internal value does not change before we invoke setValue, otherwise, it would return
+        // immediately. Hence a shallow copy.
+        val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value?.let {
+            JSONArray().putAll(it)
+        } ?: JSONArray().also {
                 model.value = it
             }
         val childDefaultValue =
