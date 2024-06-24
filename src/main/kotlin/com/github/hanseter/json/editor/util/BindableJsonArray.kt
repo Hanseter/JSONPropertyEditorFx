@@ -8,7 +8,7 @@ class BindableJsonArray(parent: BindableJsonType?, private val arr: JSONArray) :
     BindableJsonType(parent) {
 
     override fun updateFromChild(child: BindableJsonType, schema: EffectiveSchema<*>) {
-        super.setValue(schema, child.getValue())
+        super.updateAfterChange(schema, child.getValue())
     }
 
     override fun setValueInternal(schema: EffectiveSchema<*>, value: Any?) =
