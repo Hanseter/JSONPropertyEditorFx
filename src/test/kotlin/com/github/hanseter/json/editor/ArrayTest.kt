@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
 import org.testfx.util.WaitForAsyncUtils
+import java.util.concurrent.atomic.AtomicInteger
 
 @ExtendWith(ApplicationExtension::class)
 class ArrayTest {
@@ -26,19 +27,24 @@ class ArrayTest {
 
     @Test
     fun updateArrayValue() {
+        val updateCounter = AtomicInteger(0)
+
         val schema = JSONObject(
             """{"type":"object","properties":{"bar":{"type":"array",
             "items":{"type":"string"}
             }}}"""
         )
         val json = JSONObject("""{"bar":["hello", "world"]}""")
-        editor.display("1", "1", json, schema) { it }
+        editor.display("1", "1", json, schema) { it.also { updateCounter.incrementAndGet() } }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val textField = arrayEntry.children.first().value.createControl()!!.control as TextField
         assertThat(textField.text, `is`("hello"))
         textField.text = "bye bye"
+
+        WaitForAsyncUtils.waitForFxEvents()
         assertThat(json.getJSONArray("bar").getString(0), `is`("bye bye"))
+        assertThat(updateCounter.get(), `is`(1))
     }
 
     @Test
@@ -116,13 +122,15 @@ class ArrayTest {
 
     @Test
     fun arrayElementCanBeAddedByButtonPress() {
+        val updateCounter = AtomicInteger(0)
+
         val schema = JSONObject(
             """{"type":"object","properties":{"bar":{"type":"array",
             "items":{"type":"string"}
             }}}"""
         )
         val data = JSONObject()
-        editor.display("1", "1", data, schema) { it }
+        editor.display("1", "1", data, schema) { it.also { updateCounter.incrementAndGet() } }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val addButton = arrayEntry.value.createActions()!!.children[1] as Button
@@ -139,6 +147,7 @@ class ArrayTest {
         }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(data.getJSONArray("bar").toList(), contains(null, null, null))
+        assertThat(updateCounter.get(), `is`(3))
     }
 
     @Test
