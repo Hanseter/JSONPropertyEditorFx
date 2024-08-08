@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor.base
 import org.controlsfx.control.SearchableComboBox
 import org.json.JSONObject
 import org.json.JSONTokener
+import org.testfx.util.WaitForAsyncUtils
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
@@ -21,5 +22,12 @@ object TestUtils {
 
     fun createSchemaComboBox() = SearchableComboBox<String>().apply {
         items.addAll(getAllSchemas())
+    }
+
+    fun <T> waitForAsyncFx(callback: () -> T): T? {
+        var ret: T? = null
+        WaitForAsyncUtils.asyncFx { ret = callback() }
+        WaitForAsyncUtils.waitForFxEvents()
+        return ret
     }
 }

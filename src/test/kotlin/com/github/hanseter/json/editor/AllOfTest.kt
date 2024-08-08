@@ -60,7 +60,10 @@ class AllOfTest {
     }]}}}""")
 
         val data = JSONObject()
-        editor.display("foo", "foo", data, schema) { it }
+        WaitForAsyncUtils.asyncFx {
+            editor.display("foo", "foo", data, schema) { it }
+        }
+        WaitForAsyncUtils.waitForFxEvents()
         val objectEntry = editor.getItemTable().root.children.first().findChildWithKey("notRoot")!!
         assertThat(objectEntry.children.size, `is`(0))
         (objectEntry.value.createControl()?.control as TypeWithChildrenStatusControl).button.fire()

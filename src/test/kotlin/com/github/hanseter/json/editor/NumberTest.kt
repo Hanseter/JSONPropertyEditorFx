@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.base.TestUtils.waitForAsyncFx
 import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.scene.control.Spinner
 import javafx.stage.Stage
@@ -35,7 +36,9 @@ class NumberTest {
     @Test
     fun displayExistingValue() {
         val schema = JSONObject("""{"type":"object","properties":{"num":{"type":"number"}}}""")
-        editor.display("1", "1", JSONObject().put("num", 723.168), schema) { it }
+        waitForAsyncFx {
+            editor.display("1", "1", JSONObject().put("num", 723.168), schema) { it }
+        }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(723.168)
@@ -118,7 +121,9 @@ class NumberTest {
     fun displaysCorrectDefaultValue() {
         val schema =
             JSONObject("""{"type":"object","properties":{"num":{"type":"number","default":723.168}}}""")
-        editor.display("1", "1", JSONObject(), schema) { it }
+        waitForAsyncFx {
+            editor.display("1", "1", JSONObject(), schema) { it }
+        }
         val itemTable = editor.getItemTable()
         val numberControl = editor.getControlInTable("num") as Spinner<Number>
         val converted = numberControl.valueFactory.converter.toString(723.168)
