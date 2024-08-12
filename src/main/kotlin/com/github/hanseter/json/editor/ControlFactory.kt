@@ -9,6 +9,7 @@ import com.github.hanseter.json.editor.types.*
 import com.github.hanseter.json.editor.types.FormattedIntegerModel.Companion.INT_FORMAT
 import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
+import org.json.JSONArray
 import org.slf4j.LoggerFactory
 
 
@@ -23,7 +24,7 @@ object ControlFactory {
             is ArraySchema -> createArrayControl(schema as EffectiveSchema<ArraySchema>, context)
             is BooleanSchema -> createBooleanControl(schema as EffectiveSchema<BooleanSchema>)
             is StringSchema -> createStringControl(schema as EffectiveSchema<StringSchema>, context)
-            is NumberSchema -> createNumberControl(schema as EffectiveSchema<NumberSchema>,context)
+            is NumberSchema -> createNumberControl(schema as EffectiveSchema<NumberSchema>, context)
             is EnumSchema -> createEnumControl(schema, actualSchema)
             is CombinedSchema -> createCombinedControl(
                 schema as EffectiveSchema<CombinedSchema>,
@@ -39,8 +40,9 @@ object ControlFactory {
 
     private fun createArrayControl(schema: EffectiveSchema<ArraySchema>, context: EditorContext) =
         when {
-            schema.baseSchema.allItemSchema != null -> ArrayControl(
-                ArrayModel(schema, schema.baseSchema.allItemSchema),
+            schema.baseSchema.allItemSchema != null -> arrayControl(
+                schema,
+                schema.baseSchema.allItemSchema,
                 context
             )
 
@@ -54,6 +56,28 @@ object ControlFactory {
             else -> throw IllegalArgumentException("Only lists which contain the same type or tuples are supported. Check schema ${schema.baseSchema.schemaLocation}")
         }
 
+    private fun arrayControl(
+        schema: EffectiveSchema<ArraySchema>,
+        itemsSchema: Schema,
+        context: EditorContext
+    ): TypeControl {
+        if (schema.baseSchema.needsUniqueItems()) {
+            getPotentialEnumSetSchema(itemsSchema)?.let {
+                val model = EnumSetModel(schema, it)
+                return RowBasedControl<JSONArray?>({ EnumSetControl(model, context) }, model)
+            }
+        }
+        return ArrayControl(ArrayModel(schema, itemsSchema), context)
+    }
+
+    private fun getPotentialEnumSetSchema(schema: Schema): EnumSchema? {
+        if (schema is EnumSchema) return schema
+        if (schema is CombinedSchema && schema.criterion == CombinedSchema.ALL_CRITERION && schema.synthetic) {
+            return schema.subschemas.find { it is EnumSchema } as? EnumSchema
+        }
+        return null
+    }
+
     private fun createBooleanControl(schema: EffectiveSchema<BooleanSchema>) =
         RowBasedControl({ BooleanControl() }, BooleanModel(schema))
 
@@ -65,7 +89,7 @@ object ControlFactory {
             ColorFormat.formatName -> RowBasedControl({ ColorControl() }, ColorModel(schema))
             IdReferenceFormat.formatName -> RowBasedControl(
                 { IdReferenceControl(schema, context) },
-                IdReferenceModel(schema,context)
+                IdReferenceModel(schema, context)
             )
 
             LocalTimeFormat.formatName -> RowBasedControl(
@@ -74,15 +98,22 @@ object ControlFactory {
             )
 
             "date" -> RowBasedControl({ DateControl() }, DateModel(schema))
-            MultiLineFormat.FORMAT_NAME -> RowBasedControl({ MultiLineStringControl()}, StringModel(schema))
+            MultiLineFormat.FORMAT_NAME -> RowBasedControl(
+                { MultiLineStringControl() },
+                StringModel(schema)
+            )
+
             else -> RowBasedControl({ StringControl() }, StringModel(schema))
         }
 
-    private fun createNumberControl(schema: EffectiveSchema<NumberSchema>, context: EditorContext): TypeControl =
+    private fun createNumberControl(
+        schema: EffectiveSchema<NumberSchema>,
+        context: EditorContext
+    ): TypeControl =
         if (schema.baseSchema.requiresInteger()) {
             if (schema.baseSchema.unprocessedProperties.keys.contains(INT_FORMAT)) {
-                val model=FormattedIntegerModel(schema,context.decimalFormatSymbols)
-                RowBasedControl({ FormattedIntegerControl(model) },model )
+                val model = FormattedIntegerModel(schema, context.decimalFormatSymbols)
+                RowBasedControl({ FormattedIntegerControl(model) }, model)
             } else RowBasedControl({ IntegerControl() }, IntegerModel(schema))
         } else {
             RowBasedControl({ DoubleControl(context.decimalFormatSymbols) }, DoubleModel(schema))

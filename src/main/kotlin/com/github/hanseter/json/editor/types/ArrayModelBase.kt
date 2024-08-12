@@ -5,13 +5,15 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.util.BindableJsonType
 import org.everit.json.schema.ArraySchema
+import org.everit.json.schema.EnumSchema
 import org.everit.json.schema.Schema
 import org.json.JSONArray
 
-class ArrayModel(override val schema: EffectiveSchema<ArraySchema>, val contentSchema: Schema) :
-    TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType> {
-    override val supportedType: SupportedType.ComplexType.ArrayType
-        get() = SupportedType.ComplexType.ArrayType
+sealed class ArrayModelBase<S : Schema, T : SupportedType<JSONArray?>>(
+    override val schema: EffectiveSchema<ArraySchema>,
+    val contentSchema: S,
+    override val supportedType: T
+) : TypeModel<JSONArray?, T> {
     override var bound: BindableJsonType? = null
     override val defaultValue: JSONArray?
         get() = (schema.defaultValue as? JSONArray)?.let { SchemaNormalizer.deepCopy(it) }
@@ -35,8 +37,23 @@ class ArrayModel(override val schema: EffectiveSchema<ArraySchema>, val contentS
             return if (value.length() == 1) {
                 JsonPropertiesMl.bundle.getString("jsonEditor.control.array.element").format(1)
             } else {
-                JsonPropertiesMl.bundle.getString("jsonEditor.control.array.elements").format(value.length())
+                JsonPropertiesMl.bundle.getString("jsonEditor.control.array.elements")
+                    .format(value.length())
             }
         }
     }
 }
+
+class ArrayModel(schema: EffectiveSchema<ArraySchema>, contentSchema: Schema) :
+    ArrayModelBase<Schema, SupportedType.ComplexType.ArrayType>(
+        schema,
+        contentSchema,
+        SupportedType.ComplexType.ArrayType
+    )
+
+class EnumSetModel(schema: EffectiveSchema<ArraySchema>, contentSchema: EnumSchema) :
+    ArrayModelBase<EnumSchema, SupportedType.SimpleType.EnumSetType>(
+        schema,
+        contentSchema,
+        SupportedType.SimpleType.EnumSetType
+    )

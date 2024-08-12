@@ -389,6 +389,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                     it.focusedProperty().addListener(focusListener)
                 }
                 updateControl(item)
+
                 item.registerChangeListener(changeListener)
             }
         }

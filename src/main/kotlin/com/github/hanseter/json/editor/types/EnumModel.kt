@@ -30,20 +30,25 @@ class EnumModel(override val schema: EffectiveSchema<Schema>, val enumSchema: En
             formatEnumWithDescription(defaultValue),
             rawValue
         )
+    val enumDescriptions: Map<String, String?>
+        get() = getEnumDescriptions(schema, enumSchema)
 
     private fun formatEnumWithDescription(value: String?): String? {
         if (value == null) return null
 
-        val desc=enumDescriptions[value]
-        return if(desc!=null){
+        val desc = enumDescriptions[value]
+        return if (desc != null) {
             "$value - $desc"
-        } else{
+        } else {
             value
         }
     }
 
-    val enumDescriptions: Map<String, String?>
-        get() {
+    companion object {
+        fun getEnumDescriptions(
+            schema: EffectiveSchema<out Schema>,
+            enumSchema: EnumSchema
+        ): Map<String, String?> {
             val descList = ((
                     enumSchema.unprocessedProperties["enumDescriptions"]
                         ?: schema.baseSchema.unprocessedProperties["enumDescriptions"]) as? List<*>
@@ -56,4 +61,7 @@ class EnumModel(override val schema: EffectiveSchema<Schema>, val enumSchema: En
                     descList?.getOrNull(it.index)
                 }
         }
+    }
+
+
 }

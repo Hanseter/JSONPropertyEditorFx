@@ -70,6 +70,7 @@
 }
 
 .combo-box.has-null-value > .list-cell, .combo-box.has-default-value > .list-cell,
+.combo-box.has-null-value > .combo-box > .list-cell, .combo-box.has-default-value > combo-box > .list-cell,
 .combo-box.has-null-value > .list-cell > .enum-desc-label, .combo-box.has-default-value > .list-cell > .enum-desc-label,
 .color-picker.has-null-value > .label, .color-picker.has-default-value > .label {
     -fx-text-fill: derive(-fx-control-inner-background, -45%);

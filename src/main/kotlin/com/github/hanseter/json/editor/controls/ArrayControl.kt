@@ -5,7 +5,6 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.ArrayModel
-import com.github.hanseter.json.editor.types.PreviewString
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.*
 import org.everit.json.schema.ArraySchema
@@ -13,7 +12,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 
-class ArrayControl(override val model: ArrayModel, private val context: EditorContext) :
+class ArrayControl(
+    override val model: ArrayModel,
+    private val context: EditorContext
+) :
     TypeControl {
     override val childControls = mutableListOf<TypeControl>()
     private var subArray: BindableJsonArray? = null
@@ -27,12 +29,13 @@ class ArrayControl(override val model: ArrayModel, private val context: EditorCo
     override fun createLazyControl(): LazyControl = LazyArrayControl()
 
     private inner class LazyArrayControl : LazyControl {
-        override val control = TypeWithChildrenStatusControl(JsonPropertiesMl.bundle.getString("jsonEditor.control.array.create")) {
-            model.value = JSONArray()
-            valuesChanged()
-        }.apply {
-            isDisable = model.schema.readOnly
-        }
+        override val control =
+            TypeWithChildrenStatusControl(JsonPropertiesMl.bundle.getString("jsonEditor.control.array.create")) {
+                model.value = JSONArray()
+                valuesChanged()
+            }.apply {
+                isDisable = model.schema.readOnly
+            }
 
         override fun updateDisplayedValue() {
             updateLabel()
