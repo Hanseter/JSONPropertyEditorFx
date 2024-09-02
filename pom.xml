@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.hanseter</groupId>
     <artifactId>json-properties-fx</artifactId>
@@ -10,6 +10,29 @@
 
     <packaging>bundle</packaging>
     <name>JSON Properties Editor Fx</name>
+
+    <url>https://github.com/Hanseter/JSONPropertyEditorFx</url>
+
+    <licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>https://mit-license.org/</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Hanseter</name>
+            <organizationUrl>https://github.com/Hanseter</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/Hanseter/JSONPropertyEditorFx.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Hanseter/JSONPropertyEditorFx.git</developerConnection>
+        <url>https://github.com/Hanseter/JSONPropertyEditorFx/tree/master</url>
+    </scm>
+
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
