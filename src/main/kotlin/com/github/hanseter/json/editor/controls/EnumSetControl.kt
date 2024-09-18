@@ -21,6 +21,10 @@ class EnumSetControl(
         while (c.next()) {
             //mill changes
         }
+        //checkbox model is buggy when there are two selected elements and the first one was deselected.
+        //even though this looks like a nop, it forces the checkbox model to "reload"
+        //should be this bug in controlsfx: https://github.com/controlsfx/controlsfx/issues/1550
+        c.list.forEach {  }
         controlChanged(c.list)
     }
 
