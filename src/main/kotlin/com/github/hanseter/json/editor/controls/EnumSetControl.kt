@@ -24,7 +24,7 @@ class EnumSetControl(
         //checkbox model is buggy when there are two selected elements and the first one was deselected.
         //even though this looks like a nop, it forces the checkbox model to "reload"
         //should be this bug in controlsfx: https://github.com/controlsfx/controlsfx/issues/1550
-        c.list.forEach {  }
+        c.list.forEach { }
         controlChanged(c.list)
     }
 
@@ -138,8 +138,13 @@ class EnumSetControl(
             val value = (new ?: model.defaultValue)?.toSet()
             if (value == null || model.rawValue == null) return
 
-            control.checkModel.checkIndices(*value.map { control.items.indexOf(it) }
-                .filter { it > -1 }.toIntArray())
+            control.checkModel.checkIndices(
+                *value
+                    .map { control.items.indexOf(it) }
+                    .filter { it > -1 }
+                    .sorted()
+                    .toIntArray()
+            )
         }
     }
 
