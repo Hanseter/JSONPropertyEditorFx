@@ -25,7 +25,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private val readOnly: Boolean = false,
     viewOptions: ViewOptions = ViewOptions(),
     actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
-    private val customizationObject: CustomizationObject = DefaultCustomizationObject,
+    customizationObject: CustomizationObject = DefaultCustomizationObject,
     additionalValidators: List<Validator> = emptyList()
 ) : StackPane() {
     var referenceProposalProvider: IdReferenceProposalProvider =
@@ -49,6 +49,17 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             Platform.runLater {
                 idsToPanes.values.forEach {
                     it.revalidate()
+                }
+            }
+        }
+
+    var customizationObject: CustomizationObject = customizationObject
+        set(value) {
+            field = value
+
+            Platform.runLater {
+                idsToPanes.values.forEach {
+                    it.rebuildControlTree()
                 }
             }
         }
@@ -121,7 +132,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             title, objId, obj,
             schema,
             readOnly,
-            resolutionScope, customizationObject, callback
+            resolutionScope, callback
         )
         pane.fillData(obj)
         idsToPanes[objId] = pane
@@ -211,7 +222,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private fun createTitledPaneForSchema(
         title: String, objId: String, data: JSONObject,
         rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?,
-        customizationObject: CustomizationObject,
         callback: OnEditCallback
     ): JsonPropertiesPane =
         JsonPropertiesPane(
@@ -225,7 +235,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             actions,
             { validators },
             viewOptions,
-            customizationObject,
+            { customizationObject },
             callback
         )
 

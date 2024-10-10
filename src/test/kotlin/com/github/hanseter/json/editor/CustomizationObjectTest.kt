@@ -106,4 +106,43 @@ class CustomizationObjectTest {
 
     }
 
+    @Test
+    fun `customization can be changed after creation`() {
+        val schema = JSONObject("""
+{
+    "type":"object",
+    "properties": {
+        "foo": {
+            "type": "string"
+        },
+        "notFoo": {
+            "type": "string"
+        }
+    }
+}""")
+        val editor = JsonPropertiesEditor()
+
+        val json = JSONObject("""{"foo":""}""")
+        editor.display("1", "1", json, schema) { it }
+
+        val fooCell = editor.getKeyCellInTable("foo")
+
+        MatcherAssert.assertThat((fooCell.graphic as Labeled).text, Matchers.`is`("foo"))
+
+        editor.customizationObject = object : CustomizationObject {
+
+            override fun getTitle(model: TypeModel<*, *>, defaultTitle: String): String {
+                if (model.schema.pointer == listOf("foo")) {
+                    return "bar"
+                }
+                return defaultTitle
+            }
+
+        }
+
+        WaitForAsyncUtils.waitForFxEvents()
+        val fooCellNew = editor.getKeyCellInTable("bar")
+        MatcherAssert.assertThat((fooCellNew.graphic as Labeled).text, Matchers.`is`("bar"))
+    }
+
 }
