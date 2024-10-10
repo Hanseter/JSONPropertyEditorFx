@@ -121,15 +121,15 @@ class ControlTreeItemData(
     private val actions: List<EditorAction>,
     private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
     private val objId: String,
-    private val customizationObject: CustomizationObject
+    private val customizationObject: () -> CustomizationObject
 ) : TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 
     override val title: String
-        get() = customizationObject.getTitle(typeControl.model, typeControl.model.schema.title)
+        get() = customizationObject().getTitle(typeControl.model, typeControl.model.schema.title)
 
     override val description: String?
-        get() = customizationObject.getDescription(typeControl.model, typeControl.model.schema.description)
+        get() = customizationObject().getDescription(typeControl.model, typeControl.model.schema.description)
 
     override val required: Boolean
         get() = typeControl.model.schema.required
