@@ -122,7 +122,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         callback: OnEditCallback
     ) {
         if (idsToPanes.contains(objId)) {
-            updateObject(objId, obj)
+            updateObject(objId, obj, schema)
             return
         }
 
@@ -155,17 +155,17 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
     fun updateObject(
         objId: String,
-        obj: JSONObject
+        obj: JSONObject,
+        schema: JSONObject
     ) {
         val pane = idsToPanes[objId] ?: return
         pane.fillData(obj)
+        pane.updateSchemaIfChanged(schema)
     }
 
     fun removeObject(objId: String) {
         (idsToPanes.remove(objId)?.treeItem)?.also {
-            (treeTableView.root as FilterableTreeItem).remove(
-                it
-            )
+            (treeTableView.root as FilterableTreeItem).remove(it)
         }
         rebindValidProperty()
     }

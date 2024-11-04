@@ -161,6 +161,23 @@ class JsonPropertiesPane(
         contentHandler.updateData(data)
     }
 
+    fun updateSchemaIfChanged(new: JSONObject) {
+        if (new.similar(rawSchema)) return
+        val data = contentHandler.data
+        updateSchema(new)
+        fillData(data)
+    }
+
+    private fun updateSchema(new: JSONObject) {
+        rawSchema = new
+
+        val parsedSchema = SchemaNormalizer.parseSchema(new, resolutionScope, readOnly)
+
+        schema = SimpleEffectiveSchema(null, parsedSchema, title)
+
+        rebuildControlTree()
+    }
+
     private fun fillSheet(data: JSONObject) {
         val type = RootBindableType(data)
         objectControl?.bindTo(type)
@@ -171,18 +188,7 @@ class JsonPropertiesPane(
                 val newData = changeListener(PropertiesEditInput(type.getValue()!!, rawSchema))
 
                 if (newData.schema != null) {
-
-                    rawSchema = newData.schema
-
-                    val parsedSchema = SchemaNormalizer.parseSchema(
-                        newData.schema,
-                        resolutionScope,
-                        readOnly,
-                    )
-
-                    schema = SimpleEffectiveSchema(null, parsedSchema, title)
-
-                    rebuildControlTree()
+                    updateSchema(newData.schema)
                 }
 
                 fillData(newData.data)
