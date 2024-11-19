@@ -14,29 +14,28 @@ import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
 import com.github.hanseter.json.editor.util.*
 import javafx.application.Application
+import javafx.application.Application.launch
 import javafx.scene.Scene
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.SplitPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import org.json.JSONObject
 
 
+
+fun main(args: Array<String>) {
+    launch(ControlsPreviewTestApp::class.java, *args)
+}
 /**
  *
  * @author Henrik Frühling (henrik.fruehling@siemens.com)
  */
 class ControlsPreviewTestApp : Application() {
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            launch(ControlsPreviewTestApp::class.java, *args)
-        }
-    }
 
     private val objId = "test"
 
@@ -70,7 +69,7 @@ class ControlsPreviewTestApp : Application() {
             selectionModel.selectFirst()
         }
 
-        root.top = schemas
+        root.top = HBox(5.0,schemas,TestUtils.createThemeComboBox())
 
         root.center = SplitPane(propEdit, VBox(10.0).apply {
             children.setAll(

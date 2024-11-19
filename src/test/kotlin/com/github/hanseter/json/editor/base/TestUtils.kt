@@ -1,5 +1,10 @@
 package com.github.hanseter.json.editor.base
 
+import atlantafx.base.theme.*
+import javafx.application.Application.setUserAgentStylesheet
+import javafx.collections.FXCollections
+import javafx.scene.control.ComboBox
+import javafx.util.StringConverter
 import org.controlsfx.control.SearchableComboBox
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -22,6 +27,40 @@ object TestUtils {
 
     fun createSchemaComboBox() = SearchableComboBox<String>().apply {
         items.addAll(getAllSchemas())
+    }
+
+    fun createThemeComboBox(): ComboBox<Theme?> {
+        val themeComboBox = ComboBox(
+            FXCollections.observableArrayList(
+                null,
+                PrimerLight(),
+                CupertinoLight(),
+                NordLight(),
+                PrimerDark(),
+                CupertinoDark(),
+                NordDark(),
+                Dracula(),
+            )
+        ).apply {
+            converter = object : StringConverter<Theme?>() {
+                override fun toString(theme: Theme?): String {
+                    return theme?.name ?: "Legacy"
+                }
+
+                override fun fromString(string: String?): Theme? {
+                    TODO("Not yet implemented")
+                }
+            }
+            selectionModel.selectedItemProperty().addListener { _, _, new ->
+                if (new != null) {
+                    setUserAgentStylesheet(new.userAgentStylesheet)
+                } else {
+                    setUserAgentStylesheet(null)
+                }
+
+            }
+        }
+        return themeComboBox
     }
 
     fun <T> waitForAsyncFx(callback: () -> T): T? {
