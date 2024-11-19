@@ -1,6 +1,7 @@
 package com.github.hanseter.json.editor.base
 
 import atlantafx.base.theme.*
+import javafx.application.Application
 import javafx.application.Application.setUserAgentStylesheet
 import javafx.collections.FXCollections
 import javafx.scene.control.ComboBox
@@ -44,7 +45,7 @@ object TestUtils {
         ).apply {
             converter = object : StringConverter<Theme?>() {
                 override fun toString(theme: Theme?): String {
-                    return theme?.name ?: "Legacy"
+                    return theme?.name ?: Application.STYLESHEET_MODENA
                 }
 
                 override fun fromString(string: String?): Theme? {

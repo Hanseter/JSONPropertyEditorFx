@@ -79,9 +79,8 @@ class JsonPropertiesEditorTestApp : Application() {
 
         val showStars = CheckBox("Show *")
 
-        val groupBy = ComboBox<PropertyGrouping>().apply {
-            items.addAll(PropertyGrouping.values())
-            selectionModel.select(0)
+        val groupBy = ComboBox(FXCollections.observableArrayList(PropertyGrouping.entries)).apply {
+            selectionModel.selectFirst()
         }
 
         val schemas = TestUtils.createSchemaComboBox().apply {
