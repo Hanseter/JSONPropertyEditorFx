@@ -5,9 +5,9 @@ import javafx.scene.control.Button
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
+import javafx.scene.control.TextField
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import org.controlsfx.control.textfield.TextFields
 
 class PropertiesEditorToolbar(
     private val editor: JsonPropertiesEditor
@@ -20,7 +20,7 @@ class PropertiesEditorToolbar(
 
     val additionalOptions = ArrayList<FilterOption>()
 
-    private val filterText = TextFields.createClearableTextField().apply {
+    private val filterText = TextField().apply {
         id = "searchField"
         promptText = ""
         textProperty().addListener { _ ->

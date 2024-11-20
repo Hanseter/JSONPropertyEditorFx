@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.app
 
+import atlantafx.base.theme.*
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.JsonPropertiesEditor
 import com.github.hanseter.json.editor.ResolutionScopeProvider
@@ -13,6 +14,7 @@ import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.application.Application
+import javafx.collections.FXCollections
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.CheckBox
@@ -20,11 +22,13 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
+import javafx.util.StringConverter
 import org.everit.json.schema.StringSchema
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.net.URI
 import java.util.stream.Stream
+
 
 fun main(args: Array<String>) {
     Application.launch(JsonPropertiesEditorTestApp::class.java, *args)
@@ -70,17 +74,18 @@ class JsonPropertiesEditorTestApp : Application() {
 
     private fun buildUi(propEdit: JsonPropertiesEditor): Parent {
 
+        val themeComboBox = TestUtils.createThemeComboBox()
+
 
         val showStars = CheckBox("Show *")
 
-        val groupBy = ComboBox<PropertyGrouping>().apply {
-            items.addAll(PropertyGrouping.values())
-            selectionModel.select(0)
+        val groupBy = ComboBox(FXCollections.observableArrayList(PropertyGrouping.entries)).apply {
+            selectionModel.selectFirst()
         }
 
-        val schemas=TestUtils.createSchemaComboBox().apply {
+        val schemas = TestUtils.createSchemaComboBox().apply {
             this.valueProperty().addListener { _, _, newValue ->
-                if(newValue!=null){
+                if (newValue != null) {
                     display(propEdit, newValue, JSONObject())
                 }
             }
@@ -103,10 +108,11 @@ class JsonPropertiesEditorTestApp : Application() {
                 showStars,
                 groupBy,
                 schemas,
-            ).apply { spacing=10.0 },
+                themeComboBox,
+            ).apply { spacing = 10.0 },
             PropertiesEditorToolbar(propEdit).node,
             propEdit
-        ).apply { spacing=10.0 }
+        ).apply { spacing = 10.0 }
     }
 
     object ReferenceProvider : IdReferenceProposalProvider {

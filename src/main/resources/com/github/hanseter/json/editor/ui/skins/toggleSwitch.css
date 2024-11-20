@@ -3,47 +3,79 @@
  * ToggleSwitch                                                                *
  *                                                                             *
  ******************************************************************************/
+
+.check-box {
+    -toggle-switch-base-color: #ececec;
+    -toggle-switch-outer-border: derive(-toggle-switch-base-color, -23%);
+    -toggle-switch-inner-border: linear-gradient(to bottom,
+            ladder(-toggle-switch-base-color,
+                derive(-toggle-switch-base-color, 30%) 0%,
+                derive(-toggle-switch-base-color, 20%) 40%,
+                derive(-toggle-switch-base-color, 25%) 60%,
+                derive(-toggle-switch-base-color, 55%) 80%,
+                derive(-toggle-switch-base-color, 55%) 90%,
+                derive(-toggle-switch-base-color, 75%) 100%),
+            ladder(-toggle-switch-base-color,
+                derive(-toggle-switch-base-color, 20%) 0%,
+                derive(-toggle-switch-base-color, 10%) 20%,
+                derive(-toggle-switch-base-color, 5%) 40%,
+                derive(-toggle-switch-base-color, -2%) 60%,
+                derive(-toggle-switch-base-color, -5%) 100%));
+    -toggle-switch-body-color: linear-gradient(to bottom,
+            ladder(-toggle-switch-base-color,
+                derive(-toggle-switch-base-color, 8%) 75%,
+                derive(-toggle-switch-base-color, 10%) 80%),
+            derive(-toggle-switch-base-color, -8%));
+    -toggle-switch-focus-color: #039ED3;
+    -toggle-switch-hover-color: ladder(-toggle-switch-base-color,
+            derive(-toggle-switch-base-color, 20%) 20%,
+            derive(-toggle-switch-base-color, 30%) 35%,
+            derive(-toggle-switch-base-color, 40%) 50%);
+    -toggle-switch-active-color: #00BEDC;
+    -toggle-switch-inactive-color: #FE8389;
+}
+
 .check-box .thumb {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-color: -toggle-switch-outer-border, -toggle-switch-inner-border, -toggle-switch-body-color;
     -fx-background-insets: 0, 1, 2;
-    -fx-background-radius: 1.0em; /* large value to make sure this remains circular */
+    -fx-background-radius: 1.0em;/* large value to make sure this remains circular */
     -fx-padding: 0.75em;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;
     -fx-border-color: transparent;
     -fx-border-radius: 1em;
 }
-.check-box:hover .thumb{
-    -fx-color: -fx-hover-base
+
+.check-box:hover .thumb {
+    -fx-color: -toggle-switch-hover-color
 }
 
-.check-box .thumb-area{
+.check-box .thumb-area {
     -fx-background-radius: 1em;
-    -fx-background-color: -fx-outer-border, -fx-inner-border, #FE8389;
+    -fx-background-color: -toggle-switch-outer-border, -toggle-switch-inner-border, -toggle-switch-inactive-color;
     -fx-background-insets: 0, 1;
-    -fx-padding: 0.75em 1.333333em 0.75em 1.333333em; /* 7 16 7 16 */
+    -fx-padding: 0.75em 1.333333em 0.75em 1.333333em;/* 7 16 7 16 */
     -fx-border-color: transparent;
     -fx-border-radius: 1em;
     -fx-border-insets: 0, 1;
 }
 
-.check-box:selected .thumb-area{
-    -fx-background-color: -fx-outer-border, -fx-inner-border,#00bedc
+.check-box:selected .thumb-area {
+    -fx-background-color: -toggle-switch-outer-border, -toggle-switch-inner-border, -toggle-switch-active-color
 }
 
-.check-box:indeterminate .thumb-area{
-    -fx-background-color:  -fx-outer-border, -fx-inner-border, #f5f5f5;
+.check-box:indeterminate .thumb-area {
+    -fx-background-color: -toggle-switch-outer-border, -toggle-switch-inner-border, #f5f5f5;
 }
 
-.check-box:focused .thumb-area{
-    -fx-border-color: -fx-focus-color;
+.check-box:focused .thumb-area {
+    -fx-border-color: -toggle-switch-focus-color;
 }
 
-.check-box:focused .thumb{
-    -fx-border-color: -fx-focus-color;
+.check-box:focused .thumb {
+    -fx-border-color: -toggle-switch-focus-color;
 }
 
-.check-box:disabled
-{
+.check-box:disabled {
     -fx-opacity: 0.4;
 }

@@ -86,7 +86,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         )
         columns.addAll(keyColumn, createControlColumn(), createActionColumn())
         isShowRoot = false
-        columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY
+        columnResizePolicy = TreeTableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN
         root = rootItem
         this.selectionModel.isCellSelectionEnabled = true
         TreeTableNavigation.addNavigationToTreeTableView(this)
@@ -349,6 +349,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             cellValueFactory = Callback { it.value.valueProperty() }
             cellFactory = Callback { ValueCell() }
             minWidth = 150.0
+            prefWidth = USE_COMPUTED_SIZE
             styleClass.add("control-cell")
             isSortable = false
         }

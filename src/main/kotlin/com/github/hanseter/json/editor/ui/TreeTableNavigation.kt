@@ -7,6 +7,8 @@ package com.github.hanseter.json.editor.ui
 
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeTableView
+import javafx.scene.control.skin.TreeTableViewSkin
+import javafx.scene.control.skin.VirtualFlow
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 
@@ -57,6 +59,10 @@ object TreeTableNavigation {
 
     }
 
+    private fun TreeTableView<*>.getVirtualFlow() = (this.skin as? TreeTableViewSkin<*>)?.children
+        ?.filterIsInstance<VirtualFlow<*>>()
+        ?.firstOrNull()
+
     private fun TreeTableView<*>.getSelected() =
         selectionModel.selectedCells.firstOrNull()?.treeItem
 
@@ -95,29 +101,33 @@ object TreeTableNavigation {
         }
     }
 
-    private fun TreeTableView<*>.scrollToCurrentRow() {
-        scrollTo(selectionModel.selectedIndex)
+    private fun TreeTableView<*>.scrollToSelectedRow() {
+        scrollToRow(selectionModel.selectedIndex)
+    }
+
+    private fun TreeTableView<*>.scrollToRow(rowIndex:Int) {
+        getVirtualFlow()?.scrollTo(rowIndex)
     }
 
     private fun TreeTableView<*>.selectFirst() {
         selectionModel.selectFirst()
-        scrollToCurrentRow()
+        scrollToSelectedRow()
     }
 
     private fun TreeTableView<*>.selectLast() {
         selectionModel.selectLast()
-        scrollToCurrentRow()
+        scrollToSelectedRow()
     }
 
 
     private fun TreeTableView<*>.selectUp() {
         selectionModel.selectAboveCell()
-        scrollToCurrentRow()
+        scrollToSelectedRow()
     }
 
     private fun TreeTableView<*>.selectDown() {
         selectionModel.selectBelowCell()
-        scrollToCurrentRow()
+        scrollToSelectedRow()
     }
 
     private fun TreeTableView<*>.selectLeft() {
