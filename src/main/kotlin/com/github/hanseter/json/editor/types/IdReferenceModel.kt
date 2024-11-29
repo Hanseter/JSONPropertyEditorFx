@@ -1,9 +1,7 @@
 package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
-import com.github.hanseter.json.editor.util.BindableJsonType
-import com.github.hanseter.json.editor.util.EditorContext
-import com.github.hanseter.json.editor.util.IdRefDisplayMode
+import com.github.hanseter.json.editor.util.*
 import org.everit.json.schema.StringSchema
 
 class IdReferenceModel(
@@ -22,6 +20,13 @@ class IdReferenceModel(
         set(value) {
             bound?.setValue(schema, value)
         }
+
+    val viewOptions: ViewOptions
+        get() = ViewOptions(
+            idRefDisplayMode = context.idRefDisplayMode,
+            decimalFormatSymbols = context.decimalFormatSymbols,
+            groupBy = PropertyGrouping.NONE
+        )
 
     companion object {
         val CONVERTER: (Any) -> String = { it as? String ?: it.toString() }
@@ -51,8 +56,8 @@ class IdReferenceModel(
 
     override val previewString: PreviewString
         get() = PreviewString.create(
-            idToString(value,context,schema),
-            idToString(defaultValue,context,schema),
+            idToString(value, context, schema),
+            idToString(defaultValue, context, schema),
             rawValue
         )
 
