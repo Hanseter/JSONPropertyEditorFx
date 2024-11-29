@@ -3,8 +3,10 @@ package com.github.hanseter.json.editor.actions
 import com.github.hanseter.json.editor.*
 import com.github.hanseter.json.editor.controls.IdReferenceControl
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+import com.github.hanseter.json.editor.types.IdReferenceModel
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
+import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.event.Event
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -36,10 +38,11 @@ class PreviewAction(
         mouseEvent: Event?
     ): PropertiesEditResult? {
         val value = (model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value
+        val viewOptions = (model as IdReferenceModel).viewOptions
         if (value != null) {
             val dataAndSchema = idReferenceProposalProvider.get().getDataAndSchema(value)
             if (dataAndSchema != null && mouseEvent != null) {
-                showPreviewPopup(dataAndSchema, value, mouseEvent?.target as? Node)
+                showPreviewPopup(dataAndSchema, value, mouseEvent?.target as? Node,viewOptions)
             }
         }
         return null
@@ -55,12 +58,14 @@ class PreviewAction(
     private fun showPreviewPopup(
         dataAndSchema: IdReferenceProposalProvider.DataWithSchema,
         value: String,
-        parent: Node?
+        parent: Node?,
+        viewOptions: ViewOptions
     ) {
         val (data, previewSchema) = dataAndSchema
         val preview = JsonPropertiesEditor(true)
         preview.referenceProposalProvider = idReferenceProposalProvider.get()
         preview.resolutionScopeProvider = resolutionScopeProvider.get()
+        preview.viewOptions= viewOptions
         preview.display(value, value, data, previewSchema) { it }
         val scrollPane = ScrollPane(preview)
         scrollPane.maxHeight = 500.0
