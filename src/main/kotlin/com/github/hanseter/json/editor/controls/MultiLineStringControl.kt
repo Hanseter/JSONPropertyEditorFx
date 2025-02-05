@@ -14,7 +14,7 @@ class MultiLineStringControl : ControlWithProperty<String?> {
         prefHeightProperty().bind(maxHeightProperty())
         minHeightProperty().bind(maxHeightProperty())
         textProperty().addListener { _, _, text ->
-            if ('\n' in text) {
+            if (text?.contains('\n') == true) {
                 maxHeight = 70.0
                 setHorizonzalScrollbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED)
             } else {

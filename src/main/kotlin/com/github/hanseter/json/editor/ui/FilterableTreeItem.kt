@@ -46,7 +46,7 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
     fun setFilter(filter: (T) -> Boolean) {
         filteredList.setPredicate { child ->
             child.setFilter(filter)
-            if (child.children.size > 0) {
+            if (child.children.isNotEmpty()) {
                 true
             } else {
                 filter(child.value)

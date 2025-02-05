@@ -164,6 +164,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     fun removeObject(objId: String) {
+        treeTableView.selectionModel.clearSelection()
         (idsToPanes.remove(objId)?.treeItem)?.also {
             (treeTableView.root as FilterableTreeItem).remove(it)
         }
@@ -203,6 +204,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     fun clear() {
+        treeTableView.selectionModel.clearSelection()
         idsToPanes.clear()
         (treeTableView.root as FilterableTreeItem).clear()
         rebindValidProperty()
@@ -322,7 +324,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                 createValidationMessage(
                     label,
                     treeItemData.validationMessage
-                )?.also(DECORATOR::applyValidationDecoration)
+                )?.also { Platform.runLater { DECORATOR.applyValidationDecoration(it) } }
             }
         }
 
