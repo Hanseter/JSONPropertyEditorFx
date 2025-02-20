@@ -1,5 +1,6 @@
 package com.github.hanseter.json.editor.app
 
+import com.github.hanseter.json.editor.base.TestUtils
 import com.github.hanseter.json.editor.ui.skins.ToggleSwitchSkin
 import javafx.application.Application
 import javafx.geometry.Insets
@@ -40,6 +41,7 @@ class ToggleSwitchTestApp : Application() {
         }
 
         val root = VBox(16.0,
+            TestUtils.createThemeComboBox(),
             switch1, switch2, switch3
         ).apply {
             padding = Insets(32.0)
