@@ -13,6 +13,7 @@ import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.PropertyGrouping
 import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.application.Application
+import javafx.collections.FXCollections
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.CheckBox
@@ -59,7 +60,12 @@ class JsonPropertiesEditorTestApp : Application() {
 
     private fun display(editor: JsonPropertiesEditor, schemaName: String, data: JSONObject) {
         editor.clear()
-        editor.display("test", "isRoot 1 2 3 4 5 long text", SchemaNormalizer.deepCopy(data), loadSchema(schemaName)) {
+        editor.display(
+            "test",
+            "isRoot 1 2 3 4 5 long text",
+            SchemaNormalizer.deepCopy(data),
+            loadSchema(schemaName)
+        ) {
             println(it.toString(1))
             editor.lookup("c2")
             it
@@ -70,17 +76,18 @@ class JsonPropertiesEditorTestApp : Application() {
 
     private fun buildUi(propEdit: JsonPropertiesEditor): Parent {
 
+        val themeComboBox = TestUtils.createThemeComboBox()
 
         val showStars = CheckBox("Show *")
 
         val groupBy = ComboBox<PropertyGrouping>().apply {
-            items.addAll(PropertyGrouping.values())
-            selectionModel.select(0)
+            items.addAll(PropertyGrouping.entries)
+            selectionModel.selectFirst()
         }
 
-        val schemas=TestUtils.createSchemaComboBox().apply {
+        val schemas = TestUtils.createSchemaComboBox().apply {
             this.valueProperty().addListener { _, _, newValue ->
-                if(newValue!=null){
+                if (newValue != null) {
                     display(propEdit, newValue, JSONObject())
                 }
             }
@@ -103,10 +110,11 @@ class JsonPropertiesEditorTestApp : Application() {
                 showStars,
                 groupBy,
                 schemas,
-            ).apply { spacing=10.0 },
+                themeComboBox
+            ).apply { spacing = 10.0 },
             PropertiesEditorToolbar(propEdit).node,
             propEdit
-        ).apply { spacing=10.0 }
+        ).apply { spacing = 10.0 }
     }
 
     object ReferenceProvider : IdReferenceProposalProvider {

@@ -1,5 +1,18 @@
 package com.github.hanseter.json.editor.base
 
+import atlantafx.base.theme.CupertinoDark
+import atlantafx.base.theme.CupertinoLight
+import atlantafx.base.theme.Dracula
+import atlantafx.base.theme.NordDark
+import atlantafx.base.theme.NordLight
+import atlantafx.base.theme.PrimerDark
+import atlantafx.base.theme.PrimerLight
+import atlantafx.base.theme.Theme
+import javafx.application.Application
+import javafx.application.Application.setUserAgentStylesheet
+import javafx.collections.FXCollections
+import javafx.scene.control.ComboBox
+import javafx.util.StringConverter
 import org.controlsfx.control.SearchableComboBox
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -29,5 +42,39 @@ object TestUtils {
         WaitForAsyncUtils.asyncFx { ret = callback() }
         WaitForAsyncUtils.waitForFxEvents()
         return ret
+    }
+
+    fun createThemeComboBox(): ComboBox<Theme?> {
+        val themeComboBox = ComboBox(
+            FXCollections.observableArrayList(
+                null,
+                PrimerLight(),
+                CupertinoLight(),
+                NordLight(),
+                PrimerDark(),
+                CupertinoDark(),
+                NordDark(),
+                Dracula(),
+            )
+        ).apply {
+            converter = object : StringConverter<Theme?>() {
+                override fun toString(theme: Theme?): String {
+                    return theme?.name ?: Application.STYLESHEET_MODENA
+                }
+
+                override fun fromString(string: String?): Theme? {
+                    TODO("Not yet implemented")
+                }
+            }
+            selectionModel.selectedItemProperty().addListener { _, _, new ->
+                if (new != null) {
+                    setUserAgentStylesheet(new.userAgentStylesheet)
+                } else {
+                    setUserAgentStylesheet(null)
+                }
+
+            }
+        }
+        return themeComboBox
     }
 }
