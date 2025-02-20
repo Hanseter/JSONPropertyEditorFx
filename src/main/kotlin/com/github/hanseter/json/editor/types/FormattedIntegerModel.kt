@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.controls.DoubleControl
@@ -15,10 +10,6 @@ import java.text.ParsePosition
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class FormattedIntegerModel(
     schema: EffectiveSchema<NumberSchema>,
     decimalFormatSymbols: DecimalFormatSymbols

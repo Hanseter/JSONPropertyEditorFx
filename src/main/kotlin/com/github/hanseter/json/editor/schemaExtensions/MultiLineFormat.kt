@@ -1,12 +1,3 @@
-/*
- *
- *  * SWEETS - Software Engineering Tooling Suite
- *  *
- *  * Copyright (c) Siemens Mobility GmbH 2024, All Rights Reserved, Confidential.
- *  *
- *
- */
-
 package com.github.hanseter.json.editor.schemaExtensions
 
 import java.util.*

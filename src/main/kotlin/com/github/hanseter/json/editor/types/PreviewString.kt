@@ -1,17 +1,8 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import org.json.JSONObject
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class PreviewString private constructor(
     val string: String,
     val isDefaultValue: Boolean = false,

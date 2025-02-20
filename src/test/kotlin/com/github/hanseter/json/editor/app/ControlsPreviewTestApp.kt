@@ -1,8 +1,3 @@
-/*
- * SWEETS - Software Engineering Tooling Suite
- *
- * Copyright (c) Siemens Mobility GmbH 2022, All Rights Reserved, Confidential.
- */
 package com.github.hanseter.json.editor.app
 
 import com.github.hanseter.json.editor.ControlFactory
@@ -25,10 +20,6 @@ import javafx.stage.Stage
 import org.json.JSONObject
 
 
-/**
- *
- * @author Henrik Frühling (henrik.fruehling@siemens.com)
- */
 class ControlsPreviewTestApp : Application() {
 
     companion object {

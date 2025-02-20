@@ -66,8 +66,10 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 
     private val actions =
         actions + PreviewAction(
+            viewOptions,
             { referenceProposalProvider },
-            { resolutionScopeProvider }) + arrayActions
+            { resolutionScopeProvider }
+        ) + arrayActions
 
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
     private val rootItem: FilterableTreeItem<TreeItemData> =

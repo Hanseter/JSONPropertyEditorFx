@@ -3,8 +3,10 @@ package com.github.hanseter.json.editor.actions
 import com.github.hanseter.json.editor.*
 import com.github.hanseter.json.editor.controls.IdReferenceControl
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+import com.github.hanseter.json.editor.types.IdReferenceModel
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
+import com.github.hanseter.json.editor.util.ViewOptions
 import javafx.event.Event
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -22,11 +24,13 @@ import org.everit.json.schema.StringSchema
 import java.util.function.Supplier
 
 class PreviewAction(
+    private val viewOptions: ViewOptions,
     private val idReferenceProposalProvider: Supplier<IdReferenceProposalProvider>,
     private val resolutionScopeProvider: Supplier<ResolutionScopeProvider>
 ) : EditorAction {
     override val text: String = "⤴"
-    override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.preview")
+    override val description: String =
+        JsonPropertiesMl.bundle.getString("jsonEditor.actions.preview")
     override val selector: TargetSelector =
         TargetSelector.SchemaType(SupportedType.SimpleType.IdReferenceType)
 
@@ -35,12 +39,11 @@ class PreviewAction(
         model: TypeModel<*, *>,
         mouseEvent: Event?
     ): PropertiesEditResult? {
-        val value = (model as TypeModel<String?, SupportedType.SimpleType.IdReferenceType>).value
-        if (value != null) {
-            val dataAndSchema = idReferenceProposalProvider.get().getDataAndSchema(value)
-            if (dataAndSchema != null && mouseEvent != null) {
-                showPreviewPopup(dataAndSchema, value, mouseEvent?.target as? Node)
-            }
+        val value = model.value as? String ?: return null
+
+        val dataAndSchema = idReferenceProposalProvider.get().getDataAndSchema(value)
+        if (dataAndSchema != null && mouseEvent != null) {
+            showPreviewPopup(dataAndSchema, value, mouseEvent.target as? Node)
         }
         return null
     }
@@ -55,12 +58,13 @@ class PreviewAction(
     private fun showPreviewPopup(
         dataAndSchema: IdReferenceProposalProvider.DataWithSchema,
         value: String,
-        parent: Node?
+        parent: Node?,
     ) {
         val (data, previewSchema) = dataAndSchema
         val preview = JsonPropertiesEditor(true)
         preview.referenceProposalProvider = idReferenceProposalProvider.get()
         preview.resolutionScopeProvider = resolutionScopeProvider.get()
+        preview.viewOptions = viewOptions
         preview.display(value, value, data, previewSchema) { it }
         val scrollPane = ScrollPane(preview)
         scrollPane.maxHeight = 500.0
