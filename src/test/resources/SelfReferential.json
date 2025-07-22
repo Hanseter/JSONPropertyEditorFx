@@ -1,0 +1,70 @@
+{
+  "definitions": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "string"
+        }
+      }
+    },
+    "0": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/base"
+        },
+        {
+          "properties": {
+            "child": {
+              "$ref": "#/definitions/1"
+            }
+          }
+        }
+      ]
+    },
+    "1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/base"
+        },
+        {
+          "properties": {
+            "child": {
+              "$ref": "#/definitions/2"
+            }
+          }
+        }
+      ]
+    },
+    "2": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/base"
+        },
+        {
+          "properties": {
+            "child": {
+              "$ref": "#/definitions/3"
+            }
+          }
+        }
+      ]
+    },
+    "3": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/base"
+        },
+        {
+          "properties": {
+            "child": {
+              "$ref": "#/definitions/4"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$ref": "#/definitions/0"
+}
