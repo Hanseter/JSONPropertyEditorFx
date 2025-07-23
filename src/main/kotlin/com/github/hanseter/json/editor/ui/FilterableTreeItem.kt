@@ -24,6 +24,7 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
     private val filteredList: FilteredList<FilterableTreeItem<T>> = FilteredList(list).apply {
         Bindings.bindContent(super.getChildren(), this)
     }
+    private val unmodifiableChildren = FXCollections.unmodifiableObservableList(super.getChildren())
 
 
     /**
@@ -33,9 +34,7 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
      *
      * @return an unmodifiable list that contains the child TreeItems belonging to the TreeItem.
      */
-    override fun getChildren(): ObservableList<TreeItem<T>> {
-        return FXCollections.unmodifiableObservableList(super.getChildren())
-    }
+    override fun getChildren(): ObservableList<TreeItem<T>> = unmodifiableChildren
 
     /**
      * Set the filter of the item and also its child items. Doesn't set the filter, if
@@ -129,7 +128,10 @@ class ControlTreeItemData(
         get() = customizationObject().getTitle(typeControl.model, typeControl.model.schema.title)
 
     override val description: String?
-        get() = customizationObject().getDescription(typeControl.model, typeControl.model.schema.description)
+        get() = customizationObject().getDescription(
+            typeControl.model,
+            typeControl.model.schema.description
+        )
 
     override val required: Boolean
         get() = typeControl.model.schema.required

@@ -18,6 +18,7 @@ import javafx.scene.layout.StackPane
 import javafx.util.Callback
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
+import org.everit.json.schema.ObjectSchema
 import org.json.JSONObject
 import java.net.URI
 
@@ -58,9 +59,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             field = value
 
             Platform.runLater {
-                idsToPanes.values.forEach {
-                    it.rebuildControlTree()
-                }
+                idsToPanes.values.forEach { it.rebuildControlTree() }
             }
         }
 
@@ -102,6 +101,8 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     private val _valid = SimpleBooleanProperty(true)
+    private val paneValidListener =
+        ChangeListener<Boolean> { _, _, _ -> _valid.set(idsToPanes.isEmpty() || idsToPanes.values.all { it.valid.get() }) }
     val valid: ReadOnlyBooleanProperty
         get() = _valid
     var viewOptions: ViewOptions = viewOptions
@@ -120,7 +121,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         objId: String,
         title: String,
         obj: JSONObject,
-        schema: JSONObject,
+        schema: ParsedSchema,
         callback: OnEditCallback
     ) {
         if (idsToPanes.contains(objId)) {
@@ -140,7 +141,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         idsToPanes[objId] = pane
         (treeTableView.root as FilterableTreeItem).add(pane.treeItem)
         pane.treeItem.isExpanded = idsToPanes.size <= viewOptions.numberOfInitiallyOpenedObjects
-        rebindValidProperty()
+        pane.valid.addListener(paneValidListener)
     }
 
     fun display(
@@ -148,6 +149,34 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         title: String,
         obj: JSONObject,
         schema: JSONObject,
+        callback: OnEditCallback
+    ) {
+        val parsedSchema =
+            ParsedSchema.create(schema, resolutionScopeProvider.getResolutionScopeForElement(objId))
+                ?: return
+        display(objId, title, obj, parsedSchema, callback)
+    }
+
+    fun display(
+        objId: String,
+        title: String,
+        obj: JSONObject,
+        schema: JSONObject,
+        callback: (JSONObject) -> JSONObject
+    ) {
+        display(objId, title, obj, schema) { it: PropertiesEditInput ->
+            PropertiesEditResult(callback(it.data))
+        }
+    }
+
+    /**
+     * Displays a new element with. The schema needs to have been normalized via [SchemaNormalizer].
+     */
+    fun display(
+        objId: String,
+        title: String,
+        obj: JSONObject,
+        schema: ParsedSchema,
         callback: (JSONObject) -> JSONObject
     ) {
         display(objId, title, obj, schema) { it: PropertiesEditInput ->
@@ -165,13 +194,70 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         pane.updateSchemaIfChanged(schema)
     }
 
+    fun updateObject(
+        objId: String,
+        obj: JSONObject,
+        schema: ParsedSchema
+    ) {
+        val pane = idsToPanes[objId] ?: return
+        pane.fillData(obj)
+        pane.updateSchemaIfChanged(schema)
+    }
+
     fun removeObject(objId: String) {
         treeTableView.selectionModel.clearSelection()
-        (idsToPanes.remove(objId)?.treeItem)?.also {
-            (treeTableView.root as FilterableTreeItem).remove(it)
+        (idsToPanes.remove(objId))?.also {
+            it.valid.removeListener(paneValidListener)
+            (treeTableView.root as FilterableTreeItem).remove(it.treeItem)
         }
-        rebindValidProperty()
     }
+
+    /**
+     * Scrolls the editor to the element identified by [id].
+     */
+    fun scrollTo(id: String) {
+        val item = idsToPanes[id]?.treeItem ?: return
+        val index = treeTableView.root.visibleDescendants.indexOf(item)
+        if (index != -1) {
+            treeTableView.scrollTo(index)
+        }
+    }
+
+    /**
+     * Scrolls the editor the field matching the [fieldPointer] of the element identified by [id].
+     * If the field is currently collapsed this will scroll to the nearest not collapsed element.
+     */
+    fun scrollToField(id: String, fieldPointer: List<String>) {
+        val paneItem = idsToPanes[id]?.treeItem ?: return
+        val paneIndex = treeTableView.root.visibleDescendants.indexOf(paneItem)
+        if (paneIndex == -1) return
+
+        val fieldItem = paneItem.descendants.find {
+            (it.value as? ControlTreeItemData)?.typeControl?.model?.schema?.pointer == fieldPointer
+        } ?: return
+        val scrollTarget = fieldItem.pathFromRoot.find { !it.isExpanded } ?: fieldItem
+
+        val fieldIndex = if (scrollTarget == paneItem) -1
+        else paneItem.visibleDescendants.indexOf(scrollTarget).also { if (it == -1) return }
+
+        treeTableView.scrollTo(paneIndex + fieldIndex + 1)
+    }
+
+    private val <T> TreeItem<T>.descendants: Sequence<TreeItem<T>>
+        get() = children.asSequence().flatMap { sequenceOf(it) + it.descendants }
+
+    private val <T> TreeItem<T>.visibleDescendants: Sequence<TreeItem<T>>
+        get() = if (isExpanded) children.asSequence()
+            .flatMap { sequenceOf(it) + it.visibleDescendants }
+        else emptySequence()
+
+    private val <T> TreeItem<T>.ancestors: Sequence<TreeItem<T>>
+        get() = generateSequence(parent) { it.parent }
+
+    private val <T> TreeItem<T>.pathToRoot: Sequence<TreeItem<T>>
+        get() = generateSequence(this) { it.parent }
+    private val <T> TreeItem<T>.pathFromRoot: List<TreeItem<T>>
+        get() = pathToRoot.toList().reversed()
 
     /**
      * Expands the part of the element identified by [id].
@@ -209,39 +295,27 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         treeTableView.selectionModel.clearSelection()
         idsToPanes.clear()
         (treeTableView.root as FilterableTreeItem).clear()
-        rebindValidProperty()
+        _valid.set(true)
     }
-
-    private fun rebindValidProperty() {
-        if (idsToPanes.isEmpty()) {
-            _valid.unbind()
-            _valid.set(true)
-        } else {
-            _valid.bind(idsToPanes.values.map { it.valid as ObservableBooleanValue }
-                .reduce { a, b -> Bindings.and(a, b) })
-        }
-    }
-
 
     private fun createTitledPaneForSchema(
         title: String, objId: String, data: JSONObject,
-        rawSchema: JSONObject, readOnly: Boolean, resolutionScope: URI?,
+        schema: ParsedSchema, readOnly: Boolean, resolutionScope: URI?,
         callback: OnEditCallback
-    ): JsonPropertiesPane =
-        JsonPropertiesPane(
-            title,
-            objId,
-            data,
-            rawSchema,
-            readOnly,
-            resolutionScope,
-            { referenceProposalProvider },
-            actions,
-            { validators },
-            viewOptions,
-            { customizationObject },
-            callback
-        )
+    ): JsonPropertiesPane = JsonPropertiesPane(
+        title,
+        objId,
+        data,
+        schema,
+        readOnly,
+        resolutionScope,
+        { referenceProposalProvider },
+        actions,
+        { validators },
+        viewOptions,
+        { customizationObject },
+        callback
+    )
 
     private fun createKeyColumn(): TreeTableColumn<TreeItemData, TreeItemData> =
         TreeTableColumn<TreeItemData, TreeItemData>().apply {

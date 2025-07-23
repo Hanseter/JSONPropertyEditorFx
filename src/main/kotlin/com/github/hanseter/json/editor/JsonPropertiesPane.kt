@@ -25,7 +25,7 @@ class JsonPropertiesPane(
     private val title: String,
     private val objId: String,
     data: JSONObject,
-    private var rawSchema: JSONObject,
+    private var parsedSchema: ParsedSchema,
     private val readOnly: Boolean,
     private val resolutionScope: URI?,
     private val refProvider: Supplier<IdReferenceProposalProvider>,
@@ -36,38 +36,45 @@ class JsonPropertiesPane(
     private val changeListener: JsonPropertiesEditor.OnEditCallback
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> =
-        FilterableTreeItem(StyledTreeItemData(title, listOf("isRootRow")))
-    private var schema = SimpleEffectiveSchema(
-        null,
-        SchemaNormalizer.parseSchema(rawSchema, resolutionScope, readOnly),
-        title
-    )
-    private var objectControl: TypeControl? = null
-    private var controlItem: FilterableTreeItem<TreeItemData>? = null
+        FilterableTreeItem(StyledTreeItemData(title, listOf(ROOT_ROW_CSS_CLASS)))
+    private var schema = SimpleEffectiveSchema(null, parsedSchema.parsed, title)
     private val contentHandler = ContentHandler(data)
     val valid = SimpleBooleanProperty(true)
     var viewOptions: ViewOptions = viewOptions
         set(value) {
             field = value
-            createControlTree()
-            controlItem?.also { item ->
-                updateTreeUiElements(item, contentHandler.data)
-            }
+            controlItem = wrapControlInTreeItem(objectControl)
+            updateTreeUiElements(controlItem, contentHandler.data)
+        }
+
+    private var objectControl: TypeControl = initObjectControl()
+        set(value) {
+            field = value
+            controlItem = wrapControlInTreeItem(field)
+        }
+    private var controlItem: FilterableTreeItem<TreeItemData> =
+        wrapControlInTreeItem(objectControl).also {
+            if (it.isLeaf) treeItem.add(it)
+            else Bindings.bindContent(treeItem.list, it.list)
+        }
+        set(value) {
+            field.list.clear()
+            Bindings.unbindContent(treeItem.list, field.list)
+            field = value
+            treeItem.clear()
+            if (field.isLeaf) treeItem.add(field)
+            else Bindings.bindContent(treeItem.list, field.list)
         }
 
     init {
         treeItem.isExpanded = false
-        treeItem.add(FilterableTreeItem(StyledTreeItemData("dummy", listOf())))
         treeItem.expandedProperty().addListener { _, _, new ->
-            if (new) {
-                contentHandler.handleExpansion()
-            }
+            if (new) contentHandler.handleExpansion()
         }
     }
 
-    private fun initObjectControl() {
-        if (objectControl != null) return
-        this.objectControl = ControlFactory.convert(
+    private fun initObjectControl(): TypeControl {
+        return ControlFactory.convert(
             schema,
             EditorContext(
                 refProvider,
@@ -77,73 +84,23 @@ class JsonPropertiesPane(
                 viewOptions.decimalFormatSymbols,
             )
         )
-        createControlTree()
     }
 
     fun rebuildControlTree() {
-
         val uiState = saveUiState()
 
-        objectControl = null
-        initObjectControl()
+        objectControl = initObjectControl()
 
-        uiState?.let { loadUiState(it) }
-    }
-
-    private fun createControlTree() {
-        val controlItem = objectControl?.let { wrapControlInTreeItem(it) } ?: return
-        this.controlItem?.also {
-            it.list.clear()
-            Bindings.unbindContent(treeItem.list, it.list)
-        }
-        this.controlItem = controlItem
-        treeItem.clear()
-        if (controlItem.isLeaf) treeItem.add(controlItem)
-        else Bindings.bindContent(treeItem.list, controlItem.list)
+        loadUiState(uiState)
     }
 
     private fun wrapControlInTreeItem(control: TypeControl): FilterableTreeItem<TreeItemData> {
-        val actionHandler: (Event, EditorAction, TypeControl) -> Unit = { e, action, source ->
-            val ret =
-                action.apply(PropertiesEditInput(contentHandler.data, rawSchema), source.model, e)
-            if (ret != null) {
-
-                val actionSchema = ret.schema
-
-                val newData = changeListener(
-                    PropertiesEditInput(
-                        ret.data, actionSchema
-                            ?: rawSchema
-                    )
-                )
-
-                val newSchema = newData.schema ?: actionSchema
-
-                if (newSchema != null) {
-
-                    rawSchema = newSchema
-
-                    schema = SimpleEffectiveSchema(
-                        null, SchemaNormalizer.parseSchema(
-                            rawSchema,
-                            resolutionScope,
-                            readOnly,
-                        ), title
-                    )
-
-                    rebuildControlTree()
-                }
-
-                fillData(newData.data)
-            }
-        }
-
         val item: FilterableTreeItem<TreeItemData> =
             FilterableTreeItem(
                 ControlTreeItemData(
                     control,
                     actions,
-                    actionHandler,
+                    createActionHandler(),
                     objId,
                     customizationObject
                 )
@@ -157,39 +114,73 @@ class JsonPropertiesPane(
         return item
     }
 
+    private fun createActionHandler(): (Event, EditorAction, TypeControl) -> Unit {
+        return lambda@{ e, action, source ->
+            val ret =
+                action.apply(
+                    PropertiesEditInput(contentHandler.data, parsedSchema.raw),
+                    source.model,
+                    e
+                )
+            if (ret == null) return@lambda
+
+            val actionSchema = ret.schema
+
+            val newData = changeListener(
+                PropertiesEditInput(ret.data, actionSchema ?: parsedSchema.raw)
+            )
+
+            val newSchema = newData.schema ?: actionSchema
+
+            if (newSchema != null) {
+                val newParsedSchema = ParsedSchema.create(newSchema, resolutionScope, readOnly)
+                if (newParsedSchema != null) updateSchema(newParsedSchema)
+            }
+
+            fillData(newData.data)
+        }
+    }
+
     fun fillData(data: JSONObject) {
         contentHandler.updateData(data)
     }
 
     fun updateSchemaIfChanged(new: JSONObject) {
-        if (new.similar(rawSchema)) return
+        if (new.similar(parsedSchema.raw)) return
+        val parsedSchema = ParsedSchema.create(new, resolutionScope, readOnly) ?: return
+        updateSchemaAndFillData(parsedSchema)
+    }
+
+    fun updateSchemaIfChanged(new: ParsedSchema) {
+        if (new.raw.similar(parsedSchema.raw)) return
+        updateSchemaAndFillData(new)
+    }
+
+    private fun updateSchemaAndFillData(schema: ParsedSchema) {
         val data = contentHandler.data
-        updateSchema(new)
+        updateSchema(schema)
         fillData(data)
     }
 
-    private fun updateSchema(new: JSONObject) {
-        rawSchema = new
-
-        val parsedSchema = SchemaNormalizer.parseSchema(new, resolutionScope, readOnly)
-
-        schema = SimpleEffectiveSchema(null, parsedSchema, title)
+    private fun updateSchema(new: ParsedSchema) {
+        parsedSchema = new
+        schema = SimpleEffectiveSchema(null, parsedSchema.parsed, title)
 
         rebuildControlTree()
     }
 
     private fun fillSheet(data: JSONObject) {
         val type = RootBindableType(data)
-        objectControl?.bindTo(type)
+        objectControl.bindTo(type)
         fillTree(data)
         type.registerListener {
 
             Platform.runLater {
-                val newData = changeListener(PropertiesEditInput(type.getValue()!!, rawSchema))
+                val newData = changeListener(PropertiesEditInput(type.getValue(), parsedSchema.raw))
 
-                if (newData.schema != null) {
-                    updateSchema(newData.schema)
-                }
+                newData.schema
+                    ?.let { ParsedSchema.create(it, resolutionScope, readOnly) }
+                    ?.also { updateSchema(it) }
 
                 fillData(newData.data)
             }
@@ -197,12 +188,8 @@ class JsonPropertiesPane(
     }
 
     private fun fillTree(data: JSONObject) {
-        controlItem?.also { item ->
-            objectControl?.also {
-                updateTree(item, it)
-            }
-            updateTreeUiElements(item, data)
-        }
+        updateTree(controlItem, objectControl)
+        updateTreeUiElements(controlItem, data)
     }
 
     private fun updateTreeAfterChildChange(control: TypeControl) {
@@ -290,9 +277,10 @@ class JsonPropertiesPane(
                 control.optionalChildren.sortedWith(PropOrderComparator(propOrder))
             )
         } else {
-            node.addAll(control.childControls
-                .sortedWith(PropOrderComparator(propOrder))
-                .map { wrapControlInTreeItem(it) })
+            node.addAll(
+                control.childControls
+                    .sortedWith(PropOrderComparator(propOrder))
+                    .map { wrapControlInTreeItem(it) })
         }
     }
 
@@ -347,27 +335,17 @@ class JsonPropertiesPane(
             }
             treeItem.value.validationMessage = generateErrorMessage(listOf(), errors)
             treeItem.value.updateFinished()
-            valid.set(errors.none { it.value.any { it.severity == Severity.ERROR } })
+            valid.set(errors.none { err -> err.value.any { it.severity == Severity.ERROR } })
         }
     }
 
     fun revalidate() {
-        controlItem?.also { item ->
-            updateTreeUiElements(item, contentHandler.data)
-        }
+        updateTreeUiElements(controlItem, contentHandler.data)
     }
 
-    private fun saveUiState(): UiState? {
-        val controlItem = controlItem ?: return null
-
-        val mainRowState = RowUiState(controlItem)
-
-        return UiState(mainRowState)
-    }
+    private fun saveUiState(): UiState = UiState(RowUiState(controlItem))
 
     private fun loadUiState(state: UiState) {
-        val controlItem = controlItem ?: return
-
         state.rowState.apply(controlItem)
     }
 
@@ -389,8 +367,8 @@ class JsonPropertiesPane(
                 if ("required key [$thisKey] not found" in parentError.map { it.message }) {
                     return Validator.SimpleValidationResult(
                         Severity.ERROR,
-                        (error?.let {
-                            it.joinToString("\n") { it.message } + "\n${
+                        (error?.let { err ->
+                            err.joinToString("\n") { it.message } + "\n${
                                 JsonPropertiesMl.bundle.getString(
                                     "jsonEditor.validators.message.keyIsRequired"
                                 )
@@ -402,10 +380,10 @@ class JsonPropertiesPane(
             }
         }
 
-        return error?.let {
+        return error?.let { err ->
             Validator.SimpleValidationResult(
-                it.maxOf { it.severity },
-                it.joinToString("\n") { it.message }
+                err.maxOf { it.severity },
+                err.joinToString("\n") { it.message }
             )
         }
     }
@@ -431,17 +409,15 @@ class JsonPropertiesPane(
         treeItem.isExpanded = true
     }
 
-    private fun updateExpandedState(pointers: Set<List<String>>, toSet: Boolean) {
+    private fun updateExpandedState(pointers: Set<List<String>>, expand: Boolean) {
         if (pointers.isEmpty()) return
         if (pointers.contains(emptyList())) {
-            treeItem.isExpanded = toSet
+            treeItem.isExpanded = expand
         }
         flattenBottomUp(treeItem).forEach {
             val value = it.value
-            if (value is ControlTreeItemData) {
-                if (value.typeControl.model.schema.pointer in pointers) {
-                    it.isExpanded = toSet
-                }
+            if (value is ControlTreeItemData && value.typeControl.model.schema.pointer in pointers) {
+                it.isExpanded = expand
             }
         }
     }
@@ -450,9 +426,6 @@ class JsonPropertiesPane(
         private var dataDirty = true
 
         fun handleExpansion() {
-            if (objectControl == null) {
-                initObjectControl()
-            }
             if (dataDirty) {
                 fillSheet(data)
                 dataDirty = false
@@ -467,5 +440,9 @@ class JsonPropertiesPane(
                 dataDirty = true
             }
         }
+    }
+
+    companion object {
+        const val ROOT_ROW_CSS_CLASS = "isRootRow"
     }
 }

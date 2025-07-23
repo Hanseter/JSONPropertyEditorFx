@@ -1,9 +1,6 @@
 package com.github.hanseter.json.editor.app
 
-import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.JsonPropertiesEditor
-import com.github.hanseter.json.editor.ResolutionScopeProvider
-import com.github.hanseter.json.editor.SchemaNormalizer
+import com.github.hanseter.json.editor.*
 import com.github.hanseter.json.editor.base.TestUtils
 import com.github.hanseter.json.editor.base.TestUtils.loadSchema
 import com.github.hanseter.json.editor.types.TypeModel
@@ -16,6 +13,7 @@ import javafx.application.Application
 import javafx.collections.FXCollections
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.Button
 import javafx.scene.control.CheckBox
 import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
@@ -26,17 +24,21 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import java.net.URI
 import java.util.stream.Stream
+import kotlin.math.exp
 
 fun main(args: Array<String>) {
     Application.launch(JsonPropertiesEditorTestApp::class.java, *args)
 }
 
+const val TEST_ELEMENT_COUNT = 10
+
 class JsonPropertiesEditorTestApp : Application() {
+    private val customResolutionScopeProvider = object : ResolutionScopeProvider {
+        override fun getResolutionScopeForElement(objId: String): URI? =
+            this::class.java.classLoader.getResource("")?.toURI()
+    }
+
     override fun start(primaryStage: Stage) {
-        val customResolutionScopeProvider = object : ResolutionScopeProvider {
-            override fun getResolutionScopeForElement(objId: String): URI? =
-                this::class.java.classLoader.getResource("")?.toURI()
-        }
 
         val viewOptions = ViewOptions(
             markRequired = true,
@@ -58,19 +60,31 @@ class JsonPropertiesEditorTestApp : Application() {
         primaryStage.show()
     }
 
-    private fun display(editor: JsonPropertiesEditor, schemaName: String, data: JSONObject) {
+    private fun display(
+        editor: JsonPropertiesEditor,
+        schemaName: String,
+        data: JSONObject,
+        n: Int = TEST_ELEMENT_COUNT
+    ) {
         editor.clear()
-        editor.display(
-            "test",
-            "isRoot 1 2 3 4 5 long text",
-            SchemaNormalizer.deepCopy(data),
-            loadSchema(schemaName)
-        ) {
-            println(it.toString(1))
-            editor.lookup("c2")
-            it
-//            SchemaNormalizer.deepCopy(data)
+        val schema = loadSchema(schemaName)
+        val parsedSchema = ParsedSchema.create(
+            schema,
+            customResolutionScopeProvider.getResolutionScopeForElement("")
+        )!!
+        repeat(n) {
+            editor.display(
+                "test$it",
+                "Element $it",
+                SchemaNormalizer.deepCopy(data),
+                parsedSchema
+            ) {
+                println(it.toString(1))
+                editor.lookup("c2")
+                it
+            }
         }
+
     }
 
 
@@ -105,12 +119,39 @@ class JsonPropertiesEditorTestApp : Application() {
 
         groupBy.selectionModel.selectedItemProperty().addListener(updateViewOptions)
 
+        val scrollToFirstButton = Button("Scroll to 1.").apply {
+            setOnAction {
+                propEdit.scrollTo("test0")
+            }
+        }
+        val scrollToFifthButton = Button("Scroll to 5.").apply {
+            setOnAction {
+                propEdit.scrollToField("test4", listOf("numbers", "maximum"))
+            }
+        }
+        val add10000ItemsButton = Button("Add").apply {
+            setOnAction {
+                display(propEdit, schemas.selectionModel.selectedItem, JSONObject(), 10_000)
+            }
+        }
+
+        val expandAllButton = Button("Expand").apply {
+            setOnAction {
+                repeat(10_000) {
+                    propEdit.expandAll("test$it")
+                }
+            }
+        }
         return VBox(
             HBox(
                 showStars,
                 groupBy,
                 schemas,
-                themeComboBox
+                themeComboBox,
+                scrollToFirstButton,
+                scrollToFifthButton,
+                add10000ItemsButton,
+                expandAllButton
             ).apply { spacing = 10.0 },
             PropertiesEditorToolbar(propEdit).node,
             propEdit

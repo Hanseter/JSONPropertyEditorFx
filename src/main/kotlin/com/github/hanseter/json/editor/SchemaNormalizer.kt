@@ -21,6 +21,15 @@ object SchemaNormalizer {
         schema: JSONObject,
         resolutionScope: URI?,
         readOnly: Boolean
+    ): Schema = parseNormalizedSchema(
+        if (resolutionScope != null) normalize(schema, resolutionScope)
+        else normalize(schema),
+        readOnly
+    )
+
+    fun parseNormalizedSchema(
+        schema: JSONObject,
+        readOnly: Boolean
     ): Schema = SchemaLoader.builder()
         .useDefaults(true)
         .draftV7Support()
@@ -28,10 +37,7 @@ object SchemaNormalizer {
         .addFormatValidator(IdReferenceFormat.Validator())
         .addFormatValidator(LocalTimeFormat.Validator)
         .addFormatValidator(MultiLineFormat.Validator)
-        .schemaJson(
-            if (resolutionScope != null) normalize(schema, resolutionScope)
-            else normalize(schema)
-        )
+        .schemaJson(schema)
         .build().load().readOnly(readOnly).build()
 
     /**
