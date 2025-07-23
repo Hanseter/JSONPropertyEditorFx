@@ -41,6 +41,7 @@ class IdReferenceControl(
             internalChange = true
             idChanged(it.completion)
             internalChange = false
+            control.end()
         }
 
         property.addListener { _, _, new ->
@@ -153,7 +154,7 @@ class IdReferenceControl(
         val description: String? = if (description.isBlank()) null
         else description
 
-        fun matchesInput(input: String)  =
+        fun matchesInput(input: String) =
             toString().contains(input, ignoreCase = true)
 
         fun equalsInput(input: String) =
