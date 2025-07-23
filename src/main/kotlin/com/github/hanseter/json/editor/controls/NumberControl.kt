@@ -9,9 +9,9 @@ abstract class NumberControl<T : Number?> : ControlWithProperty<T> {
     abstract override val control: Spinner<T>
 
     override val property: Property<T>
-    get() = control.valueFactory.valueProperty()
+        get() = control.valueFactory.valueProperty()
 
-    protected fun initControl(){
+    protected fun initControl() {
         control.focusedProperty().addListener { _, _, new ->
             if (!new && (control.editor.text.isNullOrEmpty() || control.editor.text == "-")) {
                 control.editor.text =
@@ -40,7 +40,6 @@ abstract class NumberControl<T : Number?> : ControlWithProperty<T> {
                     } catch (e: NumberFormatException) {
                         control.editor.text =
                             control.valueFactory.converter.toString(control.valueFactory.value)
-                                ?: "0"
                     }
                 }
             }

@@ -9,6 +9,7 @@ class IntegerControl : NumberControl<Int?>() {
     override val control: Spinner<Int?> =
         Spinner<Int?>(IntegerSpinnerValueFactoryNullSafe()).apply {
             isEditable = true
+            valueFactory.value = null
         }
 
     init {

@@ -5,25 +5,27 @@ import javafx.scene.control.Spinner
 import javafx.scene.control.SpinnerValueFactory
 import org.everit.json.schema.NumberSchema
 import java.text.DecimalFormatSymbols
+
 class FormattedIntegerControl(
     model: FormattedIntegerModel
-) :
-    NumberControl<Int?>() {
+) : NumberControl<Int?>() {
 
-    private val intFormat=model.intFormat
+    private val intFormat = model.intFormat
 
     override val control: Spinner<Int?> =
         Spinner<Int?>(FormattedIntegerSpinnerValueFactoryNullSafe(intFormat)).apply {
             isEditable = true
+            valueFactory.value = null
         }
 
     init {
         initControl()
-        control.focusedProperty().addListener { _,_,new->
+        control.focusedProperty().addListener { _, _, new ->
             //apply formatted value on focus lost
-            if(!new){
-                val formatted=control.valueFactory.converter.toString(control.value)
-                control.editor.text=formatted
+            if (!new) {
+
+                val formatted = control.valueFactory.converter.toString(control.value)
+                control.editor.text = formatted
             }
         }
     }

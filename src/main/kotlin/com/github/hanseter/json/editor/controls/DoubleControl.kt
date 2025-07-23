@@ -16,6 +16,7 @@ class DoubleControl(decimalFormatSymbols: DecimalFormatSymbols) : NumberControl<
     override val control = Spinner<Double?>().apply {
         valueFactory = DoubleSpinnerValueFactory(StringDoubleConverter(decimalFormat))
         isEditable = true
+        valueFactory.value = null
     }
 
     init {
@@ -55,15 +56,15 @@ class DoubleControl(decimalFormatSymbols: DecimalFormatSymbols) : NumberControl<
         StringConverter<Double?>() {
         override fun toString(`object`: Double?): String? {
             return when (`object`) {
-                null -> ""
-                -0.0 -> "0.0"
+                null -> null
+                -0.0 -> decimalFormat.format(0.0)
                 else -> decimalFormat.format(`object`)
             }
         }
 
 
         override fun fromString(string: String?): Double? {
-            if (string.isNullOrBlank()) return 0.0
+            if (string.isNullOrBlank()) return null
             val parsePosition = ParsePosition(0)
             val number = decimalFormat.parse(string, parsePosition)
             if (parsePosition.index != string.length) {
