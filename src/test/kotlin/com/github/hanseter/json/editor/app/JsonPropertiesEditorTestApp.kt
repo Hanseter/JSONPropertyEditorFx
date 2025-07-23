@@ -126,7 +126,8 @@ class JsonPropertiesEditorTestApp : Application() {
         }
         val scrollToFifthButton = Button("Scroll to 5.").apply {
             setOnAction {
-                propEdit.scrollToField("test4", listOf("numbers", "maximum"))
+                propEdit.selectionModel.select(ElementField("test4", listOf("numbers", "maximum")))
+//                propEdit.scrollToField(ElementField("test4", listOf("numbers", "maximum")))
             }
         }
         val add10000ItemsButton = Button("Add").apply {

@@ -8,17 +8,14 @@ import com.github.hanseter.json.editor.util.*
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.application.Platform
-import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
-import javafx.beans.value.ObservableBooleanValue
 import javafx.scene.control.*
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
 import org.controlsfx.validation.Severity
 import org.controlsfx.validation.ValidationMessage
-import org.everit.json.schema.ObjectSchema
 import org.json.JSONObject
 import java.net.URI
 
@@ -112,6 +109,15 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         }
 
     private val filters = mutableListOf<ItemFilter>()
+
+    private val _selectionModel =
+        JsonPropertiesEditorSelectionModel.JsonPropertiesEditorSelectionModelImpl(
+            this,
+            idsToPanes,
+            treeTableView
+        )
+    val selectionModel: JsonPropertiesEditorSelectionModel
+        get() = _selectionModel
 
     init {
         this.children.addAll(scrollPane)
@@ -216,48 +222,23 @@ class JsonPropertiesEditor @JvmOverloads constructor(
      * Scrolls the editor to the element identified by [id].
      */
     fun scrollTo(id: String) {
-        val item = idsToPanes[id]?.treeItem ?: return
-        val index = treeTableView.root.visibleDescendants.indexOf(item)
+        val (index, _) = _selectionModel.findIndexAndItemOfPane(id) ?: return
         if (index != -1) {
             treeTableView.scrollTo(index)
         }
     }
 
     /**
-     * Scrolls the editor the field matching the [fieldPointer] of the element identified by [id].
+     * Scrolls the editor to matching [ElementField].
      * If the field is currently collapsed this will scroll to the nearest not collapsed element.
+     * If the field does not exist, no scrolling will happen.
      */
-    fun scrollToField(id: String, fieldPointer: List<String>) {
-        val paneItem = idsToPanes[id]?.treeItem ?: return
-        val paneIndex = treeTableView.root.visibleDescendants.indexOf(paneItem)
-        if (paneIndex == -1) return
-
-        val fieldItem = paneItem.descendants.find {
-            (it.value as? ControlTreeItemData)?.typeControl?.model?.schema?.pointer == fieldPointer
-        } ?: return
-        val scrollTarget = fieldItem.pathFromRoot.find { !it.isExpanded } ?: fieldItem
-
-        val fieldIndex = if (scrollTarget == paneItem) -1
-        else paneItem.visibleDescendants.indexOf(scrollTarget).also { if (it == -1) return }
-
-        treeTableView.scrollTo(paneIndex + fieldIndex + 1)
+    fun scrollToField(target: ElementField) {
+        val index = selectionModel.findIndexOfField(target)
+        if (index != -1) {
+            treeTableView.scrollTo(index)
+        }
     }
-
-    private val <T> TreeItem<T>.descendants: Sequence<TreeItem<T>>
-        get() = children.asSequence().flatMap { sequenceOf(it) + it.descendants }
-
-    private val <T> TreeItem<T>.visibleDescendants: Sequence<TreeItem<T>>
-        get() = if (isExpanded) children.asSequence()
-            .flatMap { sequenceOf(it) + it.visibleDescendants }
-        else emptySequence()
-
-    private val <T> TreeItem<T>.ancestors: Sequence<TreeItem<T>>
-        get() = generateSequence(parent) { it.parent }
-
-    private val <T> TreeItem<T>.pathToRoot: Sequence<TreeItem<T>>
-        get() = generateSequence(this) { it.parent }
-    private val <T> TreeItem<T>.pathFromRoot: List<TreeItem<T>>
-        get() = pathToRoot.toList().reversed()
 
     /**
      * Expands the part of the element identified by [id].
@@ -354,9 +335,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         }
 
         fun updateLabel(treeItemData: TreeItemData) {
-            //TODO workaround for fx 17. Should be fixed in 18
-            //https://bugs.openjdk.org/browse/JDK-8231644
-            text = " "
             graphic = Label().apply {
                 text =
                     treeItemData.title + if (viewOptions.markRequired && treeItemData.required) " *" else ""
