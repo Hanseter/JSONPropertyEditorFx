@@ -6,35 +6,27 @@ import javafx.scene.control.SingleSelectionModel
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeTableView
 
-abstract class JsonPropertiesEditorSelectionModel(
-    protected val editor: JsonPropertiesEditor,
-    protected val panes: Map<String, JsonPropertiesPane>,
-    protected val treeTable: TreeTableView<TreeItemData>
-) : SingleSelectionModel<ElementField>() {
+abstract class JsonPropertiesEditorSelectionModel : SingleSelectionModel<ElementField>() {
 
     /**
      * The index of the first visible control, `-1` if there is none.
      */
-    val indexOfFirstVisibleControl: Int
-        get() = treeTable.root.visibleDescendants.indexOfFirst { it.value is ControlTreeItemData }
+    abstract val indexOfFirstVisibleControl: Int
 
     /**
      * The index of the first control, `-1` if there is none.
      */
-    val indexOfFirstControl: Int
-        get() = treeTable.root.descendants.indexOfFirst { it.value is ControlTreeItemData }
+    abstract val indexOfFirstControl: Int
 
     /**
      * The index of the last visible control, `-1` if there is none.
      */
-    val indexOfLastVisibleControl: Int
-        get() = treeTable.root.visibleDescendants.indexOfLast { it.value is ControlTreeItemData }
+    abstract val indexOfLastVisibleControl: Int
 
     /**
      * The index of the last control, `-1` if there is none.
      */
-    val indexOfLastControl: Int
-        get() = treeTable.root.descendants.indexOfLast { it.value is ControlTreeItemData }
+    abstract val indexOfLastControl: Int
 
     /**
      * Finds the index of the first visible control of the element.
@@ -60,23 +52,6 @@ abstract class JsonPropertiesEditorSelectionModel(
      */
     abstract fun indexOfLastControl(elementId: String): Int
 
-    override fun getModelItem(index: Int): ElementField? {
-        val item = treeTable.root.descendants.drop(index).firstOrNull() ?: return null
-        val pointer =
-            (item.value as? ControlTreeItemData)?.typeControl?.model?.schema?.pointer ?: return null
-        val paneItem = item.pathFromRoot[1]
-        val pane = panes.entries.find { it.value.treeItem == paneItem } ?: return null
-
-        return ElementField(pane.key, pointer)
-    }
-
-    abstract override fun select(obj: ElementField?)
-
-    override fun isEmpty(): Boolean = treeTable.root.children.isEmpty()
-
-    override fun getItemCount(): Int =
-        treeTable.root.descendants.count()
-
     /**
      * Finds the index of the [field].
      */
@@ -88,10 +63,19 @@ abstract class JsonPropertiesEditorSelectionModel(
     abstract fun findIndexOfVisibleParent(field: ElementField): Int
 
     class JsonPropertiesEditorSelectionModelImpl(
-        editor: JsonPropertiesEditor,
-        panes: Map<String, JsonPropertiesPane>,
-        treeTable: TreeTableView<TreeItemData>
-    ) : JsonPropertiesEditorSelectionModel(editor, panes, treeTable) {
+        private val editor: JsonPropertiesEditor,
+        private val panes: Map<String, JsonPropertiesPane>,
+        private val treeTable: TreeTableView<TreeItemData>
+    ) : JsonPropertiesEditorSelectionModel() {
+
+        override val indexOfFirstVisibleControl: Int
+            get() = treeTable.root.visibleDescendants.indexOfFirst { it.value is ControlTreeItemData }
+        override val indexOfFirstControl: Int
+            get() = treeTable.root.descendants.indexOfFirst { it.value is ControlTreeItemData }
+        override val indexOfLastVisibleControl: Int
+            get() = treeTable.root.visibleDescendants.indexOfLast { it.value is ControlTreeItemData }
+        override val indexOfLastControl: Int
+            get() = treeTable.root.descendants.indexOfLast { it.value is ControlTreeItemData }
 
         override fun indexOfFirstVisibleControl(elementId: String): Int {
             val (index, item) = findIndexAndItemOfPane(elementId) ?: return -1
@@ -150,6 +134,16 @@ abstract class JsonPropertiesEditorSelectionModel(
             selectInTree(item)
         }
 
+        override fun getModelItem(index: Int): ElementField? {
+            val item = treeTable.root.descendants.drop(index).firstOrNull() ?: return null
+            val pointer =
+                (item.value as? ControlTreeItemData)?.typeControl?.model?.schema?.pointer ?: return null
+            val paneItem = item.pathFromRoot[1]
+            val pane = panes.entries.find { it.value.treeItem == paneItem } ?: return null
+
+            return ElementField(pane.key, pointer)
+        }
+
         override fun findIndexOfField(field: ElementField): Int {
             val paneItem = panes[field.elementId]?.treeItem ?: return -1
             val paneIndex = treeTable.root.visibleDescendants.indexOf(paneItem)
@@ -171,6 +165,11 @@ abstract class JsonPropertiesEditorSelectionModel(
                 (it.value.value as? ControlTreeItemData)?.typeControl?.model?.schema?.pointer == field.fieldPointer
             }
         }
+
+        override fun isEmpty(): Boolean = treeTable.root.children.isEmpty()
+
+        override fun getItemCount(): Int =
+            treeTable.root.descendants.count()
 
         override fun findIndexOfVisibleParent(field: ElementField): Int {
             val paneItem = panes[field.elementId]?.treeItem ?: return -1

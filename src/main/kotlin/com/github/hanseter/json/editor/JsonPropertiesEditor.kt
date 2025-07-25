@@ -11,7 +11,11 @@ import javafx.application.Platform
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
+import javafx.geometry.Insets
+import javafx.geometry.Pos
+import javafx.scene.Cursor
 import javafx.scene.control.*
+import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
 import org.controlsfx.validation.Severity
@@ -24,7 +28,8 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     viewOptions: ViewOptions = ViewOptions(),
     actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
     customizationObject: CustomizationObject = DefaultCustomizationObject,
-    additionalValidators: List<Validator> = emptyList()
+    additionalValidators: List<Validator> = emptyList(),
+    private val controlFactory: PropertyControlFactory = ControlFactory
 ) : StackPane() {
     var referenceProposalProvider: IdReferenceProposalProvider =
         IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
@@ -45,9 +50,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         private set(value) {
             field = value
             Platform.runLater {
-                idsToPanes.values.forEach {
-                    it.revalidate()
-                }
+                idsToPanes.values.forEach { it.revalidate() }
             }
         }
 
@@ -138,10 +141,13 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         val resolutionScope = resolutionScopeProvider.getResolutionScopeForElement(objId)
 
         val pane = createTitledPaneForSchema(
-            title, objId, obj,
+            title,
+            objId,
+            obj,
             schema,
             readOnly,
-            resolutionScope, callback
+            resolutionScope,
+            callback
         )
         pane.fillData(obj)
         idsToPanes[objId] = pane
@@ -280,8 +286,12 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     private fun createTitledPaneForSchema(
-        title: String, objId: String, data: JSONObject,
-        schema: ParsedSchema, readOnly: Boolean, resolutionScope: URI?,
+        title: String,
+        objId: String,
+        data: JSONObject,
+        schema: ParsedSchema,
+        readOnly: Boolean,
+        resolutionScope: URI?,
         callback: OnEditCallback
     ): JsonPropertiesPane = JsonPropertiesPane(
         title,
@@ -294,6 +304,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         actions,
         { validators },
         viewOptions,
+        controlFactory,
         { customizationObject },
         callback
     )
@@ -334,16 +345,25 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             updateTooltip(treeItemData)
         }
 
-        fun updateLabel(treeItemData: TreeItemData) {
-            graphic = Label().apply {
+        private fun updateLabel(treeItemData: TreeItemData) {
+            graphic = StackPane(Label().apply {
+                StackPane.setAlignment(this, Pos.CENTER_LEFT)
                 text =
                     treeItemData.title + if (viewOptions.markRequired && treeItemData.required) " *" else ""
-
-                skin = DecoratableLabelSkin(this)
+                treeItemData.titleMenu?.also { menu ->
+                    isUnderline = true
+                    cursor = Cursor.HAND
+                    var oldMenu: ContextMenu? = null
+                    setOnMouseClicked { e ->
+                        oldMenu?.hide()
+                        oldMenu = menu().also { it.show(this, e.screenX, e.screenY) }
+                    }
+                }
             }
+            )
         }
 
-        fun updateTooltip(treeItemData: TreeItemData) {
+        private fun updateTooltip(treeItemData: TreeItemData) {
             val desc = treeItemData.description
             val validationMessage = treeItemData.validationMessage
 
@@ -372,13 +392,13 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             }
         }
 
-        fun updateValidation(treeItemData: TreeItemData) {
-            (graphic as? Control)?.also { label ->
-                DECORATOR.removeDecorations(label)
-                createValidationMessage(
-                    label,
-                    treeItemData.validationMessage
-                )?.also { Platform.runLater { DECORATOR.applyValidationDecoration(it) } }
+        private fun updateValidation(treeItemData: TreeItemData) {
+            (graphic as? StackPane)?.also { pane ->
+                DECORATOR.removeDecorations(pane)
+                val msg = treeItemData.validationMessage
+                if (msg != null) Platform.runLater {
+                    DECORATOR.applyValidationDecoration(pane, msg)
+                }
             }
         }
 
@@ -420,7 +440,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                 if (new) {
                     Platform.runLater {
                         if (obs.value) {
-                            treeTableView.selectionModel.select(treeTableRow.index, tableColumn)
+                            treeTableView.selectionModel.select(tableRow.index, tableColumn)
                         }
                     }
 
