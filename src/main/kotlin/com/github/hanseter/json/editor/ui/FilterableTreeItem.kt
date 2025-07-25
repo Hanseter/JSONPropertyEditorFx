@@ -11,7 +11,9 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.event.Event
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.TreeItem
+import javafx.scene.input.MouseEvent
 
 /**
  * Creates a filterable TreeItem with children.
@@ -95,7 +97,7 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
 
 /**
  * TreeItem Data class which holds a key, description, control and action of a TreeItem.
- * By default it's not treated as a root item.
+ * By default, it's not treated as a root item.
  *
  */
 interface TreeItemData {
@@ -105,6 +107,12 @@ interface TreeItemData {
     val cssClasses: List<String>
     val cssStyle: String?
     var validationMessage: Validator.ValidationResult?
+
+    /**
+     * A menu that will be shown when the user clicks  on the title.
+     */
+    val titleMenu: (() -> ContextMenu)?
+        get() = null
 
     fun createControl(): LazyControl?
 
@@ -160,7 +168,11 @@ class ControlTreeItemData(
     }
 }
 
-class StyledTreeItemData(override val title: String, override val cssClasses: List<String>) :
+class StyledTreeItemData(
+    override val title: String,
+    override val cssClasses: List<String>,
+    override val titleMenu: (() -> ContextMenu)? = null
+) :
     TreeItemData {
     private val changeListeners: MutableList<(TreeItemData) -> Unit> = mutableListOf()
 

@@ -102,48 +102,54 @@ class IdReferenceControl(
 
     private fun idChanged(id: Preview?) {
         if (id == null) {
-            control.text = ""
+            updateText("")
             control.label = ""
             property.value = null
             return
         }
         when (context.idRefDisplayMode) {
             IdRefDisplayMode.ID_ONLY -> {
-                control.text = id.id
+                updateText(id.id)
                 control.label = ""
                 property.value = id.id
             }
 
             IdRefDisplayMode.DESCRIPTION_ONLY -> {
                 if (id.description == null) {
-                    control.text = id.id
+                    updateText(id.id)
                     control.label = ""
                     property.value = ""
                 } else {
-                    control.text = id.description
+                    updateText(id.description)
                     control.label = ""
                     property.value = id.id
                 }
             }
 
             IdRefDisplayMode.ID_WITH_DESCRIPTION -> {
-                control.text = id.id
+                updateText(id.id)
                 control.label = id.description ?: ""
                 property.value = id.id
             }
 
             IdRefDisplayMode.DESCRIPTION_WITH_ID -> {
                 if (id.description == null) {
-                    control.text = id.id
+                    updateText(id.id)
                     control.label = ""
                     property.value = ""
                 } else {
-                    control.text = id.description
+                    updateText(id.description)
                     control.label = id.id
                     property.value = id.id
                 }
             }
         }
+    }
+
+    //the caret position listens to the invalidation listener of the text and not the change listener
+    //this leads to the caret sometimes jumping to the front for no good reason
+    private fun updateText(text: String) {
+        if (control.text != text) control.text = text
     }
 
     override fun previewNull(b: Boolean) {

@@ -1,6 +1,5 @@
 package com.github.hanseter.json.editor.types
 
-import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaOfCombination
@@ -86,21 +85,25 @@ open class OneOfModel(
 
     protected open fun tryGuessActualSchema(value: Any?): Pair<Int, Schema?> {
         val data = value ?: return -1 to null
-        val found=schema.baseSchema.subschemas.find { isValid(it, data) }
-        val index=schema.baseSchema.subschemas.indexOf(found)
+        val found = schema.baseSchema.subschemas.find { isValid(it, data) }
+        val index = schema.baseSchema.subschemas.indexOf(found)
         return index to found
     }
 
-    protected fun createActualControl(subSchema: Schema): TypeControl = ControlFactory.convert(
-        EffectiveSchemaOfCombination(schema, subSchema),
-        editorContext
-    )
+    protected fun createActualControl(subSchema: Schema): TypeControl =
+        editorContext.controlFactory.create(
+            EffectiveSchemaOfCombination(schema, subSchema),
+            editorContext
+        )
 
     fun selectType(schema: Schema?) {
         if (schema == null) return
         (value as? JSONObject)?.also { merge(objectOptionData, it) }
         actualType =
-            ControlFactory.convert(EffectiveSchemaOfCombination(this.schema, schema), editorContext)
+            editorContext.controlFactory.create(
+                EffectiveSchemaOfCombination(this.schema, schema),
+                editorContext
+            )
         typeSetManually = true
         if (schema is ObjectSchema) {
             val keysToRemove = this.schema.baseSchema.subschemas
@@ -130,8 +133,8 @@ open class OneOfModel(
         }
 
         private fun schemaToString(pair: Pair<Int, Schema?>): String? {
-            if (pair.second== null) return null
-            return pair.second?.title?:pair.first.toString()
+            if (pair.second == null) return null
+            return pair.second?.title ?: pair.first.toString()
         }
     }
 

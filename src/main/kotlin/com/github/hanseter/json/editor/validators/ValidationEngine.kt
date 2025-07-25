@@ -1,8 +1,6 @@
 package com.github.hanseter.json.editor.validators
 
-import com.github.hanseter.json.editor.ControlFactory
-import com.github.hanseter.json.editor.IdReferenceProposalProvider
-import com.github.hanseter.json.editor.SchemaNormalizer
+import com.github.hanseter.json.editor.*
 import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
@@ -17,26 +15,55 @@ import org.json.JSONObject
 import java.net.URI
 import java.text.DecimalFormat
 
+/**
+ * This class can be used to run the same validation headlessly that would be used when displaying the data with the schema in the properties view.
+ * It is safe to run the validation from another thread than the FX thread.
+ */
 object ValidationEngine {
 
+    /**
+     * Validates the provided [data] against the provided [schema]. Performs the same validation as it would, if  the UI was shown.
+     * Even though a [PropertyControlFactory] can be provided and will be used, the method [TypeControl.createLazyControl] to actually create an fx control will never be called.
+     */
+    @JvmOverloads
     fun validateData(
         elemId: String,
         data: JSONObject,
         schema: JSONObject,
         resolutionScope: URI?,
-        referenceProposalProvider: IdReferenceProposalProvider
+        referenceProposalProvider: IdReferenceProposalProvider,
+        controlFactory: PropertyControlFactory = ControlFactory
     ): List<Pair<JSONPointer, List<Validator.ValidationResult>>> {
-        val parsedSchema = SchemaNormalizer.parseSchema(schema, resolutionScope, false)
+        return validateData(
+            elemId,
+            data,
+            ParsedSchema.create(schema, resolutionScope) ?: return emptyList(),
+            referenceProposalProvider,
+            controlFactory
+        )
+    }
 
-        val effectiveSchema = SimpleEffectiveSchema(null, parsedSchema, null)
-        val control = ControlFactory.convert(
+    /**
+     * Validates the provided [data] against the provided [schema]. Performs the same validation as it would, if  the UI was shown.
+     * Even though a [PropertyControlFactory] can be provided and will be used, the method [TypeControl.createLazyControl] to actually create an fx control will never be called.
+     */
+    fun validateData(
+        elemId: String,
+        data: JSONObject,
+        schema: ParsedSchema,
+        referenceProposalProvider: IdReferenceProposalProvider,
+        controlFactory: PropertyControlFactory
+    ): List<Pair<JSONPointer, List<Validator.ValidationResult>>> {
+        val effectiveSchema = SimpleEffectiveSchema(null, schema.parsed, null)
+        val control = controlFactory.create(
             effectiveSchema,
             EditorContext(
                 { referenceProposalProvider },
                 elemId,
                 {},
                 IdRefDisplayMode.ID_ONLY,
-                DecimalFormat().decimalFormatSymbols
+                DecimalFormat().decimalFormatSymbols,
+                controlFactory
             )
         )
         control.bindTo(RootBindableType(data))

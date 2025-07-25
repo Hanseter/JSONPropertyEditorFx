@@ -13,9 +13,12 @@ import org.json.JSONArray
 import org.slf4j.LoggerFactory
 
 
-object ControlFactory {
+object ControlFactory : PropertyControlFactory {
 
     private val LOG = LoggerFactory.getLogger(ControlFactory::class.java)
+
+    override fun create(schema: EffectiveSchema<*>, context: EditorContext): TypeControl =
+        convert(schema, context)
 
     @Suppress("UNCHECKED_CAST")
     fun convert(schema: EffectiveSchema<*>, context: EditorContext): TypeControl =

@@ -1,6 +1,5 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
 import com.github.hanseter.json.editor.util.EditorContext
@@ -11,12 +10,14 @@ import javafx.scene.control.Label
 import javafx.scene.layout.HBox
 import org.everit.json.schema.Schema
 
-fun createTypeControlsFromSchemas(schema: EffectiveSchema<*>,
-                                  contentSchemas: Collection<Schema>,
-                                  context: EditorContext): List<TypeControl> =
-        contentSchemas.map {
-            ControlFactory.convert(SimpleEffectiveSchema(schema, it), context)
-        }
+fun createTypeControlsFromSchemas(
+    schema: EffectiveSchema<*>,
+    contentSchemas: Collection<Schema>,
+    context: EditorContext
+): List<TypeControl> =
+    contentSchemas.map {
+        context.controlFactory.create(SimpleEffectiveSchema(schema, it), context)
+    }
 
 class TypeWithChildrenStatusControl(createLabel: String, onCreate: () -> Unit) : HBox() {
 
@@ -35,8 +36,6 @@ class TypeWithChildrenStatusControl(createLabel: String, onCreate: () -> Unit) :
 
         styleClass += "type-with-children-status-control"
     }
-
-    fun getDecorationsAnchor(): Control = label
 
     fun displayNull() {
         label.text = TypeControl.NULL_PROMPT

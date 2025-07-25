@@ -1,6 +1,5 @@
 package com.github.hanseter.json.editor.controls
 
-import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
@@ -66,7 +65,7 @@ class ArrayControl(
                 val childSchema =
                     EffectiveSchemaInArray(model.schema, model.contentSchema, currentChildIndex)
 
-                childControls.add(ControlFactory.convert(childSchema, context))
+                childControls.add(context.controlFactory.create(childSchema, context))
             }
         }
 

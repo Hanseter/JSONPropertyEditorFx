@@ -16,10 +16,15 @@ import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.Event
+import javafx.scene.control.ContextMenu
+import javafx.scene.control.MenuItem
+import javafx.scene.input.Clipboard
+import javafx.scene.input.DataFormat
 import org.controlsfx.validation.Severity
 import org.json.JSONObject
 import java.net.URI
 import java.util.function.Supplier
+
 
 class JsonPropertiesPane(
     private val title: String,
@@ -32,11 +37,18 @@ class JsonPropertiesPane(
     private val actions: List<EditorAction>,
     private val validators: () -> List<Validator>,
     viewOptions: ViewOptions,
+    private val controlFactory: PropertyControlFactory,
     private val customizationObject: () -> CustomizationObject,
     private val changeListener: JsonPropertiesEditor.OnEditCallback
 ) {
     val treeItem: FilterableTreeItem<TreeItemData> =
-        FilterableTreeItem(StyledTreeItemData(title, listOf(ROOT_ROW_CSS_CLASS)))
+        FilterableTreeItem(
+            StyledTreeItemData(
+                title,
+                listOf(ROOT_ROW_CSS_CLASS),
+                ::createCopyContextMenu
+            )
+        )
     private var schema = SimpleEffectiveSchema(null, parsedSchema.parsed, title)
     private val contentHandler = ContentHandler(data)
     val valid = SimpleBooleanProperty(true)
@@ -74,7 +86,7 @@ class JsonPropertiesPane(
     }
 
     private fun initObjectControl(): TypeControl {
-        return ControlFactory.convert(
+        return controlFactory.create(
             schema,
             EditorContext(
                 refProvider,
@@ -82,6 +94,7 @@ class JsonPropertiesPane(
                 ::updateTreeAfterChildChange,
                 viewOptions.idRefDisplayMode,
                 viewOptions.decimalFormatSymbols,
+                controlFactory
             )
         )
     }
@@ -302,10 +315,10 @@ class JsonPropertiesPane(
     }
 
     private fun createRequiredHeader(): FilterableTreeItem<TreeItemData> =
-        FilterableTreeItem(StyledTreeItemData("Required", listOf("isHeadlineRow")))
+        FilterableTreeItem(StyledTreeItemData("Required", listOf(HEADLINE_ROW_CSS)))
 
     private fun createOptionalHeader(): FilterableTreeItem<TreeItemData> =
-        FilterableTreeItem(StyledTreeItemData("Optional", listOf("isHeadlineRow")))
+        FilterableTreeItem(StyledTreeItemData("Optional", listOf(HEADLINE_ROW_CSS)))
 
     private fun addRequiredAndOptionalChildren(
         node: FilterableTreeItem<TreeItemData>,
@@ -341,6 +354,32 @@ class JsonPropertiesPane(
 
     fun revalidate() {
         updateTreeUiElements(controlItem, contentHandler.data)
+    }
+
+    private fun createCopyContextMenu(): ContextMenu {
+        return ContextMenu(
+            MenuItem("Copy Id").apply {
+                setOnAction {
+                    Clipboard.getSystemClipboard().setContent(mapOf(DataFormat.PLAIN_TEXT to objId))
+                }
+            },
+            MenuItem("Copy Title").apply {
+                setOnAction {
+                    Clipboard.getSystemClipboard().setContent(mapOf(DataFormat.PLAIN_TEXT to title))
+                }
+            },
+            MenuItem("Copy Data").apply {
+                setOnAction {
+                    Clipboard.getSystemClipboard().setContent(
+                        mapOf(
+                            DataFormat.PLAIN_TEXT to contentHandler.data.toString(2),
+                            (DataFormat.lookupMimeType("application/json")
+                                ?: DataFormat("application/json")) to
+                                    contentHandler.data.toString()
+                        )
+                    )
+                }
+            })
     }
 
     private fun saveUiState(): UiState = UiState(RowUiState(controlItem))
@@ -444,5 +483,6 @@ class JsonPropertiesPane(
 
     companion object {
         const val ROOT_ROW_CSS_CLASS = "isRootRow"
+        private const val HEADLINE_ROW_CSS = "isHeadlineRow"
     }
 }

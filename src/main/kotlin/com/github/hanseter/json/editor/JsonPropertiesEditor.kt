@@ -196,6 +196,20 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Updates the object without updating the schema
+     */
+    fun updateObject(
+        objId: String,
+        obj: JSONObject,
+    ) {
+        val pane = idsToPanes[objId] ?: return
+        pane.fillData(obj)
+    }
+
+    /**
+     * Updates the object, potentially updating the schema
+     */
     fun updateObject(
         objId: String,
         obj: JSONObject,
