@@ -254,7 +254,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
      * If the field does not exist, no scrolling will happen.
      */
     fun scrollToField(target: ElementField) {
-        val index = selectionModel.findIndexOfField(target)
+        val index = selectionModel.findIndexOfVisibleParent(target)
         if (index != -1) {
             treeTableView.scrollTo(index)
         }

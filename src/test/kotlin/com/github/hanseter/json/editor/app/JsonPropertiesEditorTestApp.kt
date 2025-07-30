@@ -54,6 +54,9 @@ class JsonPropertiesEditorTestApp : Application() {
         )
         propEdit.referenceProposalProvider = ReferenceProvider
         propEdit.resolutionScopeProvider = customResolutionScopeProvider
+        propEdit.selectionModel.selectedItemProperty().addListener { _,_,selected ->
+            println(selected)
+        }
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
         primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)
