@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.testfx.framework.junit5.ApplicationExtension
 import org.testfx.framework.junit5.Start
 import org.testfx.util.WaitForAsyncUtils
+import java.net.URI
 
 @ExtendWith(ApplicationExtension::class)
 class SchemaChangeTest {
@@ -23,7 +24,8 @@ class SchemaChangeTest {
 
     @Test
     fun schemaChangeOnEdit() {
-        val schema = JSONObject("""
+        val schema = JSONObject(
+            """
 {
   "type": "object",
   "properties": {
@@ -32,11 +34,13 @@ class SchemaChangeTest {
     }
   }
 }
-        """)
+        """
+        )
 
         editor.display("1", "1", JSONObject(), schema) { it: PropertiesEditInput ->
 
-            val newSchema = JSONObject("""
+            val newSchema = JSONObject(
+                """
 {
   "type": "object",
   "properties": {
@@ -45,13 +49,15 @@ class SchemaChangeTest {
     }
   }
 }
-            """)
+            """
+            )
 
-            newSchema.getJSONObject("properties").put(it.data.optString("src", "target"), JSONObject(mapOf("type" to "string")))
+            newSchema.getJSONObject("properties")
+                .put(it.data.optString("src", "target"), JSONObject(mapOf("type" to "string")))
 
 
 
-            PropertiesEditResult(it.data, newSchema)
+            PropertiesEditResult(it.data, ParsedSchema.create(newSchema, null as URI))
         }
 
 

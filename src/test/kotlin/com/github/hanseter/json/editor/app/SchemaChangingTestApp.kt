@@ -82,7 +82,7 @@ class SchemaChangingTestApp : Application() {
 
         val callback: (PropertiesEditInput) -> PropertiesEditResult = {
 
-            val newSchema = it.schema
+            val newSchema = it.schema.raw
 
             val bSchema = newSchema.getJSONObject("properties").getJSONObject("b")
 
@@ -94,7 +94,10 @@ class SchemaChangingTestApp : Application() {
 
             schema = newSchema
 
-            PropertiesEditResult(SchemaNormalizer.deepCopy(it.data).put("b", ""), newSchema)
+            PropertiesEditResult(
+                SchemaNormalizer.deepCopy(it.data).put("b", ""),
+                ParsedSchema.Companion.create(newSchema, null as URI)
+            )
         }
 
         propEdit.display(

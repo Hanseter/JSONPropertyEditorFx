@@ -1,17 +1,27 @@
 package com.github.hanseter.json.editor
 
 import org.everit.json.schema.ObjectSchema
+import org.everit.json.schema.SchemaLocation
 import org.json.JSONObject
 import java.net.URI
 
 /**
  * A schema with its raw json, the normalized schema and its parsed representation.
  */
-class ParsedSchema private constructor(
+class ParsedSchema(
     val raw: JSONObject,
     val normalized: JSONObject,
     val parsed: ObjectSchema
 ) {
+
+    /**
+     * Creates copy of the parsed schema, deep copying the mutable [JSONObject]s.
+     */
+    fun copy() = ParsedSchema(
+        SchemaNormalizer.deepCopy(raw),
+        SchemaNormalizer.deepCopy(normalized),
+        parsed
+    )
 
     companion object {
 
@@ -57,6 +67,17 @@ class ParsedSchema private constructor(
                     ?: return null
             return ParsedSchema(schema, schema, parsed)
         }
+
+        /**
+         * Creates an empty [ParsedSchema], i.e. a schema that describes an object with no properties.
+         */
+        fun empty() = ParsedSchema(
+            JSONObject().put("type", "object").put("properties", JSONObject()),
+            JSONObject().put("type", "object").put("properties", JSONObject()),
+            ObjectSchema.builder()
+                .schemaLocation(SchemaLocation.empty())
+                .build()
+        )
 
     }
 }

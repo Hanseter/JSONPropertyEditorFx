@@ -138,7 +138,7 @@ abstract class JsonPropertiesEditorSelectionModel : SingleSelectionModel<Element
         override fun isEmpty(): Boolean = treeTable.root.children.isEmpty()
 
         override fun getItemCount(): Int =
-            treeTable.root.visibleDescendants.count()
+            indexOfLastVisibleControl
 
         override fun findIndexOfVisibleParent(field: ElementField): Int {
             val paneItem = panes[field.elementId]?.treeItem ?: return -1

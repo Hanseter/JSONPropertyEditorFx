@@ -129,9 +129,10 @@ class JsonPropertiesPane(
 
     private fun createActionHandler(): (Event, EditorAction, TypeControl) -> Unit {
         return lambda@{ e, action, source ->
+            val schemaCopy = parsedSchema.copy()
             val ret =
                 action.apply(
-                    PropertiesEditInput(contentHandler.data, parsedSchema.raw),
+                    PropertiesEditInput(contentHandler.data, schemaCopy),
                     source.model,
                     e
                 )
@@ -140,15 +141,12 @@ class JsonPropertiesPane(
             val actionSchema = ret.schema
 
             val newData = changeListener(
-                PropertiesEditInput(ret.data, actionSchema ?: parsedSchema.raw)
+                PropertiesEditInput(ret.data, actionSchema?.copy() ?: schemaCopy)
             )
 
             val newSchema = newData.schema ?: actionSchema
 
-            if (newSchema != null) {
-                val newParsedSchema = ParsedSchema.create(newSchema, resolutionScope, readOnly)
-                if (newParsedSchema != null) updateSchema(newParsedSchema)
-            }
+            if (newSchema != null) updateSchema(newSchema)
 
             fillData(newData.data)
         }
@@ -189,11 +187,9 @@ class JsonPropertiesPane(
         type.registerListener {
 
             Platform.runLater {
-                val newData = changeListener(PropertiesEditInput(type.getValue(), parsedSchema.raw))
+                val newData = changeListener(PropertiesEditInput(type.getValue(), parsedSchema))
 
-                newData.schema
-                    ?.let { ParsedSchema.create(it, resolutionScope, readOnly) }
-                    ?.also { updateSchema(it) }
+                newData.schema?.also { updateSchema(it) }
 
                 fillData(newData.data)
             }
