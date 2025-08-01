@@ -96,7 +96,7 @@ class SchemaChangingTestApp : Application() {
 
             PropertiesEditResult(
                 SchemaNormalizer.deepCopy(it.data).put("b", ""),
-                ParsedSchema.Companion.create(newSchema, null as URI)
+                ParsedSchema.Companion.create(newSchema, null)
             )
         }
 

@@ -57,7 +57,7 @@ class SchemaChangeTest {
 
 
 
-            PropertiesEditResult(it.data, ParsedSchema.create(newSchema, null as URI))
+            PropertiesEditResult(it.data, ParsedSchema.create(newSchema, null))
         }
 
 

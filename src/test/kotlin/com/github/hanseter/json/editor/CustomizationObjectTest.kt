@@ -2,11 +2,15 @@ package com.github.hanseter.json.editor
 
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.util.CustomizationObject
+import javafx.scene.Parent
 import javafx.scene.control.Labeled
 import javafx.scene.control.TextField
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert
+import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
+import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.not
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -59,14 +63,14 @@ class CustomizationObjectTest {
 
         val fooControl = editor.getControlInTable("bar") as TextField
 
-        MatcherAssert.assertThat((fooCell.graphic as Labeled).text, Matchers.`is`("bar"))
-        MatcherAssert.assertThat((notFooCell.graphic as Labeled).text, Matchers.`is`("notFoo"))
+        assertThat(((fooCell.graphic as Parent).childrenUnmodifiable.first() as Labeled).text, `is`("bar"))
+        assertThat(((notFooCell.graphic as Parent).childrenUnmodifiable.first() as Labeled).text, `is`("notFoo"))
 
         fooControl.text = "something"
 
         WaitForAsyncUtils.waitForFxEvents()
-        MatcherAssert.assertThat((fooCell.graphic as Labeled).text, Matchers.`is`("barsomething"))
-        MatcherAssert.assertThat((notFooCell.graphic as Labeled).text, Matchers.`is`("notFoo"))
+        assertThat(((fooCell.graphic as Parent).childrenUnmodifiable.first() as Labeled).text, `is`("barsomething"))
+        assertThat(((notFooCell.graphic as Parent).childrenUnmodifiable.first() as Labeled).text, `is`("notFoo"))
     }
 
     @Test
@@ -101,8 +105,8 @@ class CustomizationObjectTest {
 
         val fooCell = editor.getKeyCellInTable("foo")
 
-        MatcherAssert.assertThat(fooCell.tooltip, Matchers.notNullValue())
-        MatcherAssert.assertThat(fooCell.tooltip.text, Matchers.`is`("fooDesc"))
+        assertThat(fooCell.tooltip, Matchers.notNullValue())
+        assertThat(fooCell.tooltip.text, `is`("fooDesc"))
 
     }
 
@@ -127,7 +131,7 @@ class CustomizationObjectTest {
 
         val fooCell = editor.getKeyCellInTable("foo")
 
-        MatcherAssert.assertThat((fooCell.graphic as Labeled).text, Matchers.`is`("foo"))
+        assertThat(((fooCell.graphic as Parent).childrenUnmodifiable.first() as Labeled).text, `is`("foo"))
 
         editor.customizationObject = object : CustomizationObject {
 
@@ -142,7 +146,7 @@ class CustomizationObjectTest {
 
         WaitForAsyncUtils.waitForFxEvents()
         val fooCellNew = editor.getKeyCellInTable("bar")
-        MatcherAssert.assertThat((fooCellNew.graphic as Labeled).text, Matchers.`is`("bar"))
+        assertThat(((fooCellNew.graphic as Parent).childrenUnmodifiable.first() as Labeled).text, `is`("bar"))
     }
 
 }

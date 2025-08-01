@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor
 import javafx.scene.control.TextField
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert
+import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -39,56 +40,62 @@ class ValidationKeywordsTest {
         editor.display("1", "1", JSONObject().put("a", "foo"), schema) { it }
 
         WaitForAsyncUtils.waitForFxEvents()
-        MatcherAssert.assertThat(editor.valid.get(), `is`(true))
+        assertThat(editor.valid.get(), `is`(true))
 
         val stringControl = editor.getControlInTable("a") as TextField
 
         stringControl.text = "bar"
 
         WaitForAsyncUtils.waitForFxEvents()
-        MatcherAssert.assertThat(editor.valid.get(), `is`(false))
+        assertThat(editor.valid.get(), `is`(false))
     }
 
     @Test
     fun testConditional() {
         val schema = JSONObject("""
 {
+  "type":"object",
   "properties": {
-    "a": {
-      "type": "string"
-    },
-    "b": {
-      "type": "string"
-    }
-  },
-  "if": {
-    "properties": {
-      "a": {
-        "const": "foo"
-      }
-    }
-  },
-  "then": {
-    "properties": {
-      "b": {
-        "pattern": ".*bar.*"
-      }
-    }
-  },
-  "else": {
-    "properties": {
-      "b": {
-        "pattern": ".*baz.*"
-      }
-    }
+    "nested": {
+        "type":"object",
+        "properties": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "string"
+          }
+        },
+        "if": {
+          "properties": {
+            "a": {
+              "const": "foo"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "b": {
+              "pattern": ".*bar.*"
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "b": {
+              "pattern": ".*baz.*"
+            }
+          }
+        }
+     }
   }
 }
         """)
 
-        editor.display("1", "1", JSONObject("""{"a": "foo", "b": "not"}"""), schema) { it }
+        editor.display("1", "1", JSONObject("""{"nested":{"a": "foo", "b": "not"}}"""), schema) { it }
 
         WaitForAsyncUtils.waitForFxEvents()
-        MatcherAssert.assertThat(editor.valid.get(), `is`(false))
+        assertThat(editor.valid.get(), `is`(false))
 
         val itemTable = editor.getItemTable()
         val aControl = editor.getControlInTable("a") as TextField
@@ -96,15 +103,15 @@ class ValidationKeywordsTest {
 
         bControl.text = "something bar something"
         WaitForAsyncUtils.waitForFxEvents()
-        MatcherAssert.assertThat(editor.valid.get(), `is`(true))
+        assertThat(editor.valid.get(), `is`(true))
 
 
         aControl.text = "bar"
         WaitForAsyncUtils.waitForFxEvents()
-        MatcherAssert.assertThat(editor.valid.get(), `is`(false))
+        assertThat(editor.valid.get(), `is`(false))
 
         bControl.text = "something baz something"
         WaitForAsyncUtils.waitForFxEvents()
-        MatcherAssert.assertThat(editor.valid.get(), `is`(true))
+        assertThat(editor.valid.get(), `is`(true))
     }
 }

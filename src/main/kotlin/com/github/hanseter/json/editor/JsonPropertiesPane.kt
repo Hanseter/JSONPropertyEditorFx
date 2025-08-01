@@ -204,6 +204,7 @@ class JsonPropertiesPane(
     private fun updateTreeAfterChildChange(control: TypeControl) {
         val item = findInTree(treeItem, control) ?: return
 
+        item.list.clear()
         item.list.setAll(control.childControls.map { wrapControlInTreeItem(it) })
     }
 

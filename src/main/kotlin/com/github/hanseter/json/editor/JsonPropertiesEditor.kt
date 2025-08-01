@@ -154,6 +154,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         (treeTableView.root as FilterableTreeItem).add(pane.treeItem)
         pane.treeItem.isExpanded = idsToPanes.size <= viewOptions.numberOfInitiallyOpenedObjects
         pane.valid.addListener(paneValidListener)
+        paneValidListener.changed(pane.valid, pane.valid.get(), pane.valid.get())
     }
 
     fun display(
