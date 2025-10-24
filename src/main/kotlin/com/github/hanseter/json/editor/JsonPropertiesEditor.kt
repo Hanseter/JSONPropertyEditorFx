@@ -11,11 +11,9 @@ import javafx.application.Platform
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
-import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Cursor
 import javafx.scene.control.*
-import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
 import org.controlsfx.validation.Severity
@@ -63,12 +61,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             }
         }
 
-    private val actions =
-        actions + PreviewAction(
-            viewOptions,
-            { referenceProposalProvider },
-            { resolutionScopeProvider }
-        ) + arrayActions
+    private val actions = (actions + arrayActions).sortedByDescending { it.priority }
 
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
     private val rootItem: FilterableTreeItem<TreeItemData> =

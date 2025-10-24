@@ -5,13 +5,15 @@ import com.github.hanseter.json.editor.PropertiesEditResult
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.TypeModel
 import javafx.event.Event
+import javafx.scene.Node
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONPointer
 
 object ResetToDefaultAction : EditorAction {
-    override val text: String = "↻"
     override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.resetToDefault")
+    override val priority: Int
+        get() = 5_000
     override val selector: TargetSelector = TargetSelector.AllOf(listOf(
             TargetSelector.ReadOnly.invert(),
             TargetSelector.AnyOf(listOf(
@@ -19,6 +21,8 @@ object ResetToDefaultAction : EditorAction {
                     TargetSelector { it.schema.defaultValue != null }
             ))
     ))
+
+    override fun createIcon(size: Int): Node = EditorAction.createTextIcon( "↻", size)
 
     override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult {
         val key = model.schema.propertyName

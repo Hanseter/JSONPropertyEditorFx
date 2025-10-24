@@ -7,8 +7,8 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchemaInArray
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
 import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
-import com.github.hanseter.json.editor.util.shallowClone
 import javafx.event.Event
+import javafx.scene.Node
 import org.everit.json.schema.ArraySchema
 import org.json.JSONArray
 import org.json.JSONObject
@@ -18,13 +18,18 @@ val arrayActions =
     listOf(AddToArrayAction, RemoveFromArrayAction, MoveArrayItemDownAction, MoveArrayItemUpAction)
 
 object AddToArrayAction : EditorAction {
-    override val text: String = "\uD83D\uDFA3"// \uD83D\uDFA3 = 🞣
-    override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.addToArray")
+    override val description: String =
+        JsonPropertiesMl.bundle.getString("jsonEditor.actions.addToArray")
+    override val priority: Int
+        get() = 500
     override val selector: TargetSelector = TargetSelector.AllOf(
         listOf(
             TargetSelector.ReadOnly.invert(),
             TargetSelector { it.supportedType == SupportedType.ComplexType.ArrayType })
     )
+
+    override fun createIcon(size: Int): Node =
+        EditorAction.createTextIcon("\uD83D\uDFA3", size) // \uD83D\uDFA3 = 🞣
 
     override fun apply(
         input: PropertiesEditInput,
@@ -34,9 +39,10 @@ object AddToArrayAction : EditorAction {
         // Because this calls model.setValue instead of returning an edit result, we need to ensure
         // the internal value does not change before we invoke setValue, otherwise, it would return
         // immediately. Hence a shallow copy.
-        val children = (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value?.let {
-            JSONArray().putAll(it)
-        } ?: JSONArray().also {
+        val children =
+            (model as TypeModel<JSONArray?, SupportedType.ComplexType.ArrayType>).value?.let {
+                JSONArray().putAll(it)
+            } ?: JSONArray().also {
                 model.value = it
             }
         val childDefaultValue =
@@ -56,10 +62,13 @@ object ArrayChildSelector : TargetSelector {
 }
 
 object RemoveFromArrayAction : EditorAction {
-    override val text: String = "-"
     override val description: String = "Remove this item"
+    override val priority: Int
+        get() = 540
     override val selector: TargetSelector
         get() = ArrayChildSelector
+
+    override fun createIcon(size: Int): Node = EditorAction.createTextIcon("-", size)
 
     override fun apply(
         input: PropertiesEditInput,
@@ -76,10 +85,13 @@ object RemoveFromArrayAction : EditorAction {
 }
 
 object MoveArrayItemUpAction : EditorAction {
-    override val text: String = "↑"
     override val description: String = "Move this item one row up"
+    override val priority: Int
+        get() = 570
     override val selector: TargetSelector
         get() = ArrayChildSelector
+
+    override fun createIcon(size: Int): Node = EditorAction.createTextIcon("↑", size)
 
     override fun apply(
         input: PropertiesEditInput,
@@ -99,11 +111,13 @@ object MoveArrayItemUpAction : EditorAction {
 }
 
 object MoveArrayItemDownAction : EditorAction {
-    override val text: String = "↓"
     override val description: String = "Move this item one row down"
+    override val priority: Int
+        get() = 590
     override val selector: TargetSelector
         get() = ArrayChildSelector
 
+    override fun createIcon(size: Int): Node = EditorAction.createTextIcon("↓", size)
     override fun apply(
         input: PropertiesEditInput,
         model: TypeModel<*, *>,

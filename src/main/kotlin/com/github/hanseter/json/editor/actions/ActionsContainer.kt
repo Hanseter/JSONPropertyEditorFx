@@ -6,11 +6,14 @@ import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Region
 
-class ActionsContainer(private val control: TypeControl, actions: List<EditorAction>,
-                       private val objId: String,
-                       private val executeActionCallback: (Event, EditorAction, TypeControl) -> Unit)
-    : HBox() {
+class ActionsContainer(
+    private val control: TypeControl,
+    actions: List<EditorAction>,
+    private val objId: String,
+    private val executeActionCallback: (Event, EditorAction, TypeControl) -> Unit
+) : HBox() {
 
     private val actionButtons: List<Pair<EditorAction, Button>>
 
@@ -21,7 +24,16 @@ class ActionsContainer(private val control: TypeControl, actions: List<EditorAct
         children.addAll(actionButtons.map { it.second })
     }
 
-    private fun createButton(action: EditorAction, executeActionCallback: (Event, EditorAction, TypeControl) -> Unit) = Button(action.text).apply {
+    private fun createButton(
+        action: EditorAction,
+        executeActionCallback: (Event, EditorAction, TypeControl) -> Unit
+    ) = Button("", action.createIcon(16)).apply {
+        prefWidth = 24.0
+        prefHeight = 24.0
+        minWidth = USE_PREF_SIZE
+        minHeight = USE_PREF_SIZE
+        maxWidth = USE_PREF_SIZE
+        maxHeight = USE_PREF_SIZE
         onAction = EventHandler {
             executeActionCallback(it, action, control)
         }
