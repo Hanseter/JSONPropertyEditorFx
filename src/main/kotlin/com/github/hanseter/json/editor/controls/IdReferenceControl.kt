@@ -19,7 +19,7 @@ class IdReferenceControl(
     private val context: EditorContext,
 ) : ControlWithProperty<String?> {
     override val control = LabelledTextField()
-    override val property: Property<String?> = SimpleStringProperty("")//control.textProperty()
+    override val property: Property<String?> = SimpleStringProperty("")
 
     init {
         val regex = schema.baseSchema.pattern
@@ -27,9 +27,10 @@ class IdReferenceControl(
         val completionBinding = TextFields.bindAutoCompletion(control) { request ->
             val proposals = mapProposals(getValidProposals(request, regex))
                 .filter { it.matchesInput(request.userText) }
+                .limit(30)
                 .sorted(Comparator.comparingInt { it.toString().indexOf(request.userText) })
-                .limit(30).collect(Collectors.toList())
-            if (canProposalsAutoApplied(request, proposals)) {
+                .toList()
+            if (canProposalBeAutoApplied(request, proposals)) {
                 Platform.runLater {
                     idChanged(proposals.single())
                 }
@@ -67,7 +68,7 @@ class IdReferenceControl(
         }
     }
 
-    private fun canProposalsAutoApplied(
+    private fun canProposalBeAutoApplied(
         request: AutoCompletionBinding.ISuggestionRequest,
         proposals: List<Preview>,
     ) = proposals.size == 1 && proposals.single()
