@@ -56,15 +56,9 @@ class IdReferenceTest {
         override fun isValidReference(userInput: String?, editedElement: String, editedSchema: StringSchema): Boolean =
                 elements.find { it.id == userInput } != null
 
-        override fun isOpenable(id: String): Boolean =
-                elements.find { it.id == id }?.isOpenable ?: false
-
         override fun getDataAndSchema(id: String): IdReferenceProposalProvider.DataWithSchema? =
                 elements.find { it.id == id }?.let { IdReferenceProposalProvider.DataWithSchema(it.data, it.schema) }
 
-        override fun openElement(id: String) {
-            openedElements.add(id)
-        }
     }
 
 

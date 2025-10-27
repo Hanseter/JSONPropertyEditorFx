@@ -241,10 +241,6 @@ class JsonPropertiesEditorTestApp : Application() {
         override fun getDataAndSchema(id: String): IdReferenceProposalProvider.DataWithSchema? =
             possibleProposals[id]
 
-        override fun isOpenable(id: String) = true
-        override fun openElement(id: String) {
-            println("Request to open $id")
-        }
     }
 }
 
