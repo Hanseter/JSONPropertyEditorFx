@@ -529,16 +529,12 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     private fun refreshFilter() {
-        if (filters.isEmpty()) {
-            rootItem.setFilter { true }
-        } else {
-            rootItem.setFilter { item ->
-                (item as? ControlTreeItemData)?.let {
-                    filters.any { !it(item.typeControl.model, item.validationMessage?.message) }
-                } ?: true
-            }
+        if (filters.isEmpty()) rootItem.setFilter { true }
+        else rootItem.setFilter { parentMatched, item ->
+            parentMatched || ((item.value as? ControlTreeItemData)?.let { value ->
+                filters.any { !it(value.typeControl.model, value.validationMessage?.message) }
+            } ?: false)
         }
-
     }
 
     /**

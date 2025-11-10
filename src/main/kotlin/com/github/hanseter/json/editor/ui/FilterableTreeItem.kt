@@ -7,7 +7,11 @@ import com.github.hanseter.json.editor.util.CustomizationObject
 import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
+import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.ReadOnlyProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
+import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.event.Event
@@ -22,7 +26,23 @@ import javafx.scene.input.MouseEvent
  */
 
 class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
-    val list: ObservableList<FilterableTreeItem<T>> = FXCollections.observableArrayList()
+    private val filterableParent_: SimpleObjectProperty<FilterableTreeItem<T>?> =
+        SimpleObjectProperty(null)
+    val filterableParent: ReadOnlyObjectProperty<FilterableTreeItem<T>?>
+        get() = filterableParent_
+
+    val list: ObservableList<FilterableTreeItem<T>> =
+        FXCollections.observableArrayList<FilterableTreeItem<T>>().apply {
+            addListener(ListChangeListener { c ->
+                while (c.next()) {
+                    c.addedSubList.forEach { it.filterableParent_.set(this@FilterableTreeItem) }
+                    c.removed.forEach {
+                        if (it.filterableParent.value == this@FilterableTreeItem)
+                            it.filterableParent_.set(null)
+                    }
+                }
+            })
+        }
     private val filteredList: FilteredList<FilterableTreeItem<T>> = FilteredList(list).apply {
         Bindings.bindContent(super.getChildren(), this)
     }
@@ -45,14 +65,28 @@ class FilterableTreeItem<T>(value: T) : TreeItem<T>(value) {
      * @param filter the filter
      */
     fun setFilter(filter: (T) -> Boolean) {
+        setFilterInternal(false) { _, child -> filter(child.value) }
+    }
+
+    /**
+     * Set the filter of the item and also its child items. Doesn't set the filter, if
+     * the item has child items as only tree leaves should be filtered.
+     *
+     * @param filter the filter
+     */
+    fun setFilter(filter: (Boolean, FilterableTreeItem<T>) -> Boolean) {
+        setFilterInternal(false, filter)
+    }
+
+    private fun setFilterInternal(
+        ancestorMatched: Boolean,
+        filter: (Boolean, FilterableTreeItem<T>) -> Boolean
+    ): Boolean {
+        val matched = filter(ancestorMatched, this)
         filteredList.setPredicate { child ->
-            child.setFilter(filter)
-            if (child.children.isNotEmpty()) {
-                true
-            } else {
-                filter(child.value)
-            }
+            child.setFilterInternal(matched, filter)
         }
+        return matched || children.isNotEmpty()
     }
 
     /**
