@@ -77,7 +77,7 @@ class ArrayControl(
 
         val subArray = subArray
         val rawValues = model.rawValue
-        val values = rawValues as? JSONArray
+        val values = rawValues as? JSONArray ?: model.defaultValue
         if (rawValues != JSONObject.NULL && values != null) {
             removeChildControls(values)
             addChildControls(values)

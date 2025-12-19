@@ -4,7 +4,7 @@
   "properties": {
     "object": {
       "type": "object",
-      "default": {},
+      "default": {"a":  "Hello World"},
       "properties": {
         "a": {
           "type": "string"
@@ -22,6 +22,7 @@
           }
         }
       },
+      "default": [{"a":  "Hello World"},{"a":  "Good Bye World"}]
     }
   }
 }
