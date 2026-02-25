@@ -61,7 +61,23 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             }
         }
 
-    private val actions = (actions + arrayActions).sortedByDescending { it.priority }
+    var customActions: List<EditorAction> = actions
+        set(value) {
+            field = value
+            allActions = getAllActions(value)
+
+            Platform.runLater {
+                idsToPanes.values.forEach {
+                    it.rebuildControlTree()
+                }
+            }
+        }
+
+    private var allActions = getAllActions(customActions)
+
+    private fun getAllActions(customActions: List<EditorAction>): List<EditorAction> {
+        return (customActions + arrayActions).sortedByDescending { it.priority }
+    }
 
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
     private val rootItem: FilterableTreeItem<TreeItemData> =
@@ -255,6 +271,21 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     }
 
     /**
+     * Focuses the field matching [target].
+     * If the field is currently collapsed or does not exist, this will do nothing.
+     *
+     * Note that this will not automatically scroll to the field. Use [scrollToField] in combination
+     * with this method for that.
+     */
+    fun focusField(target: ElementField) {
+        val index = selectionModel.findIndexOfVisibleField(target)
+        if (index != -1) {
+            treeTableView.selectionModel.clearSelection()
+            treeTableView.selectionModel.select(index, treeTableView.columns[1])
+        }
+    }
+
+    /**
      * Expands the part of the element identified by [id].
      * Specifically the subtrees identified by the [pointers].
      * An empty pointer will expand the root element.
@@ -302,6 +333,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         resolutionScope: URI?,
         callback: OnEditCallback
     ): JsonPropertiesPane = JsonPropertiesPane(
+        this,
         title,
         objId,
         data,
@@ -309,7 +341,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         readOnly,
         resolutionScope,
         { referenceProposalProvider },
-        actions,
+        { allActions },
         { validators },
         viewOptions,
         controlFactory,
@@ -552,7 +584,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     class ActionCell : TreeTableCell<TreeItemData, TreeItemData>() {
         private var changeListener: ((TreeItemData) -> Unit) = this::updateActionEnablement
         private var actions: ActionsContainer? = null
-        override fun updateItem(item: TreeItemData?, empty: Boolean) {
+        public override fun updateItem(item: TreeItemData?, empty: Boolean) {
             getItem()?.removeChangeListener(changeListener)
             super.updateItem(item, empty)
 

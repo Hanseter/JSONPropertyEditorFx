@@ -27,6 +27,7 @@ import java.util.function.Supplier
 
 
 class JsonPropertiesPane(
+    private val editor: JsonPropertiesEditor,
     private val title: String,
     private val objId: String,
     data: JSONObject,
@@ -34,7 +35,7 @@ class JsonPropertiesPane(
     private val readOnly: Boolean,
     private val resolutionScope: URI?,
     private val refProvider: Supplier<IdReferenceProposalProvider>,
-    private val actions: List<EditorAction>,
+    private val actions: () -> List<EditorAction>,
     private val validators: () -> List<Validator>,
     viewOptions: ViewOptions,
     private val controlFactory: PropertyControlFactory,
@@ -141,14 +142,17 @@ class JsonPropertiesPane(
             val actionSchema = ret.schema
 
             val newData = changeListener(
-                PropertiesEditInput(ret.data, actionSchema?.copy() ?: schemaCopy)
+                PropertiesEditInput(ret.data ?: contentHandler.data, actionSchema?.copy() ?: schemaCopy)
             )
 
             val newSchema = newData.schema ?: actionSchema
 
             if (newSchema != null) updateSchema(newSchema)
 
-            fillData(newData.data)
+            newData.data?.also { fillData(it) }
+
+            ret.postUpdateHandler?.invoke(PostUpdateHandlerDataImpl(editor, objId))
+            newData.postUpdateHandler?.invoke(PostUpdateHandlerDataImpl(editor, objId))
         }
     }
 
@@ -191,7 +195,9 @@ class JsonPropertiesPane(
 
                 newData.schema?.also { updateSchema(it) }
 
-                fillData(newData.data)
+                newData.data?.also { fillData(it) }
+
+                newData?.postUpdateHandler?.invoke(PostUpdateHandlerDataImpl(editor, objId))
             }
         }
     }
@@ -477,6 +483,11 @@ class JsonPropertiesPane(
             }
         }
     }
+
+    private class PostUpdateHandlerDataImpl(
+        override val editor: JsonPropertiesEditor,
+        override val elementId: String
+    ) : PropertiesEditResult.PostUpdateHandlerData
 
     companion object {
         const val ROOT_ROW_CSS_CLASS = "isRootRow"

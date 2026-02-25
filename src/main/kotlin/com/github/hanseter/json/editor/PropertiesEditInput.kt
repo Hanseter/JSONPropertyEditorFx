@@ -8,4 +8,7 @@ import org.json.JSONObject
  * It allows access to the current document data, as well as the schema.
  * @param data The document data.
  */
-data class PropertiesEditInput(val data: JSONObject, val schema: ParsedSchema)
+data class PropertiesEditInput(
+    val data: JSONObject,
+    val schema: ParsedSchema,
+)

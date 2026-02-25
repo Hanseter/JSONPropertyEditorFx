@@ -159,7 +159,7 @@ interface TreeItemData {
 
 class ControlTreeItemData(
     val typeControl: TypeControl,
-    private val actions: List<EditorAction>,
+    private val actions: () -> List<EditorAction>,
     private val actionHandler: (Event, EditorAction, TypeControl) -> Unit,
     private val objId: String,
     private val customizationObject: () -> CustomizationObject
@@ -187,7 +187,7 @@ class ControlTreeItemData(
     override fun createControl(): LazyControl? = typeControl.createLazyControl()
 
     override fun createActions(): ActionsContainer? =
-        ActionsContainer(typeControl, actions, objId, actionHandler)
+        ActionsContainer(typeControl, actions(), objId, actionHandler)
 
     override fun registerChangeListener(listener: (TreeItemData) -> Unit) {
         changeListeners.add(listener)
