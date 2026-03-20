@@ -197,7 +197,7 @@ class JsonPropertiesPane(
 
                 newData.data?.also { fillData(it) }
 
-                newData?.postUpdateHandler?.invoke(PostUpdateHandlerDataImpl(editor, objId))
+                newData.postUpdateHandler?.invoke(PostUpdateHandlerDataImpl(editor, objId))
             }
         }
     }

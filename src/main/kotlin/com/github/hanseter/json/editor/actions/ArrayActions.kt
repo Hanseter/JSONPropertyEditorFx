@@ -36,7 +36,7 @@ object AddToArrayAction : EditorAction {
         input: PropertiesEditInput,
         model: TypeModel<*, *>,
         mouseEvent: Event?
-    ): PropertiesEditResult? {
+    ): PropertiesEditResult {
         // Because this calls model.setValue instead of returning an edit result, we need to ensure
         // the internal value does not change before we invoke setValue, otherwise, it would return
         // immediately. Hence a shallow copy.
@@ -54,11 +54,13 @@ object AddToArrayAction : EditorAction {
         model.value = children
         // since we just called `model.setValue`, we don't actually need to return the data here
         return PropertiesEditResult(
-            postUpdateHandler = { editor, elementId ->
-                editor.focusField(ElementField(
-                    elementId,
-                    model.schema.pointer + (children.length() - 1).toString()
-                ))
+            postUpdateHandler = {
+                it.editor.focusField(
+                    ElementField(
+                        it.elementId,
+                        model.schema.pointer + (children.length() - 1).toString()
+                    )
+                )
             }
         )
     }
@@ -116,8 +118,13 @@ object MoveArrayItemUpAction : EditorAction {
         children.put(index, tmp)
         return PropertiesEditResult(
             data = model.bound?.rootType?.getValue() ?: input.data,
-            postUpdateHandler = { editor, elementId ->
-                editor.focusField(ElementField(elementId, model.schema.pointer.dropLast(1) + (index - 1).toString()))
+            postUpdateHandler = {
+                it.editor.focusField(
+                    ElementField(
+                        it.elementId,
+                        model.schema.pointer.dropLast(1) + (index - 1).toString()
+                    )
+                )
             }
         )
     }
@@ -147,8 +154,13 @@ object MoveArrayItemDownAction : EditorAction {
         children.put(index, tmp)
         return PropertiesEditResult(
             data = model.bound?.rootType?.getValue() ?: input.data,
-            postUpdateHandler = { editor, elementId ->
-                editor.focusField(ElementField(elementId, model.schema.pointer.dropLast(1) + (index + 1).toString()))
+            postUpdateHandler = {
+                it.editor.focusField(
+                    ElementField(
+                        it.elementId,
+                        model.schema.pointer.dropLast(1) + (index + 1).toString()
+                    )
+                )
             }
         )
     }

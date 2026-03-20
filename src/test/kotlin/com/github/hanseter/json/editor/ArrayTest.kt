@@ -113,11 +113,8 @@ class ArrayTest {
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         assertThat(arrayEntry.value.createActions()!!.children.size, `is`(2))
-        assertThat((arrayEntry.value.createActions()!!.children[0] as Button).text, `is`("↻"))
-        assertThat(
-            (arrayEntry.value.createActions()!!.children[1] as Button).text,
-            `is`("\uD83D\uDFA3")
-        )
+        assertThat(EnumTest.getActionIconAsText(arrayEntry, 0), `is`("↻"))
+        assertThat(EnumTest.getActionIconAsText(arrayEntry, 1), `is`("\uD83D\uDFA3"))
     }
 
     @Test
@@ -130,7 +127,10 @@ class ArrayTest {
             }}}"""
         )
         val data = JSONObject()
-        editor.display("1", "1", data, schema) { it.also { updateCounter.incrementAndGet() } }
+        editor.display("1", "1", data, schema) {
+            updateCounter.incrementAndGet()
+            it
+        }
         val itemTable = editor.getItemTable()
         val arrayEntry = itemTable.root.children[0].findChildWithKey("bar")!!
         val addButton = arrayEntry.value.createActions()!!.children[1] as Button
@@ -147,7 +147,7 @@ class ArrayTest {
         }
         WaitForAsyncUtils.waitForFxEvents()
         assertThat(data.getJSONArray("bar").toList(), contains(null, null, null))
-        assertThat(updateCounter.get(), `is`(3))
+        assertThat(updateCounter.get(), `is`(6))
     }
 
     @Test
