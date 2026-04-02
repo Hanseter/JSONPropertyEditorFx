@@ -256,7 +256,8 @@ class OneOfTest {
 
     @Test
     fun `test weird edge cases`() {
-        val schema = JSONObject("""
+        val schema = JSONObject(
+            """
 {
     "type": "object",
     "properties": {
@@ -289,23 +290,27 @@ class OneOfTest {
         }
     }
 }
-        """)
+        """
+        )
 
         assertDoesNotThrow {
             ValidationEngine.validateData(
                 "id",
                 JSONObject()
-                    .put("anArray", JSONArray().put(
-                        JSONObject().put(
-                            "containingArrays",
-                            JSONArray().put(
-                                JSONObject().put("arr", listOf("item1"))
+                    .put(
+                        "anArray", JSONArray().put(
+                            JSONObject().put(
+                                "containingArrays",
+                                JSONArray().put(
+                                    JSONObject().put("arr", listOf("item1"))
+                                )
                             )
                         )
-                    )),
+                    ),
                 schema,
                 null,
-                IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
+                IdReferenceProposalProvider.IdReferenceProposalProviderEmpty,
+                ResourceProvider.ResourceProviderEmpty
             )
         }
     }

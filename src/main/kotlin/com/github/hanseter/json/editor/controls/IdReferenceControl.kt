@@ -28,7 +28,9 @@ class IdReferenceControl(
             val proposals = mapProposals(getValidProposals(request, regex))
                 .filter { it.matchesInput(request.userText) }
                 .limit(30)
-                .sorted(Comparator.comparingInt { it.toString().indexOf(request.userText) })
+                .sorted(Comparator.comparingInt<Preview> {
+                    it.toString().indexOf(request.userText, 0, true)
+                }.thenBy { it.toString() })
                 .toList()
             if (canProposalBeAutoApplied(request, proposals)) {
                 Platform.runLater {

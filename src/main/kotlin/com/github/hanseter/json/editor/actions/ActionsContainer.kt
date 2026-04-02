@@ -6,7 +6,6 @@ import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
-import javafx.scene.layout.Region
 
 class ActionsContainer(
     private val control: TypeControl,

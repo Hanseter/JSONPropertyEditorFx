@@ -16,6 +16,7 @@ sealed class SupportedType<T> {
         object EnumSetType : SimpleType<JSONArray?>()
         object StringType : SimpleType<String?>()
         object IdReferenceType : SimpleType<String?>()
+        object ResourceType : SimpleType<String?>()
         object ColorType : SimpleType<String?>()
         object IntType : SimpleType<Int?>()
         object DoubleType : SimpleType<Double?>()

@@ -35,6 +35,7 @@ class JsonPropertiesPane(
     private val readOnly: Boolean,
     private val resolutionScope: URI?,
     private val refProvider: Supplier<IdReferenceProposalProvider>,
+    private val resourceProvider: Supplier<ResourceProvider>,
     private val actions: () -> List<EditorAction>,
     private val validators: () -> List<Validator>,
     viewOptions: ViewOptions,
@@ -91,6 +92,7 @@ class JsonPropertiesPane(
             schema,
             EditorContext(
                 refProvider,
+                resourceProvider,
                 objId,
                 ::updateTreeAfterChildChange,
                 viewOptions.idRefDisplayMode,

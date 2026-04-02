@@ -106,6 +106,11 @@ object ControlFactory : PropertyControlFactory {
                 StringModel(schema)
             )
 
+            ResourceFormat.formatName -> RowBasedControl(
+                {ResourceControl(schema, context) },
+                ResourceModel(schema)
+            )
+
             else -> RowBasedControl({ StringControl() }, StringModel(schema))
         }
 

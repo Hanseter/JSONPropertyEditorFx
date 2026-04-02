@@ -6,6 +6,7 @@ import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.*
 import com.github.hanseter.json.editor.util.*
 import com.github.hanseter.json.editor.validators.IdReferenceValidator
+import com.github.hanseter.json.editor.validators.ResourceValidator
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.application.Platform
 import javafx.beans.property.ReadOnlyBooleanProperty
@@ -31,10 +32,14 @@ class JsonPropertiesEditor @JvmOverloads constructor(
 ) : StackPane() {
     var referenceProposalProvider: IdReferenceProposalProvider =
         IdReferenceProposalProvider.IdReferenceProposalProviderEmpty
+    var resourceProvider: ResourceProvider =
+        ResourceProvider.ResourceProviderEmpty
     var resolutionScopeProvider: ResolutionScopeProvider =
         ResolutionScopeProvider.ResolutionScopeProviderEmpty
 
-    private val fixedValidators = listOf(IdReferenceValidator { referenceProposalProvider })
+    private val fixedValidators = listOf(
+        IdReferenceValidator { referenceProposalProvider },
+        ResourceValidator { resourceProvider })
 
     var additionalValidators: List<Validator> = additionalValidators
         set(value) {
@@ -76,7 +81,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
     private var allActions = getAllActions(customActions)
 
     private fun getAllActions(customActions: List<EditorAction>): List<EditorAction> {
-        return (customActions + arrayActions).sortedByDescending { it.priority }
+        return (customActions + arrayActions + SelectResourceAction(
+            { scene.window },
+            { resourceProvider })).sortedByDescending { it.priority }
     }
 
     private val idsToPanes = mutableMapOf<String, JsonPropertiesPane>()
@@ -341,6 +348,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         readOnly,
         resolutionScope,
         { referenceProposalProvider },
+        { resourceProvider },
         { allActions },
         { validators },
         viewOptions,

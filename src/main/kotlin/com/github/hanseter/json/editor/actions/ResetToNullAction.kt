@@ -12,24 +12,37 @@ import org.json.JSONObject
 import org.json.JSONPointer
 
 object ResetToNullAction : EditorAction {
-    override val description: String = JsonPropertiesMl.bundle.getString("jsonEditor.actions.resetToNull")
+    override val description: String =
+        JsonPropertiesMl.bundle.getString("jsonEditor.actions.resetToNull")
     override val priority: Int
         get() = 5_500
-    override val selector: TargetSelector = TargetSelector.AllOf(listOf(
+    override val selector: TargetSelector = TargetSelector.AllOf(
+        listOf(
             TargetSelector.ReadOnly.invert(),
             TargetSelector { (it.schema as? PartialEffectiveSchema)?.allowsNull == true }
-    ))
+        ))
 
-    override fun createIcon(size: Int): Node = EditorAction.createTextIcon( "Ø", size)
+    override fun createIcon(size: Int): Node = EditorAction.createTextIcon("Ø", size)
 
-    override fun apply(input: PropertiesEditInput, model: TypeModel<*, *>, mouseEvent: Event?): PropertiesEditResult {
+    override fun apply(
+        input: PropertiesEditInput,
+        model: TypeModel<*, *>,
+        mouseEvent: Event?
+    ): PropertiesEditResult =
+        applyChange(model, input, JSONObject.NULL)
+
+    fun applyChange(
+        model: TypeModel<*, *>,
+        input: PropertiesEditInput,
+        value: Any
+    ): PropertiesEditResult {
         val key = model.schema.propertyName
-        when (val parentContainer = JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(input.data)) {
-            is JSONObject -> parentContainer.put(key, JSONObject.NULL)
-            is JSONArray -> parentContainer.put(key.toInt(), JSONObject.NULL)
+        when (val parentContainer =
+            JSONPointer(model.schema.pointer.dropLast(1)).queryFrom(input.data)) {
+            is JSONObject -> parentContainer.put(key, value)
+            is JSONArray -> parentContainer.put(key.toInt(), value)
             else -> throw IllegalStateException("Unknown parent container type: ${parentContainer::class.java}")
         }
         return PropertiesEditResult(model.bound?.rootType?.getValue() ?: input.data)
     }
-
 }

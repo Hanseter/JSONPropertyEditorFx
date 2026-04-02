@@ -14,11 +14,6 @@ import javafx.scene.text.Text
  */
 interface EditorAction {
 
-
-    @Deprecated("Please override createIcon instead.")
-    val text: String
-        get() = ""
-
     val description: String
 
     /**
@@ -33,8 +28,7 @@ interface EditorAction {
      * Creates an icon for the button.
      * This needs to create a new [Node] every time it's called.
      */
-    //TODO once [text] is removed, remove default implementation
-    fun createIcon(size: Int): Node = createTextIcon(text, size)
+    fun createIcon(size: Int): Node
 
     fun apply(
         input: PropertiesEditInput,

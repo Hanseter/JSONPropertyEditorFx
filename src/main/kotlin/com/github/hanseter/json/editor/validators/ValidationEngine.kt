@@ -32,13 +32,15 @@ object ValidationEngine {
         schema: JSONObject,
         resolutionScope: URI?,
         referenceProposalProvider: IdReferenceProposalProvider,
-        controlFactory: PropertyControlFactory = ControlFactory
+        resourceProvider: ResourceProvider,
+        controlFactory: PropertyControlFactory = ControlFactory,
     ): List<Pair<JSONPointer, List<Validator.ValidationResult>>> {
         return validateData(
             elemId,
             data,
             ParsedSchema.create(schema, resolutionScope) ?: return emptyList(),
             referenceProposalProvider,
+            resourceProvider,
             controlFactory
         )
     }
@@ -52,6 +54,7 @@ object ValidationEngine {
         data: JSONObject,
         schema: ParsedSchema,
         referenceProposalProvider: IdReferenceProposalProvider,
+        resourceProvider: ResourceProvider,
         controlFactory: PropertyControlFactory
     ): List<Pair<JSONPointer, List<Validator.ValidationResult>>> {
         val effectiveSchema = SimpleEffectiveSchema(null, schema.parsed, null)
@@ -59,6 +62,7 @@ object ValidationEngine {
             effectiveSchema,
             EditorContext(
                 { referenceProposalProvider },
+                { resourceProvider },
                 elemId,
                 {},
                 IdRefDisplayMode.ID_ONLY,
@@ -68,21 +72,13 @@ object ValidationEngine {
         )
         control.bindTo(RootBindableType(data))
         return validateData(
-            control, elemId, data, listOf(IdReferenceValidator { referenceProposalProvider })
+            control,
+            elemId,
+            data,
+            listOf(
+                IdReferenceValidator { referenceProposalProvider },
+                ResourceValidator { resourceProvider })
         )
-    }
-
-    @Deprecated(message = "Use validateData instead")
-    fun validate(
-        elemId: String,
-        data: JSONObject,
-        schema: JSONObject,
-        resolutionScope: URI?,
-        referenceProposalProvider: IdReferenceProposalProvider
-    ): List<Pair<JSONPointer, List<String>>> {
-        return validateData(elemId, data, schema, resolutionScope, referenceProposalProvider).map {
-            it.first to it.second.map { it.message }
-        }
     }
 
     fun validateData(

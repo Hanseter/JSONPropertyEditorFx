@@ -33,4 +33,5 @@ object ResetToDefaultAction : EditorAction {
         }
          return PropertiesEditResult(model.bound?.rootType?.getValue() ?: input.data)
     }
+
 }

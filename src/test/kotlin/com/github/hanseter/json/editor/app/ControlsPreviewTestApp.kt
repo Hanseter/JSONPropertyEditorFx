@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor.app
 import com.github.hanseter.json.editor.ControlFactory
 import com.github.hanseter.json.editor.IdReferenceProposalProvider
 import com.github.hanseter.json.editor.JsonPropertiesEditor
+import com.github.hanseter.json.editor.ResourceProvider
 import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.base.TestUtils
 import com.github.hanseter.json.editor.controls.TypeControl
@@ -83,6 +84,7 @@ class ControlsPreviewTestApp : Application() {
             schema,
             EditorContext(
                 { IdReferenceProposalProvider.IdReferenceProposalProviderEmpty },
+                { ResourceProvider.ResourceProviderEmpty },
                 objId,
                 {},
                 viewOptions.idRefDisplayMode,

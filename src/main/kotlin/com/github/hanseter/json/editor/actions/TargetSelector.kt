@@ -23,6 +23,10 @@ fun interface TargetSelector {
         override fun matches(model: TypeModel<*, *>) = true
     }
 
+    object Never : TargetSelector {
+        override fun matches(model: TypeModel<*, *>) = false
+    }
+
     class AllOf(private val selectors: List<TargetSelector>) : TargetSelector {
         override fun matches(model: TypeModel<*, *>) = selectors.all { it.matches(model) }
     }
