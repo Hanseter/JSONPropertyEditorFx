@@ -92,7 +92,7 @@ class ControlsPreviewTestApp : Application() {
                 ControlFactory
             )
         )
-        objectControl.bindTo(RootBindableType(data))
+        objectControl.bindTo(RootBindableType("", data))
         val childs = findAllChildControls(objectControl)
         previewContainer.children.clear()
         childs.forEachIndexed { index, it ->

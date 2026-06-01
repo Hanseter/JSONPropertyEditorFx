@@ -187,7 +187,7 @@ class JsonPropertiesPane(
     }
 
     private fun fillSheet(data: JSONObject) {
-        val type = RootBindableType(data)
+        val type = RootBindableType(objId, data)
         objectControl.bindTo(type)
         fillTree(data)
         type.registerListener {

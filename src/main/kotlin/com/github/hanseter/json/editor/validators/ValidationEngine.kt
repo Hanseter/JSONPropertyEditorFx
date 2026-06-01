@@ -70,7 +70,7 @@ object ValidationEngine {
                 controlFactory
             )
         )
-        control.bindTo(RootBindableType(data))
+        control.bindTo(RootBindableType(elemId, data))
         return validateData(
             control,
             elemId,

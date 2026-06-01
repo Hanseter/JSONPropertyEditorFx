@@ -45,7 +45,7 @@ class ActionsContainer(
 
     fun updateDisablement() {
         actionButtons.forEach { (action, button) ->
-            button.isDisable = action.shouldBeDisabled(control.model, objId)
+            button.isDisable = action.shouldBeDisabled(control.model)
         }
     }
 }

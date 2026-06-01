@@ -36,7 +36,11 @@ interface EditorAction {
         mouseEvent: Event?
     ): PropertiesEditResult?
 
-    fun shouldBeDisabled(model: TypeModel<*, *>, objId: String): Boolean =
+    /**
+     * Checks whether this action should be disabled, if the [selector] matches.
+     * I.e. if this returns true the action will be visible but disabled.
+     */
+    fun shouldBeDisabled(model: TypeModel<*, *>): Boolean =
         model.schema.readOnly
 
     companion object {
