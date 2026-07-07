@@ -1,7 +1,13 @@
 package com.github.hanseter.json.editor
 
+import com.github.hanseter.json.editor.ui.TreeItemData
+import javafx.scene.Group
+import javafx.scene.Node
 import javafx.scene.control.Button
 import javafx.scene.control.ComboBox
+import javafx.scene.control.TreeItem
+import javafx.scene.layout.StackPane
+import javafx.scene.text.Text
 import javafx.stage.Stage
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
@@ -39,7 +45,7 @@ class EnumTest {
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
         assertThat(enumEntry.value.createActions()!!.children, hasSize(1))
-        assertThat((enumEntry.value.createActions()!!.children[0] as Button).text, `is`("↻"))
+        assertThat(getActionIconAsText(enumEntry, 0), `is`("↻"))
     }
 
     @Test
@@ -61,7 +67,7 @@ class EnumTest {
         val itemTable = editor.getItemTable()
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
         assertThat(enumEntry.value.createActions()!!.children, hasSize(1))
-        assertThat((enumEntry.value.createActions()!!.children[0] as Button).text, `is`("↻"))
+        assertThat(getActionIconAsText(enumEntry, 0), `is`("↻"))
     }
 
     @Test
@@ -106,8 +112,8 @@ class EnumTest {
         val enumEntry = itemTable.root.children[0].findChildWithKey("e")!!
 
         assertThat(enumEntry.value.createActions()!!.children, hasSize(2))
-        assertThat((enumEntry.value.createActions()!!.children[0] as Button).text, `is`("↻"))
-        assertThat((enumEntry.value.createActions()!!.children[1] as Button).text, `is`("Ø"))
+        assertThat(getActionIconAsText(enumEntry, 0), `is`("Ø"))
+        assertThat(getActionIconAsText(enumEntry, 1), `is`("↻"))
     }
 
     @Test
@@ -156,8 +162,8 @@ class EnumTest {
         val control = enumEntry.value.createControl()
         val comboBox = control!!.control as ComboBox<*>
 
-        val defaultButton = enumEntry.value.createActions()!!.children[0] as Button
-        val nullButton = enumEntry.value.createActions()!!.children[1] as Button
+        val defaultButton = enumEntry.value.createActions()!!.children[1] as Button
+        val nullButton = enumEntry.value.createActions()!!.children[0] as Button
 
         defaultButton.fire()
 
@@ -175,4 +181,13 @@ class EnumTest {
         assertThat(comboBox.value, nullValue())
     }
 
+    companion object {
+        fun getActionIcon(item: TreeItem<TreeItemData>, index: Int): Node {
+            return ((item.value.createActions()!!.children[index] as Button).graphic as StackPane).children.single()
+        }
+
+        fun getActionIconAsText(item: TreeItem<TreeItemData>, index: Int): String {
+            return ((getActionIcon(item, index) as Group).children.single() as Text).text
+        }
+    }
 }

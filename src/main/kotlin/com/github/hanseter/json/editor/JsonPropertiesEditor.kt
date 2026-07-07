@@ -146,6 +146,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             updateObject(objId, obj, schema)
             return
         }
+        val adaptedSchema = if (readOnly && !schema.parsed.isReadOnly)
+            ParsedSchema.create(schema.raw, schema.normalized, true)!!
+        else schema
 
         val resolutionScope = resolutionScopeProvider.getResolutionScopeForElement(objId)
 
@@ -153,7 +156,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             title,
             objId,
             obj,
-            schema,
+            adaptedSchema,
             readOnly,
             resolutionScope,
             callback
@@ -173,9 +176,11 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         schema: JSONObject,
         callback: OnEditCallback
     ) {
-        val parsedSchema =
-            ParsedSchema.create(schema, resolutionScopeProvider.getResolutionScopeForElement(objId))
-                ?: return
+        val parsedSchema = ParsedSchema.create(
+            schema,
+            resolutionScopeProvider.getResolutionScopeForElement(objId),
+            readOnly
+        ) ?: return
         display(objId, title, obj, parsedSchema, callback)
     }
 
