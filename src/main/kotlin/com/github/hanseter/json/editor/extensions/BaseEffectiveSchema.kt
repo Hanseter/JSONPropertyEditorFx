@@ -32,14 +32,7 @@ interface BaseEffectiveSchema {
     val description: String?
         get() = baseSchema.description
     val readOnly: Boolean
-        get() {
-            var toCheck: BaseEffectiveSchema? = this
-            while (toCheck != null) {
-                if (toCheck.baseSchema.isReadOnly ?: false) return true
-                toCheck = toCheck.parent
-            }
-            return false
-        }
+        get() = baseSchema.isReadOnly ?: parent?.readOnly ?: false
     val pointer: List<String>
         get() = parent?.pointer?.let { it + propertyName } ?: emptyList()
     val schemaLocation: String?
