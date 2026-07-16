@@ -32,7 +32,7 @@ interface BaseEffectiveSchema {
     val description: String?
         get() = baseSchema.description
     val readOnly: Boolean
-        get() = (baseSchema.isReadOnly ?: parent?.readOnly ?: false)
+        get() = baseSchema.isReadOnly ?: parent?.readOnly ?: false
     val pointer: List<String>
         get() = parent?.pointer?.let { it + propertyName } ?: emptyList()
     val schemaLocation: String?
@@ -44,12 +44,13 @@ interface BaseEffectiveSchema {
         get() = true == objectAncestor?.baseSchema?.requiredProperties?.contains(propertyName)
 
     val propertyOrder: List<String>
-        get() = (baseSchema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()?.toList()?.distinct()
-                ?: emptyList()
+        get() = (baseSchema.unprocessedProperties["order"] as? Iterable<*>)?.filterIsInstance<String>()
+            ?.toList()?.distinct()
+            ?: emptyList()
 
     val cssClasses: List<String>
         get() = baseSchema.unprocessedProperties["styleClass"]?.toString()?.split(" ")
-                ?: emptyList()
+            ?: emptyList()
 
     val cssStyle: String?
         get() = baseSchema.unprocessedProperties["style"]?.toString()
@@ -62,7 +63,7 @@ interface BaseEffectiveSchema {
     val objectAncestor: EffectiveSchema<ObjectSchema>?
 
     fun extractProperty(json: JSONObject): Any? =
-            JSONPointer(pointer).queryFrom(json)
+        JSONPointer(pointer).queryFrom(json)
 
     private tailrec fun findSchemaLocation(schema: BaseEffectiveSchema): String? {
         if (schema.baseSchema.schemaLocation != null) return schema.baseSchema.schemaLocation

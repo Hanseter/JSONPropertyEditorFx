@@ -9,6 +9,7 @@ import com.github.hanseter.json.editor.validators.IdReferenceValidator
 import com.github.hanseter.json.editor.validators.ResourceValidator
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.application.Platform
+import javafx.beans.property.BooleanProperty
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
@@ -23,7 +24,7 @@ import org.json.JSONObject
 import java.net.URI
 
 class JsonPropertiesEditor @JvmOverloads constructor(
-    private val readOnly: Boolean = false,
+    readOnly: Boolean = false,
     viewOptions: ViewOptions = ViewOptions(),
     actions: List<EditorAction> = listOf(ResetToDefaultAction, ResetToNullAction),
     customizationObject: CustomizationObject = DefaultCustomizationObject,
@@ -79,6 +80,14 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         }
 
     private var allActions = getAllActions(customActions)
+
+    /**
+     * Controls whether the root object schema will be treated as `readOnly`.
+     * Switching this while elements are displayed may lead to focus loss of a control.
+     *
+     * Please note that properties will still be editable if they are explicitly set to `"readOnly": false` in the schema.
+     */
+    val readOnlyProperty: BooleanProperty = SimpleBooleanProperty(readOnly)
 
     private fun getAllActions(customActions: List<EditorAction>): List<EditorAction> {
         return (customActions + arrayActions + SelectResourceAction(
@@ -153,6 +162,9 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             updateObject(objId, obj, schema)
             return
         }
+        val adaptedSchema = if (readOnlyProperty.value && !schema.parsed.isReadOnly)
+            ParsedSchema.create(schema.raw, schema.normalized, true)!!
+        else schema
 
         val resolutionScope = resolutionScopeProvider.getResolutionScopeForElement(objId)
 
@@ -160,8 +172,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
             title,
             objId,
             obj,
-            schema,
-            readOnly,
+            adaptedSchema,
             resolutionScope,
             callback
         )
@@ -180,9 +191,11 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         schema: JSONObject,
         callback: OnEditCallback
     ) {
-        val parsedSchema =
-            ParsedSchema.create(schema, resolutionScopeProvider.getResolutionScopeForElement(objId))
-                ?: return
+        val parsedSchema = ParsedSchema.create(
+            schema,
+            resolutionScopeProvider.getResolutionScopeForElement(objId),
+            readOnlyProperty.value,
+        ) ?: return
         display(objId, title, obj, parsedSchema, callback)
     }
 
@@ -336,7 +349,6 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         objId: String,
         data: JSONObject,
         schema: ParsedSchema,
-        readOnly: Boolean,
         resolutionScope: URI?,
         callback: OnEditCallback
     ): JsonPropertiesPane = JsonPropertiesPane(
@@ -345,7 +357,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
         objId,
         data,
         schema,
-        readOnly,
+        readOnlyProperty,
         resolutionScope,
         { referenceProposalProvider },
         { resourceProvider },

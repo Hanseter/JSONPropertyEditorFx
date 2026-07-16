@@ -190,5 +190,4 @@ class EnumTest {
             return ((getActionIcon(item, index) as Group).children.single() as Text).text
         }
     }
-
 }

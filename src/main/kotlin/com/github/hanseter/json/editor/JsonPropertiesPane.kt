@@ -15,6 +15,7 @@ import com.github.hanseter.json.editor.validators.Validator
 import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.ObservableBooleanValue
 import javafx.event.Event
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
@@ -32,7 +33,7 @@ class JsonPropertiesPane(
     private val objId: String,
     data: JSONObject,
     private var parsedSchema: ParsedSchema,
-    private val readOnly: Boolean,
+    private val readOnly: ObservableBooleanValue,
     private val resolutionScope: URI?,
     private val refProvider: Supplier<IdReferenceProposalProvider>,
     private val resourceProvider: Supplier<ResourceProvider>,
@@ -85,6 +86,7 @@ class JsonPropertiesPane(
         treeItem.expandedProperty().addListener { _, _, new ->
             if (new) contentHandler.handleExpansion()
         }
+        readOnly.addListener { _, _, _ -> readOnlyChanged() }
     }
 
     private fun initObjectControl(): TypeControl {
@@ -144,7 +146,10 @@ class JsonPropertiesPane(
             val actionSchema = ret.schema
 
             val newData = changeListener(
-                PropertiesEditInput(ret.data ?: contentHandler.data, actionSchema?.copy() ?: schemaCopy)
+                PropertiesEditInput(
+                    ret.data ?: contentHandler.data,
+                    actionSchema?.copy() ?: schemaCopy
+                )
             )
 
             val newSchema = newData.schema ?: actionSchema
@@ -164,12 +169,20 @@ class JsonPropertiesPane(
 
     fun updateSchemaIfChanged(new: JSONObject) {
         if (new.similar(parsedSchema.raw)) return
-        val parsedSchema = ParsedSchema.create(new, resolutionScope, readOnly) ?: return
+        val parsedSchema = ParsedSchema.create(new, resolutionScope, readOnly.value) ?: return
         updateSchemaAndFillData(parsedSchema)
     }
 
     fun updateSchemaIfChanged(new: ParsedSchema) {
         if (new.raw.similar(parsedSchema.raw)) return
+        val adaptedNew = if (readOnly.value && !new.parsed.isReadOnly)
+            ParsedSchema.create(new.raw, new.normalized, true)!!
+        else new
+        updateSchemaAndFillData(adaptedNew)
+    }
+
+    private fun readOnlyChanged() {
+        val new = ParsedSchema.create(parsedSchema.raw, parsedSchema.normalized, readOnly.get())!!
         updateSchemaAndFillData(new)
     }
 
