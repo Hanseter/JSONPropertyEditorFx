@@ -492,7 +492,7 @@ class JsonPropertiesEditor @JvmOverloads constructor(
                 if (new) {
                     Platform.runLater {
                         if (obs.value) {
-                            treeTableView.selectionModel.select(tableRow.index, tableColumn)
+                            treeTableView?.selectionModel?.select(tableRow.index, tableColumn)
                         }
                     }
 

@@ -7,11 +7,11 @@ import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import javafx.application.Platform
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
+import javafx.event.EventHandler
 import org.controlsfx.control.textfield.AutoCompletionBinding
 import org.controlsfx.control.textfield.TextFields
 import org.everit.json.schema.StringSchema
 import java.util.regex.Pattern
-import java.util.stream.Collectors
 import java.util.stream.Stream
 
 class IdReferenceControl(
@@ -24,18 +24,25 @@ class IdReferenceControl(
     init {
         val regex = schema.baseSchema.pattern
         var internalChange = false
+        var currentProposals = emptyList<Preview>()
         val completionBinding = TextFields.bindAutoCompletion(control) { request ->
-            val proposals = mapProposals(getValidProposals(request, regex))
+            currentProposals = mapProposals(getValidProposals(request, regex))
                 .filter { it.matchesInput(request.userText) }
                 .limit(30)
                 .sorted(Comparator.comparingInt { it.toString().indexOf(request.userText) })
                 .toList()
-            if (canProposalBeAutoApplied(request, proposals)) {
+            if (canProposalBeAutoApplied(request, currentProposals)) {
                 Platform.runLater {
-                    idChanged(proposals.single())
+                    idChanged(currentProposals.single())
                 }
                 emptyList()
-            } else proposals
+            } else currentProposals
+        }
+        val old = completionBinding.autoCompletionPopup.onSuggestion
+        completionBinding.autoCompletionPopup.onSuggestion = EventHandler {
+            internalChange = true
+            old.handle(it)
+            internalChange = false
         }
         completionBinding.setOnAutoCompleted {
             it.consume()
@@ -47,23 +54,26 @@ class IdReferenceControl(
 
         property.addListener { _, _, new ->
             if (internalChange) return@addListener
-            idChanged(new?.let {
-                Preview(
-                    new,
-                    context.refProvider.get()
-                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
-                )
-            })
+            val preview = when {
+                new == null -> null
+                new.isBlank() -> Preview(new, "")
+                else -> currentProposals.singleOrNull { it.id == new || it.description == new }
+                    ?: Preview(new, context.refProvider.get()
+                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+            }
+            idChanged(preview)
         }
         control.textProperty().addListener { _, _, new ->
+            if (internalChange) return@addListener
             internalChange = true
-            idChanged(new?.let {
-                Preview(
-                    new,
-                    context.refProvider.get()
-                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
-                )
-            })
+            val preview = when {
+                new == null -> null
+                new.isBlank() -> Preview(new, "")
+                else -> currentProposals.singleOrNull { it.id == new || it.description == new }
+                    ?: Preview(new, context.refProvider.get()
+                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+            }
+            idChanged(preview)
             internalChange = false
         }
     }
@@ -116,15 +126,9 @@ class IdReferenceControl(
             }
 
             IdRefDisplayMode.DESCRIPTION_ONLY -> {
-                if (id.description == null) {
-                    updateText(id.id)
-                    control.label = ""
-                    property.value = ""
-                } else {
-                    updateText(id.description)
-                    control.label = ""
-                    property.value = id.id
-                }
+                updateText(id.description ?: id.id)
+                control.label = ""
+                property.value = id.id
             }
 
             IdRefDisplayMode.ID_WITH_DESCRIPTION -> {
@@ -134,15 +138,9 @@ class IdReferenceControl(
             }
 
             IdRefDisplayMode.DESCRIPTION_WITH_ID -> {
-                if (id.description == null) {
-                    updateText(id.id)
-                    control.label = ""
-                    property.value = ""
-                } else {
-                    updateText(id.description)
-                    control.label = id.id
-                    property.value = id.id
-                }
+                updateText(id.description ?: id.id)
+                control.label = id.id
+                property.value = id.id
             }
         }
     }
