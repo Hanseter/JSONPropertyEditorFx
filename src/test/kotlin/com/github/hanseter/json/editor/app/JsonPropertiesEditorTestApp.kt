@@ -54,7 +54,7 @@ class JsonPropertiesEditorTestApp : Application() {
         )
         propEdit.referenceProposalProvider = ReferenceProvider
         propEdit.resolutionScopeProvider = customResolutionScopeProvider
-        propEdit.selectionModel.selectedItemProperty().addListener { _,_,selected ->
+        propEdit.selectionModel.selectedItemProperty().addListener { _, _, selected ->
             println(selected)
         }
 
@@ -93,7 +93,6 @@ class JsonPropertiesEditorTestApp : Application() {
 
     private fun buildUi(propEdit: JsonPropertiesEditor): Parent {
 
-        val themeComboBox = TestUtils.createThemeComboBox()
 
         val showStars = CheckBox("Show *")
 
@@ -111,16 +110,23 @@ class JsonPropertiesEditorTestApp : Application() {
             selectionModel.selectFirst()
         }
 
+        val refDisplayModeComboBox = ComboBox<IdRefDisplayMode>().apply {
+            items.addAll(IdRefDisplayMode.entries)
+            selectionModel.selectFirst()
+        }
+
         val updateViewOptions = { _: Any? ->
             val newViewOptions =
-                ViewOptions(showStars.isSelected, groupBy.selectionModel.selectedItem)
+                ViewOptions(showStars.isSelected, groupBy.selectionModel.selectedItem, idRefDisplayMode = refDisplayModeComboBox.value)
 
             propEdit.viewOptions = newViewOptions
         }
 
         showStars.selectedProperty().addListener(updateViewOptions)
-
         groupBy.selectionModel.selectedItemProperty().addListener(updateViewOptions)
+        refDisplayModeComboBox.valueProperty().addListener(updateViewOptions)
+
+
 
         val scrollToFirstButton = Button("Scroll to 1.").apply {
             setOnAction {
@@ -151,7 +157,7 @@ class JsonPropertiesEditorTestApp : Application() {
                 showStars,
                 groupBy,
                 schemas,
-                themeComboBox,
+                refDisplayModeComboBox,
                 scrollToFirstButton,
                 scrollToFifthButton,
                 add10000ItemsButton,
