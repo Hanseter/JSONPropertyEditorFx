@@ -91,6 +91,7 @@
                             META-INF/${artifactId}.kotlin_module=target/classes/META-INF/${artifactId}.kotlin_module,
                             {maven-resources}
                         </Include-Resource>
+                        <Import-Package>!impl.org.controlsfx.skin,*</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
