@@ -7,6 +7,7 @@ import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import javafx.application.Platform
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
+import javafx.event.Event
 import javafx.event.EventHandler
 import org.controlsfx.control.textfield.AutoCompletionBinding
 import org.controlsfx.control.textfield.TextFields
@@ -60,8 +61,10 @@ class IdReferenceControl(
                 new == null -> null
                 new.isBlank() -> Preview(new, "")
                 else -> currentProposals.singleOrNull { it.id == new || it.description == new }
-                    ?: Preview(new, context.refProvider.get()
-                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                    ?: Preview(
+                        new, context.refProvider.get()
+                            .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
+                    )
             }
             idChanged(preview)
         }
@@ -72,8 +75,10 @@ class IdReferenceControl(
                 new == null -> null
                 new.isBlank() -> Preview(new, "")
                 else -> currentProposals.singleOrNull { it.id == new || it.description == new }
-                    ?: Preview(new, context.refProvider.get()
-                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                    ?: Preview(
+                        new, context.refProvider.get()
+                            .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
+                    )
             }
             idChanged(preview)
             internalChange = false
