@@ -7,6 +7,7 @@ import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import javafx.application.Platform
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
+import javafx.event.Event
 import javafx.event.EventHandler
 import org.controlsfx.control.textfield.AutoCompletionBinding
 import org.controlsfx.control.textfield.TextFields
@@ -38,12 +39,17 @@ class IdReferenceControl(
                 emptyList()
             } else currentProposals
         }
-        val old = completionBinding.autoCompletionPopup.onSuggestion
-        completionBinding.autoCompletionPopup.onSuggestion = EventHandler {
-            internalChange = true
-            old.handle(it)
-            internalChange = false
-        }
+
+        val completionPopup = popupMethod(completionBinding)
+
+        val old = completionPopup.javaClass.getDeclaredMethod("getOnSuggestion")(completionPopup) as EventHandler<Event>
+        completionPopup.javaClass.getDeclaredMethod("setOnSuggestion", EventHandler::class.java)(
+            completionPopup,
+            EventHandler<Event> {
+                internalChange = true
+                old.handle(it)
+                internalChange = false
+            })
         completionBinding.setOnAutoCompleted {
             it.consume()
             internalChange = true
@@ -58,8 +64,10 @@ class IdReferenceControl(
                 new == null -> null
                 new.isBlank() -> Preview(new, "")
                 else -> currentProposals.singleOrNull { it.id == new || it.description == new }
-                    ?: Preview(new, context.refProvider.get()
-                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                    ?: Preview(
+                        new, context.refProvider.get()
+                            .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
+                    )
             }
             idChanged(preview)
         }
@@ -70,8 +78,10 @@ class IdReferenceControl(
                 new == null -> null
                 new.isBlank() -> Preview(new, "")
                 else -> currentProposals.singleOrNull { it.id == new || it.description == new }
-                    ?: Preview(new, context.refProvider.get()
-                        .getReferenceDescription(new, context.editorObjId, schema.baseSchema))
+                    ?: Preview(
+                        new, context.refProvider.get()
+                            .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
+                    )
             }
             idChanged(preview)
             internalChange = false
@@ -171,5 +181,10 @@ class IdReferenceControl(
             IdRefDisplayMode.ID_WITH_DESCRIPTION -> description?.let { "$id ($description)" } ?: id
             IdRefDisplayMode.DESCRIPTION_WITH_ID -> description?.let { "$description ($id)" } ?: id
         }
+    }
+
+    companion object {
+        private val popupMethod =
+            AutoCompletionBinding::class.java.getDeclaredMethod("getAutoCompletionPopup")
     }
 }
