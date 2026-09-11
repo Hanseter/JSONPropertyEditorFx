@@ -16,6 +16,6 @@ object ColorStringConverter : StringConverter<Color>() {
 
     override fun fromString(string: String?): Color? {
         if (string == null) return null
-        return Color.web(string)
+        return runCatching { Color.web(string) }.getOrElse { null }
     }
 }

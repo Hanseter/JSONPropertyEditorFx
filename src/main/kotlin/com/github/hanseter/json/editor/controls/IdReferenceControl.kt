@@ -62,7 +62,7 @@ class IdReferenceControl(
                 new.isBlank() -> Preview(new, "")
                 else -> currentProposals.singleOrNull { it.id == new || it.description == new }
                     ?: Preview(
-                        new, context.refProvider.get()
+                        new, context.refProvider()
                             .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
                     )
             }
@@ -76,7 +76,7 @@ class IdReferenceControl(
                 new.isBlank() -> Preview(new, "")
                 else -> currentProposals.singleOrNull { it.id == new || it.description == new }
                     ?: Preview(
-                        new, context.refProvider.get()
+                        new, context.refProvider()
                             .getReferenceDescription(new, context.editorObjId, schema.baseSchema)
                     )
             }
@@ -98,7 +98,7 @@ class IdReferenceControl(
                 .map {
                     Preview(
                         it,
-                        context.refProvider.get()
+                        context.refProvider()
                             .getReferenceDescription(it, context.editorObjId, schema.baseSchema)
                     )
                 }
@@ -108,7 +108,7 @@ class IdReferenceControl(
         request: AutoCompletionBinding.ISuggestionRequest,
         regex: Pattern?,
     ): Stream<String> {
-        val proposals = context.refProvider.get().calcCompletionProposals(
+        val proposals = context.refProvider().calcCompletionProposals(
             request.userText,
             context.editorObjId,
             schema.baseSchema,

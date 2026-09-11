@@ -4,36 +4,26 @@ import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.util.BindableJsonType
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
-import com.github.hanseter.json.editor.util.PropertyGrouping
-import com.github.hanseter.json.editor.util.ViewOptions
 import org.everit.json.schema.StringSchema
 
 class IdReferenceModel(
     override val schema: EffectiveSchema<StringSchema>,
     private val context: EditorContext,
-) :
-    TypeModel<String?, SupportedType.SimpleType.IdReferenceType> {
+) : TypeModel<String?, SupportedType.SimpleType.IdReferenceType> {
     override val supportedType: SupportedType.SimpleType.IdReferenceType
         get() = SupportedType.SimpleType.IdReferenceType
     override var bound: BindableJsonType? = null
     override val defaultValue: String?
-        get() = schema.defaultValue as? String
-
-    override var value: String?
-        get() = bound?.let { BindableJsonType.convertValue(it.getValue(schema), schema, CONVERTER) }
-        set(value) {
-            bound?.setValue(schema, value)
-        }
+        get() = context.customizationObject().getNullIdReferencePreview(this)
 
     companion object {
-        val CONVERTER: (Any) -> String = { it as? String ?: it.toString() }
         private fun idToString(
             value: String?,
             context: EditorContext,
             schema: EffectiveSchema<StringSchema>
         ): String? {
             if (value == null) return null
-            val desc = context.refProvider.get()
+            val desc = context.refProvider()
                 .getReferenceDescription(value, context.editorObjId, schema.baseSchema)
             val separator = " - "
             return when (context.idRefDisplayMode) {

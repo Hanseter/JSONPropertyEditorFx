@@ -89,7 +89,8 @@ class ControlsPreviewTestApp : Application() {
                 {},
                 viewOptions.idRefDisplayMode,
                 viewOptions.decimalFormatSymbols,
-                ControlFactory
+                ControlFactory,
+                { DefaultCustomizationObject }
             )
         )
         objectControl.bindTo(RootBindableType("", data))

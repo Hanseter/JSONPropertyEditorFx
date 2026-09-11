@@ -35,8 +35,8 @@ class JsonPropertiesPane(
     private var parsedSchema: ParsedSchema,
     private val readOnly: ObservableBooleanValue,
     private val resolutionScope: URI?,
-    private val refProvider: Supplier<IdReferenceProposalProvider>,
-    private val resourceProvider: Supplier<ResourceProvider>,
+    private val refProvider: () -> IdReferenceProposalProvider,
+    private val resourceProvider: () -> ResourceProvider,
     private val actions: () -> List<EditorAction>,
     private val validators: () -> List<Validator>,
     viewOptions: ViewOptions,
@@ -99,7 +99,8 @@ class JsonPropertiesPane(
                 ::updateTreeAfterChildChange,
                 viewOptions.idRefDisplayMode,
                 viewOptions.decimalFormatSymbols,
-                controlFactory
+                controlFactory,
+                customizationObject
             )
         )
     }

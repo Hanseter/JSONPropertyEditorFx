@@ -18,11 +18,6 @@ sealed class ArrayModelBase<S : Schema, T : SupportedType<JSONArray?>>(
     override val defaultValue: JSONArray?
         get() = (schema.defaultValue as? JSONArray)?.let { SchemaNormalizer.deepCopy(it) }
 
-    override var value: JSONArray?
-        get() = bound?.let { BindableJsonType.convertValue(it.getValue(schema), schema, CONVERTER) }
-        set(value) {
-            bound?.setValue(schema, value)
-        }
     override val previewString: PreviewString
         get() = PreviewString.createPseudo(
             arrayToElementString(value),
@@ -31,7 +26,6 @@ sealed class ArrayModelBase<S : Schema, T : SupportedType<JSONArray?>>(
         )
 
     companion object {
-        val CONVERTER: (Any?) -> JSONArray? = { it as? JSONArray }
         private fun arrayToElementString(value: JSONArray?): String? {
             if (value == null) return null
             return if (value.length() == 1) {

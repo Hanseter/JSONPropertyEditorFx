@@ -11,6 +11,7 @@ import com.github.hanseter.json.editor.util.EditorContext
 import org.everit.json.schema.*
 import org.json.JSONArray
 import org.slf4j.LoggerFactory
+import java.text.DecimalFormatSymbols
 
 
 object ControlFactory : PropertyControlFactory {
@@ -25,10 +26,10 @@ object ControlFactory : PropertyControlFactory {
         when (val actualSchema = schema.baseSchema) {
             is ObjectSchema -> createObjectControl(schema as EffectiveSchema<ObjectSchema>, context)
             is ArraySchema -> createArrayControl(schema as EffectiveSchema<ArraySchema>, context)
-            is BooleanSchema -> createBooleanControl(schema as EffectiveSchema<BooleanSchema>)
+            is BooleanSchema -> createBooleanControl(schema as EffectiveSchema<BooleanSchema>, context)
             is StringSchema -> createStringControl(schema as EffectiveSchema<StringSchema>, context)
             is NumberSchema -> createNumberControl(schema as EffectiveSchema<NumberSchema>, context)
-            is EnumSchema -> createEnumControl(schema, actualSchema)
+            is EnumSchema -> createEnumControl(schema, actualSchema, context)
             is CombinedSchema -> createCombinedControl(
                 schema as EffectiveSchema<CombinedSchema>,
                 context
@@ -81,15 +82,15 @@ object ControlFactory : PropertyControlFactory {
         return null
     }
 
-    private fun createBooleanControl(schema: EffectiveSchema<BooleanSchema>) =
-        RowBasedControl({ BooleanControl() }, BooleanModel(schema))
+    private fun createBooleanControl(schema: EffectiveSchema<BooleanSchema>, context: EditorContext) =
+        RowBasedControl({ BooleanControl() }, BooleanModel(schema, context))
 
     private fun createStringControl(
         schema: EffectiveSchema<StringSchema>,
         context: EditorContext
     ): TypeControl =
         when (schema.baseSchema.formatValidator.formatName()) {
-            ColorFormat.formatName -> RowBasedControl({ ColorControl() }, ColorModel(schema))
+            ColorFormat.formatName -> RowBasedControl({ ColorControl() }, ColorModel(schema, context))
             IdReferenceFormat.formatName -> RowBasedControl(
                 { IdReferenceControl(schema, context) },
                 IdReferenceModel(schema, context)
@@ -103,7 +104,7 @@ object ControlFactory : PropertyControlFactory {
             "date" -> RowBasedControl({ DateControl() }, DateModel(schema))
             MultiLineFormat.FORMAT_NAME -> RowBasedControl(
                 { MultiLineStringControl() },
-                StringModel(schema)
+                StringModel(schema, context)
             )
 
             ResourceFormat.formatName -> RowBasedControl(
@@ -111,7 +112,7 @@ object ControlFactory : PropertyControlFactory {
                 ResourceModel(schema)
             )
 
-            else -> RowBasedControl({ StringControl() }, StringModel(schema))
+            else -> RowBasedControl({ StringControl() }, StringModel(schema, context))
         }
 
     private fun createNumberControl(
@@ -120,17 +121,18 @@ object ControlFactory : PropertyControlFactory {
     ): TypeControl =
         if (schema.baseSchema.requiresInteger()) {
             if (schema.baseSchema.unprocessedProperties.keys.contains(INT_FORMAT)) {
-                val model = FormattedIntegerModel(schema, context.decimalFormatSymbols)
+                val model = FormattedIntegerModel(schema, context)
                 RowBasedControl({ FormattedIntegerControl(model) }, model)
-            } else RowBasedControl({ IntegerControl() }, IntegerModel(schema))
+            } else RowBasedControl({ IntegerControl() }, IntegerModel(schema, context))
         } else {
-            RowBasedControl({ DoubleControl(context.decimalFormatSymbols) }, DoubleModel(schema))
+            RowBasedControl({ DoubleControl(context.decimalFormatSymbols) }, DoubleModel(schema, context))
         }
 
     @Suppress("UNCHECKED_CAST")
     private fun createEnumControl(
         schema: EffectiveSchema<out Schema>,
-        enumSchema: EnumSchema
+        enumSchema: EnumSchema,
+        context: EditorContext
     ): TypeControl {
 
         val baseSchema = schema.baseSchema
@@ -140,7 +142,7 @@ object ControlFactory : PropertyControlFactory {
             schema as EffectiveSchema<Schema>
         }
 
-        val enumModel = EnumModel(effectiveSchema, enumSchema)
+        val enumModel = EnumModel(effectiveSchema, enumSchema, context)
         return RowBasedControl<String?>({ EnumControl(enumModel) }, enumModel)
     }
 
@@ -171,7 +173,7 @@ object ControlFactory : PropertyControlFactory {
     ): TypeControl {
         val enumSchema = schema.baseSchema.subschemas.find { it is EnumSchema } as? EnumSchema
         if (enumSchema != null) {
-            return createEnumControl(schema, enumSchema)
+            return createEnumControl(schema, enumSchema, context)
         }
         getSingleUiSchema(schema)?.let {
             return convert(it, context)

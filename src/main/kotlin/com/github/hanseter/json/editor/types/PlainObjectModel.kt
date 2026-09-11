@@ -15,17 +15,11 @@ class PlainObjectModel(override val schema: EffectiveSchema<ObjectSchema>) :
     override val defaultValue: JSONObject?
         get() = (schema.defaultValue as? JSONObject)?.let { SchemaNormalizer.deepCopy(it) }
 
-    override var value: JSONObject?
-        get() = bound?.let { BindableJsonType.convertValue(it.getValue(schema), schema, CONVERTER) }
-        set(value) {
-            bound?.setValue(schema, value)
-        }
     override val previewString: PreviewString
         get() = PreviewString.createPseudo(jsonToPropertyString(value), jsonToPropertyString(defaultValue),rawValue)
 
 
     companion object {
-        val CONVERTER: (Any?) -> JSONObject? = { it as? JSONObject }
 
         fun jsonToPropertyString(json: JSONObject?): String? {
             if (json == null) return null

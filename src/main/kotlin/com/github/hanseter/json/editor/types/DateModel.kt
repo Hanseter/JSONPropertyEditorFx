@@ -11,15 +11,7 @@ class DateModel(override val schema: EffectiveSchema<StringSchema>) : TypeModel<
     override val defaultValue: String?
         get() = schema.defaultValue as? String
 
-    override var value: String?
-        get() = bound?.let { BindableJsonType.convertValue(it.getValue(schema), schema, CONVERTER) }
-        set(value) {
-            bound?.setValue(schema, value)
-        }
     override val previewString: PreviewString
         get() = PreviewString.create(value, defaultValue, rawValue)
 
-    companion object {
-        val CONVERTER: (Any) -> String = { it as? String ?: it.toString() }
-    }
 }

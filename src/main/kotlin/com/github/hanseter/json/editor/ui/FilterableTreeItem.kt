@@ -8,7 +8,6 @@ import com.github.hanseter.json.editor.util.LazyControl
 import com.github.hanseter.json.editor.validators.Validator
 import javafx.beans.binding.Bindings
 import javafx.beans.property.ReadOnlyObjectProperty
-import javafx.beans.property.ReadOnlyProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
@@ -17,7 +16,6 @@ import javafx.collections.transformation.FilteredList
 import javafx.event.Event
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.TreeItem
-import javafx.scene.input.MouseEvent
 
 /**
  * Creates a filterable TreeItem with children.

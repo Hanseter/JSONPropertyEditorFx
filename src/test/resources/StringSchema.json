@@ -13,6 +13,13 @@
       "description": "This is a test string",
       "title": "testString"
     },
+    "default-string": {
+      "type":"string",
+      "defaultFrom": "/string",
+      "default": "Hello",
+      "description": "This is a string with a custom default",
+      "title": "defaultString"
+    },
     "multi-line": {
       "type": "string",
       "minLength": 3,

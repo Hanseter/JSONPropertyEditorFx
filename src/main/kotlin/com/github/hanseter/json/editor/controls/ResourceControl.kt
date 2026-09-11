@@ -68,12 +68,12 @@ class ResourceControl(
         request: AutoCompletionBinding.ISuggestionRequest,
         regex: Pattern?,
     ): Stream<String> {
-        val proposals = context.resourceProvider.get().getMatchingResources(
+        val proposals = context.resourceProvider().getMatchingResources(
             request.userText,
             context.editorObjId,
             schema,
         )
-        val extensions = context.resourceProvider.get().getValidExtensions(schema)
+        val extensions = context.resourceProvider().getValidExtensions(schema)
         val filtered = if (regex != null) proposals.filter { regex.matcher(it).matches() }
         else proposals
         return filtered.filter { proposal ->

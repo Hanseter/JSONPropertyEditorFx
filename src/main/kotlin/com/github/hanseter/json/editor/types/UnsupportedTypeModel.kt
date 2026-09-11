@@ -12,15 +12,7 @@ class UnsupportedTypeModel(override val schema: EffectiveSchema<*>) :
     override val defaultValue: Any?
         get() = schema.defaultValue
 
-    override var value: Any?
-        get() = bound?.let { BindableJsonType.convertValue(it.getValue(schema), schema, CONVERTER) }
-        set(value) {
-            bound?.setValue(schema, value)
-        }
     override val previewString: PreviewString
         get() = PreviewString.createPseudo(JsonPropertiesMl.bundle.getString("jsonEditor.controls.notSupported.preview"))
 
-    companion object {
-        val CONVERTER: (Any?) -> Any? = { it }
-    }
 }

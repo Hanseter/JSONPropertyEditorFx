@@ -34,6 +34,7 @@ class RowBasedControl<T>(
         override fun updateDisplayedValue() {
             val rawVal = model.rawValue
             synchronizer.modelChanged()
+            val defaultValue =
             updateStyleClasses(rawVal)
             controlWithProperty.previewNull(null == rawVal)
         }

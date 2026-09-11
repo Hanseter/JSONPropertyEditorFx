@@ -3,6 +3,7 @@ package com.github.hanseter.json.editor.app
 import com.github.hanseter.json.editor.*
 import com.github.hanseter.json.editor.base.TestUtils
 import com.github.hanseter.json.editor.base.TestUtils.loadSchema
+import com.github.hanseter.json.editor.types.SupportedType
 import com.github.hanseter.json.editor.types.TypeModel
 import com.github.hanseter.json.editor.ui.PropertiesEditorToolbar
 import com.github.hanseter.json.editor.util.CustomizationObject
@@ -17,10 +18,12 @@ import javafx.scene.control.Button
 import javafx.scene.control.CheckBox
 import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import org.everit.json.schema.StringSchema
 import org.json.JSONObject
+import org.json.JSONPointer
 import org.json.JSONTokener
 import java.net.URI
 import java.util.stream.Stream
@@ -59,6 +62,7 @@ class JsonPropertiesEditorTestApp : Application() {
         }
 
         propEdit.valid.addListener { _, _, new -> println("Is valid: $new") }
+
         primaryStage.scene = Scene(buildUi(propEdit), 800.0, 800.0)
         primaryStage.show()
     }
@@ -117,7 +121,11 @@ class JsonPropertiesEditorTestApp : Application() {
 
         val updateViewOptions = { _: Any? ->
             val newViewOptions =
-                ViewOptions(showStars.isSelected, groupBy.selectionModel.selectedItem, idRefDisplayMode = refDisplayModeComboBox.value)
+                ViewOptions(
+                    showStars.isSelected,
+                    groupBy.selectionModel.selectedItem,
+                    idRefDisplayMode = refDisplayModeComboBox.value
+                )
 
             propEdit.viewOptions = newViewOptions
         }
@@ -125,7 +133,6 @@ class JsonPropertiesEditorTestApp : Application() {
         showStars.selectedProperty().addListener(updateViewOptions)
         groupBy.selectionModel.selectedItemProperty().addListener(updateViewOptions)
         refDisplayModeComboBox.valueProperty().addListener(updateViewOptions)
-
 
 
         val scrollToFirstButton = Button("Scroll to 1.").apply {
@@ -152,6 +159,7 @@ class JsonPropertiesEditorTestApp : Application() {
                 }
             }
         }
+        VBox.setVgrow(propEdit, Priority.ALWAYS)
         return VBox(
             HBox(
                 showStars,
@@ -260,6 +268,15 @@ class TestCustomizationObject : CustomizationObject {
             return "combined object (${(model.value as? JSONObject)?.optString("a")})"
         }
         return defaultTitle
+    }
+
+    override fun getNullStringPreview(model: TypeModel<String?, SupportedType.SimpleType.StringType>): String? {
+        val delegatedDefault =
+            model.schema.schemaForValidation.unprocessedProperties["defaultFrom"] as? String
+                ?: return super.getNullStringPreview(model)
+        val pointer = JSONPointer(delegatedDefault)
+        val data = model.bound?.rootType?.getValue() ?: return super.getNullStringPreview(model)
+        return data.optQuery(pointer) as? String
     }
 
 }

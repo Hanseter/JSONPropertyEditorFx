@@ -2,6 +2,7 @@ package com.github.hanseter.json.editor.types
 
 import com.github.hanseter.json.editor.controls.DoubleControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.util.EditorContext
 import javafx.util.StringConverter
 import org.everit.json.schema.NumberSchema
 import java.text.DecimalFormat
@@ -12,8 +13,8 @@ import kotlin.math.roundToInt
 
 class FormattedIntegerModel(
     schema: EffectiveSchema<NumberSchema>,
-    decimalFormatSymbols: DecimalFormatSymbols
-) : IntegerModel(schema) {
+    context: EditorContext
+) : IntegerModel(schema, context) {
 
     class IntFormat(
         unprocessedProperties: Map<String, Any>,
@@ -51,7 +52,7 @@ class FormattedIntegerModel(
         }
     }
 
-    val intFormat = IntFormat(schema.baseSchema.unprocessedProperties, decimalFormatSymbols)
+    val intFormat = IntFormat(schema.baseSchema.unprocessedProperties, context.decimalFormatSymbols)
 
     override val previewString: PreviewString
         get() = PreviewString.create(

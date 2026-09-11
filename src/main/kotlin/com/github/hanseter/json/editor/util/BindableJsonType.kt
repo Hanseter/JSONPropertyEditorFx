@@ -1,9 +1,12 @@
 package com.github.hanseter.json.editor.util
 
-import com.github.hanseter.json.editor.SchemaNormalizer
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
+import com.github.hanseter.json.editor.types.ArrayModel
+import com.github.hanseter.json.editor.types.SupportedType
+import com.github.hanseter.json.editor.types.TypeModel
 import org.json.JSONArray
 import org.json.JSONObject
+import sun.util.calendar.CalendarUtils.mod
 
 abstract class BindableJsonType(private val parent: BindableJsonType?) {
     private var listeners = listOf<() -> Unit>()
@@ -42,6 +45,14 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
     val rootType: RootBindableType
         get() = getRootType(this)
 
+    fun <T, R: SupportedType<T> > valueOrDefault(model: TypeModel<T, R>): T? {
+        return when (val value = getValue(model.schema)?.let { model.supportedType.coerce(it) }) {
+            null -> model.defaultValue
+            JSONObject.NULL -> null
+            else -> value
+        }
+    }
+
     companion object {
 
         private fun jsonAwareEquals(a: Any?, b: Any?): Boolean {
@@ -59,17 +70,5 @@ abstract class BindableJsonType(private val parent: BindableJsonType?) {
             else getRootType(ref.parent)
         }
 
-        fun <T> convertValue(value: Any?, schema: EffectiveSchema<*>, converter: (Any) -> T?): T? =
-            when (value) {
-                null -> schema.baseSchema.defaultValue?.let { SchemaNormalizer.deepCopy(converter(it)) }
-                JSONObject.NULL -> null
-                else -> {
-                    val converted = converter(value)
-                    if (converted == null) {
-                        //TODO This should not happen with correct data and should be logged
-                    }
-                    converted
-                }
-            }
     }
 }

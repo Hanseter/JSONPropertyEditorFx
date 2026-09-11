@@ -5,9 +5,11 @@ import com.github.hanseter.json.editor.controls.TypeControl
 import com.github.hanseter.json.editor.extensions.EffectiveSchema
 import com.github.hanseter.json.editor.extensions.SimpleEffectiveSchema
 import com.github.hanseter.json.editor.i18n.JsonPropertiesMl
+import com.github.hanseter.json.editor.util.DefaultCustomizationObject
 import com.github.hanseter.json.editor.util.EditorContext
 import com.github.hanseter.json.editor.util.IdRefDisplayMode
 import com.github.hanseter.json.editor.util.RootBindableType
+import jdk.javadoc.internal.doclets.toolkit.util.DocPath.parent
 import org.controlsfx.validation.Severity
 import org.everit.json.schema.ValidationException
 import org.json.JSONArray
@@ -67,7 +69,8 @@ object ValidationEngine {
                 {},
                 IdRefDisplayMode.ID_ONLY,
                 DecimalFormat().decimalFormatSymbols,
-                controlFactory
+                controlFactory,
+                { DefaultCustomizationObject }
             )
         )
         control.bindTo(RootBindableType(elemId, data))
@@ -135,8 +138,7 @@ object ValidationEngine {
             val defaultValue = schema.defaultValue
             if (defaultValue != null) {
                 val pointer = schema.pointer
-                val parent =
-                    org.json.JSONPointer(pointer.dropLast(1)).queryFrom(copy) as? JSONObject
+                val parent = copy.optQuery(org.json.JSONPointer(pointer.dropLast(1))) as? JSONObject
                 if (parent != null && !parent.has(pointer.last())) {
                     parent.put(pointer.last(), schema.defaultValue)
                 }
