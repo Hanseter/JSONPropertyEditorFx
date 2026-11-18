@@ -60,6 +60,7 @@ class IdReferenceControl(
 
         property.addListener { _, _, new ->
             if (internalChange) return@addListener
+            internalChange = true
             val preview = when {
                 new == null -> null
                 new.isBlank() -> Preview(new, "")
@@ -70,6 +71,7 @@ class IdReferenceControl(
                     )
             }
             idChanged(preview)
+            internalChange = false
         }
         control.textProperty().addListener { _, _, new ->
             if (internalChange) return@addListener
