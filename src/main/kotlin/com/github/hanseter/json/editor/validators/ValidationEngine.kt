@@ -139,8 +139,7 @@ object ValidationEngine {
             val defaultValue = schema.defaultValue
             if (defaultValue != null) {
                 val pointer = schema.pointer
-                val parent =
-                    org.json.JSONPointer(pointer.dropLast(1)).queryFrom(copy) as? JSONObject
+                val parent = copy.optQuery(org.json.JSONPointer(pointer.dropLast(1))) as? JSONObject
                 if (parent != null && !parent.has(pointer.last())) {
                     parent.put(pointer.last(), schema.defaultValue)
                 }
